@@ -6,7 +6,7 @@ Ability_Torpedo.__index = Ability_Torpedo
 function Ability_Torpedo.add(spellIds, debugName)
 	local knownSpellId = -1
 	for i=1, #spellIds do
-		if IsKnownSpell(spellIds[i]) then
+		if IsSpellKnown(spellIds[i]) then
 			knownSpellId = i
 			break
 		end
@@ -30,21 +30,21 @@ end
 
 function Ability_Torpedo:usable()
 	for i=1, #self.spellIds do
-		if IsKnownSpell(self.spellIds[i]) and IsUsableSpell(self.spellIds[i]) then return true end
+		if IsSpellKnown(self.spellIds[i]) and IsUsableSpell(self.spellIds[i]) then return true end
 	end
 	return false
 end
 
 function Ability_Torpedo:firstKnownSpellId() 
 	for i=1, #self.spellIds do
-		if IsKnownSpell(self.spellIds[i]) then return self.spellIds[i] end
+		if IsSpellKnown(self.spellIds[i]) then return self.spellIds[i] end
 	end
 	return false
 end
 
 function Ability_Torpedo:known()
 	for i=1, #self.spellIds do
-		if IsKnownSpell(self.spellIds[i]) then return true end
+		if IsSpellKnown(self.spellIds[i]) then return true end
 	end
 	return false
 end

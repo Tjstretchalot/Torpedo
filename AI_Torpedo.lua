@@ -411,7 +411,7 @@ function AI_Assassination_CDs()
 		AI_Philosophizer_Torpedo({
 			-- If we are below 50% health, and evasion is off cooldown & not active, suggest evasion.
 			-- If you are wondering when it wouldn't be on cooldown and is active, consider Preperation --
-			AI_IsKnownSpell(abilities_Torpedo['Evasion']),
+			AI_IsSpellKnown_Torpedo(abilities_Torpedo['Evasion']),
 			AI_InCombat_Torpedo(),
 			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Evasion']),
 			AI_HealthBetween_Torpedo('player', 0, 50),
@@ -422,6 +422,7 @@ function AI_Assassination_CDs()
 			-- If combat readiness is not on cooldown, and if evasion is not active and we
 			-- are below 50% health, suggest combat readiness --
 			-- Note that combat readiness stacks negatively with evasion, hence all this effort --
+			AI_IsSpellKnown_Torpedo(abilities_Torpedo['Combat Readiness']),
 			AI_InCombat_Torpedo(),
 			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Combat Readiness']),
 			AI_HealthBetween_Torpedo('player', 0, 50),
@@ -431,6 +432,7 @@ function AI_Assassination_CDs()
 		AI_Philosophizer_Torpedo({
 			-- If we are below 50% health, we have the energy, and Feint is not active, then suggest
 			-- Feint --
+			AI_IsSpellKnown_Torpedo(abilities_Torpedo['Feint']),
 			AI_InCombat_Torpedo(),
 			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Feint']),
 			AI_EnergyBetween_Torpedo(20 - PREP_TIME_ENERGY, UNLIM_ENERGY),
@@ -441,6 +443,7 @@ function AI_Assassination_CDs()
 		AI_Philosophizer_Torpedo({
 			-- If we are below 50% health, we have the energy, we have 3-5 combo points, and we don't
 			-- have recuperate active, suggest recuperate --
+			AI_IsSpellKnown_Torpedo(abilities_Torpedo['Recuperate']),
 			AI_InCombat_Torpedo(),
 			AI_EnergyBetween_Torpedo(30 - PREP_TIME_ENERGY, UNLIM_ENERGY),
 			AI_HealthBetween_Torpedo('player', 0, 50),
@@ -451,6 +454,7 @@ function AI_Assassination_CDs()
 		AI_Philosophizer_Torpedo({
 			-- If we are below 85% health, we have the energy, we have 5 combo points, we have recuperate
 			-- applied and we have less than 10 seconds remaining on it, recommend recuperate --
+			AI_IsSpellKnown_Torpedo(abilities_Torpedo['Recuperate']),
 			AI_InCombat_Torpedo(),
 			AI_EnergyBetween_Torpedo(30 - PREP_TIME_ENERGY, UNLIM_ENERGY),
 			AI_HealthBetween_Torpedo('player', 0, 85),
@@ -463,6 +467,9 @@ function AI_Assassination_CDs()
 			-- If we can vanish, we are in combat, we have envenom for at least 2 more seconds,
 			-- we have rupture for at least 4 more seconds, we have enough energy to cast
 			-- mutilate while stealthed, and we have 0-3 combo points, recommend vanish. --
+			AI_IsSpellKnown_Torpedo(abilities_Torpedo['Vanish']),
+			AI_IsSpellKnown_Torpedo(abilities_Torpedo['Envenom']),
+			AI_IsSpellKnown_Torpedo(abilities_Torpedo['Rupture']),
 			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Vanish']),
 			AI_InCombat_Torpedo(),
 			AI_BuffTimeRemainingBetween_Torpedo(buffs_Torpedo['Envenom'], 2, UNLIM_TIME),
@@ -476,6 +483,10 @@ function AI_Assassination_CDs()
 			-- either no envenom or less than three seconds left on it, we have no rupture or less
 			-- than 10 seconds on it, and we have exactly 5 combo points, then recommend shadow 
 			-- reflection --  
+			AI_IsSpellKnown_Torpedo(abilities_Torpedo['Shadow Reflection']),
+			AI_IsSpellKnown_Torpedo(abilities_Torpedo['Vendetta']),
+			AI_IsSpellKnown_Torpedo(abilities_Torpedo['Envenom']),
+			AI_IsSpellKnown_Torpedo(abilities_Torpedo['Rupture']),
 			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Shadow Reflection']),
 			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Vendetta']),
 			AI_InCombat_Torpedo(),
