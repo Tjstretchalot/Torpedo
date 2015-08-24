@@ -1,7 +1,7 @@
 --[[
 	Torpedo by Tjstretchalot, Huge credit to Jpapertowels and szandos for
 	the interface code in Claw, which I used as a strong reference in creating
-	this.
+	this. 
 ]]--
 
 -- Interface Code, the torpedo panel handles the main recommendation, whereas
