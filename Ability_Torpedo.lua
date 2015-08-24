@@ -4,7 +4,18 @@ Ability_Torpedo = {}
 Ability_Torpedo.__index = Ability_Torpedo
 
 function Ability_Torpedo.add(spellIds, debugName)
-	local name, _, icon = GetSpellInfo(spellIds[1])
+	local knownSpellId = -1
+	for i=1, #spellIds do
+		if IsKnownSpell(spellIds[i]) then
+			knownSpellId = i
+			break
+		end
+	end
+	
+	local name, icon
+	if knownSpellId ~= -1 then
+		name, _, icon = GetSpellInfo(spellIds[knownSpellId])
+	end
 	local ability = {
 		spellIds = spellIds,
 		name = name,
@@ -18,12 +29,29 @@ function Ability_Torpedo.add(spellIds, debugName)
 end
 
 function Ability_Torpedo:usable()
-	return IsUsableSpell(self.spellIds[1])
+	for i=1, #self.spellIds do
+		if IsKnownSpell(self.spellIds[i]) and IsUsableSpell(self.spellIds[i]) then return true end
+	end
+	return false
+end
+
+function Ability_Torpedo:firstKnownSpellId() 
+	for i=1, #self.spellIds do
+		if IsKnownSpell(self.spellIds[i]) then return self.spellIds[i] end
+	end
+	return false
+end
+
+function Ability_Torpedo:known()
+	for i=1, #self.spellIds do
+		if IsKnownSpell(self.spellIds[i]) then return true end
+	end
+	return false
 end
 
 Ability_Torpedo.add({1784},   'Stealth')
-Ability_Torpedo.add({1329},   'Mutilate') 
-Ability_Torpedo.add({145416}, 'Envenom')
+Ability_Torpedo.add({1329, 1752},   'Mutilate') 
+Ability_Torpedo.add({145416, 2098}, 'Envenom')
 Ability_Torpedo.add({1856},   'Vanish')
 Ability_Torpedo.add({2764},   'Throw')
 Ability_Torpedo.add({51723},  'Fan of Knives')
@@ -36,6 +64,7 @@ Ability_Torpedo.add({5277}, 'Evasion')
 Ability_Torpedo.add({74001}, 'Combat Readiness')
 Ability_Torpedo.add({1966}, 'Feint')
 Ability_Torpedo.add({73651}, 'Recuperate')
+Ability_Torpedo.add({145418}, 'Slice and Dice')
 
 auras_Torpedo = {}
 auras_Torpedo['player'] = {}
@@ -133,3 +162,4 @@ Buff_Torpedo.add({5277}, 'player', 'Evasion')
 Buff_Torpedo.add({74001}, 'player', 'Combat Readiness')
 Buff_Torpedo.add({1966}, 'player', 'Feint')
 Buff_Torpedo.add({73651}, 'player', 'Recuperate')
+Buff_Torpedo.add({145418}, 'player', 'Slice and Dice')

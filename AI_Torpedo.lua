@@ -51,7 +51,7 @@ function AI_Philosophizer_Torpedo(ais)
 	result.ais = ais
 	result.performDecision = function(self)
 		local result = nil
-		for i=1, #self.ais - 1 do
+		for i=1, #self.ais do
 			result = self.ais[i]:performDecision()
 			if result.decisionType ~= AIDecision_YES_Torpedo then 
 				return AIDecision_Torpedo.create(AIDecision_NO_Torpedo, nil)
@@ -108,6 +108,18 @@ function AI_DebugPrint_Torpedo(msg)
 	return result
 end	
 --         =========INTERMEDIATE BEHAVIORS =========
+function AI_SpellKnown_Torpedo(unit, ability)
+	local result = AI_Torpedo.create()
+	result.ability = ability
+	result.performDecision = function(self)
+		if self.ability:known() then
+			return AIDecision_Torpedo.create(AIDecision_YES_Torpedo, nil)
+		end
+		return AIDecision_Torpedo.create(AIDecision_NO_Torpedo, nil)
+	end
+	return result
+end
+
 function AI_HealthBetween_Torpedo(unit, minHPPerc, maxHPPerc)
 	local result = AI_Torpedo.create()
 	result.minHPPerc = minHPPerc
@@ -228,7 +240,7 @@ function AI_BuffStacksBetween_Torpedo(buff, minStacks, maxStacks)
 		end
 		return AIDecision_Torpedo.create(AIDecision_NO_Torpedo, nil)
 	end
-end
+end	
 
 function AI_ComboPointsBetween_Torpedo(minComboPoints, maxComboPoints)
 	local result = AI_Torpedo.create()
@@ -282,22 +294,27 @@ function AI_Assassination_Main()
 	return AI_Repeater_Torpedo({
 		AI_Philosophizer_Torpedo({
 			-- If we don't have deadly poison, we should apply it. (Note this accounts for wound poison) --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Deadly Poison']),
 			AI_Invert_Torpedo(AI_BuffActive_Torpedo(buffs_Torpedo['Deadly Poison'])),
 			AI_Final_Torpedo(abilities_Torpedo['Deadly Poison'])
 		}),
 		AI_Philosophizer_Torpedo({
 			-- If we haven't started combat yet, make sure we're stealthed --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Stealth']),
 			AI_Invert_Torpedo(AI_InCombat_Torpedo()),
 			AI_Invert_Torpedo(AI_BuffActive_Torpedo(buffs_Torpedo['Stealth'])),
 			AI_Final_Torpedo(abilities_Torpedo['Stealth'])
 		}),
 		AI_Philosophizer_Torpedo({
 			-- If we are stealthed, we should open with mutilate. (Includes Vanish) --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Stealth']),
 			AI_BuffActive_Torpedo(buffs_Torpedo['Stealth']),
 			AI_Final_Torpedo(abilities_Torpedo['Mutilate'])
 		}),
 		AI_Philosophizer_Torpedo({
 			-- If we applied Shadow Reflection and not Vendetta, apply Vendetta --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Shadow Reflection']),
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Vendetta']),
 			AI_BuffActive_Torpedo(buffs_Torpedo['Shadow Reflection']),
 			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Vendetta']),
 			AI_Final_Torpedo(abilities_Torpedo['Vendetta'])
@@ -307,6 +324,7 @@ function AI_Assassination_Main()
 			-- crit chance on next Mutilate, Dispatch, Envenom), then we should either Envenom
 			-- (4-5 combo points) or mutilate, or Dispatch. --
 			-- This ensures we are not pooling energy & wastiing enhanced vendetta --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Vendetta']),
 			AI_BuffActive_Torpedo(buffs_Torpedo['Enhanced Vendetta']),
 			AI_Repeater_Torpedo({
 				AI_Philosophizer_Torpedo({
@@ -319,6 +337,7 @@ function AI_Assassination_Main()
 		AI_Philosophizer_Torpedo({
 			-- If rupture has less than 8 seconds remaining, or is not active, and we
 			-- have enough energy, and we have 5 combo points, we should apply rupture --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Rupture']),
 			AI_EnergyBetween_Torpedo(25 - PREP_TIME_ENERGY, UNLIM_ENERGY),
 			AI_BuffTimeRemainingBetween_Torpedo(buffs_Torpedo['Rupture'], -1, 8),
 			AI_ComboPointsBetween_Torpedo(5, 5),
@@ -326,6 +345,7 @@ function AI_Assassination_Main()
 		}),
 		AI_Philosophizer_Torpedo({
 			-- Use Envenom if it will refresh the duration without waste, and we have 5 combo points --
+			AI_SpellKnown_Torpedo('Envenom'),
 			AI_BuffTimeRemainingBetween_Torpedo(buffs_Torpedo['Envenom'], -1, 1.8),
 			AI_ComboPointsBetween_Torpedo(5, 5),
 			AI_Final_Torpedo(abilities_Torpedo['Envenom'])
@@ -334,13 +354,19 @@ function AI_Assassination_Main()
 			-- Use Envenom if we are near energy cap and have 5 combo points, and have 3 or more Anticipation 
 			-- stacks, regardless of current duration. This mostly happens when we have some sort of haste buff,
 			-- such as Heroism --
+			AI_SpellKnown_Torpedo('Envenom'),
 			AI_ComboPointsBetween_Torpedo(5, 5),
-			AI_BuffStacksBetween_Torpedo(buffs_Torpedo['Anticipation'], 3, 5),
+			AI_Repeater_Torpedo({ -- Either we don't know anticipation or we have 3-5 stacks of it
+				AI_Invert_Torpedo(AI_SpellKnown_Torpedo('Anticipation')),
+				AI_BuffStacksBetween_Torpedo(buffs_Torpedo['Anticipation'], 3, 5)
+
+			}),
 			AI_EnergyCapTimeLessThan_Torpedo(3),
 			AI_Final_Torpedo(abilities_Torpedo['Envenom'])
 		}),
 		AI_Philosophizer_Torpedo({
 			-- If we can dispatch and it will not waste a combo point, use dispatch --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Dispatch']),
 			AI_IsUsableSpell_Torpedo(abilities_Torpedo['Dispatch']),
 			AI_ComboPointsBetween_Torpedo(0, 4),
 			AI_Final_Torpedo(abilities_Torpedo['Dispatch'])
@@ -348,6 +374,7 @@ function AI_Assassination_Main()
 		AI_Philosophizer_Torpedo({
 			-- If we have blindside (free dispatch), and we have Envenom up, we should
 			-- use dispatch. --
+			AI_SpellKnown_Torpedo('Blindside'), 
 			AI_BuffActive_Torpedo(buffs_Torpedo['Blindside']),
 			AI_BuffActive_Torpedo(buffs_Torpedo['Envenom']),
 			AI_Final_Torpedo(abilities_Torpedo['Dispatch'])
@@ -360,6 +387,7 @@ function AI_Assassination_Main()
 		}),
 		AI_Philosophizer_Torpedo({
 			-- If we can use dispatch and we're close to energy cap, we should use dispatch --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Dispatch']),
 			AI_IsUsableSpell_Torpedo(abilities_Torpedo['Dispatch']),
 			AI_EnergyCapTimeLessThan_Torpedo(3),
 			AI_Final_Torpedo(abilities_Torpedo['Dispatch'])
@@ -383,6 +411,7 @@ function AI_Assassination_CDs()
 		AI_Philosophizer_Torpedo({
 			-- If we are below 50% health, and evasion is off cooldown & not active, suggest evasion.
 			-- If you are wondering when it wouldn't be on cooldown and is active, consider Preperation --
+			AI_IsKnownSpell(abilities_Torpedo['Evasion']),
 			AI_InCombat_Torpedo(),
 			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Evasion']),
 			AI_HealthBetween_Torpedo('player', 0, 50),
