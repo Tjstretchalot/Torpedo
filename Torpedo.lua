@@ -122,6 +122,10 @@ function events:PLAYER_LOGIN()
 	if classIndex ~= 4 then
 		DisableAddOn('Torpedo')
 		return 0
+	else
+		LoadAbilitiesAndBuffs_Torpedo()
+		Torpedo_Temp.ai_main = AI_Assassination_Main()
+		Torpedo_Temp.ai_cd = AI_Assassination_CDs()
 	end
 	Torpedo_Temp.me = UnitGUID('player')
 	CreateOverlayGlows()
@@ -230,14 +234,17 @@ local function UpdateCDAbility(newCDAbility)
 end
 
 local abilityTimer = 0
-local ai_main = AI_Assassination_Main()
-local ai_cd = AI_Assassination_CDs()
 torpedoPanel:SetScript('OnUpdate', function(self, elapsed)
+	if not Torpedo_Temp.ai_main or not Torpedo_Temp.ai_cd then 
+		print('AIs not loaded!')
+		return 
+	end
+	
 	abilityTimer = abilityTimer + elapsed
 	if abilityTimer >= 0.05 then -- frequency
 		UpdateAuras_Torpedo()
-		local mainDecision = ai_main:performDecision()
-		local cdDecision = ai_cd:performDecision()
+		local mainDecision = Torpedo_Temp.ai_main:performDecision()
+		local cdDecision = Torpedo_Temp.ai_cd:performDecision()
 		local newMainAbility = mainDecision and mainDecision.ability or nil
 		local newCDAbility = cdDecision and cdDecision.ability or nil
 		

@@ -6,7 +6,8 @@ Ability_Torpedo.__index = Ability_Torpedo
 function Ability_Torpedo.add(spellIds, debugName)
 	local knownSpellId = -1
 	for i=1, #spellIds do
-		if IsSpellKnown(spellIds[i]) then
+		local known = IsSpellKnown(spellIds[i])
+		if known then
 			knownSpellId = i
 			break
 		end
@@ -15,12 +16,13 @@ function Ability_Torpedo.add(spellIds, debugName)
 	local name, icon
 	if knownSpellId ~= -1 then
 		name, _, icon = GetSpellInfo(spellIds[knownSpellId])
+	else
+		print(debugName..' not known')
 	end
 	local ability = {
 		spellIds = spellIds,
 		name = name,
 		icon = icon,
-		known = IsPlayerSpell(spellIds[1]),
 		debugName = debugName
 	}
 	setmetatable(ability, Ability_Torpedo)
@@ -43,28 +45,18 @@ function Ability_Torpedo:firstKnownSpellId()
 end
 
 function Ability_Torpedo:known()
+	if debugName == 'Dispatch' then
+		if not abilities_Torpedo['Actual Mutilate']:known() then
+			return false
+		end
+	end
+	
 	for i=1, #self.spellIds do
 		if IsSpellKnown(self.spellIds[i]) then return true end
 	end
 	return false
 end
 
-Ability_Torpedo.add({1784},   'Stealth')
-Ability_Torpedo.add({1329, 1752},   'Mutilate') 
-Ability_Torpedo.add({145416, 2098}, 'Envenom')
-Ability_Torpedo.add({1856},   'Vanish')
-Ability_Torpedo.add({2764},   'Throw')
-Ability_Torpedo.add({51723},  'Fan of Knives')
-Ability_Torpedo.add({1943},   'Rupture')
-Ability_Torpedo.add({111240}, 'Dispatch')
-Ability_Torpedo.add({152151}, 'Shadow Reflection')
-Ability_Torpedo.add({79140},  'Vendetta')
-Ability_Torpedo.add({2823, 129412}, 'Deadly Poison')
-Ability_Torpedo.add({5277}, 'Evasion')
-Ability_Torpedo.add({74001}, 'Combat Readiness')
-Ability_Torpedo.add({1966}, 'Feint')
-Ability_Torpedo.add({73651}, 'Recuperate')
-Ability_Torpedo.add({145418}, 'Slice and Dice')
 
 auras_Torpedo = {}
 auras_Torpedo['player'] = {}
@@ -150,16 +142,40 @@ function Buff_Torpedo.down()
 	return not self:up()
 end
 
-Buff_Torpedo.add({1784, 11327},   'player', 'Stealth')
-Buff_Torpedo.add({1943},   'target', 'Rupture')
-Buff_Torpedo.add({32645}, 'player', 'Envenom')
-Buff_Torpedo.add({152151}, 'target', 'Shadow Reflection')
-Buff_Torpedo.add({158108}, 'player', 'Enhanced Vendetta')
-Buff_Torpedo.add({121153}, 'player', 'Blindside') -- Free dispatch --
-Buff_Torpedo.add({115189}, 'player', 'Anticipation')
-Buff_Torpedo.add({2823}, 'player', 'Deadly Poison')
-Buff_Torpedo.add({5277}, 'player', 'Evasion')
-Buff_Torpedo.add({74001}, 'player', 'Combat Readiness')
-Buff_Torpedo.add({1966}, 'player', 'Feint')
-Buff_Torpedo.add({73651}, 'player', 'Recuperate')
-Buff_Torpedo.add({145418}, 'player', 'Slice and Dice')
+function LoadAbilitiesAndBuffs_Torpedo() 
+	Ability_Torpedo.add({1784},   'Stealth')
+	Ability_Torpedo.add({1329, 1752},   'Mutilate') 
+	Ability_Torpedo.add({1329}, 'Actual Mutilate')
+	Ability_Torpedo.add({145416, 2098}, 'Envenom')
+	Ability_Torpedo.add({1856},   'Vanish')
+	Ability_Torpedo.add({121733},   'Throw')
+	Ability_Torpedo.add({51723},  'Fan of Knives')
+	Ability_Torpedo.add({1943},   'Rupture')
+	Ability_Torpedo.add({111240, 1752}, 'Dispatch') -- So apparently dispatch replaces sinister strike - Y U DO THIS.
+	Ability_Torpedo.add({152151}, 'Shadow Reflection')
+	Ability_Torpedo.add({79140},  'Vendetta')
+	Ability_Torpedo.add({2823, 8679}, 'Deadly Poison')
+	Ability_Torpedo.add({5277}, 'Evasion')
+	Ability_Torpedo.add({74001}, 'Combat Readiness')
+	Ability_Torpedo.add({1966}, 'Feint')
+	Ability_Torpedo.add({73651}, 'Recuperate')
+	Ability_Torpedo.add({145418}, 'Slice and Dice')
+	Ability_Torpedo.add({157513}, 'Improved Slice and Dice')
+	Ability_Torpedo.add({114015}, 'Anticipation')
+	
+	Buff_Torpedo.add({1784, 11327},   'player', 'Stealth')
+	Buff_Torpedo.add({1943},   'target', 'Rupture')
+	Buff_Torpedo.add({32645}, 'player', 'Envenom')
+	Buff_Torpedo.add({152151}, 'target', 'Shadow Reflection')
+	Buff_Torpedo.add({158108}, 'player', 'Enhanced Vendetta')
+	Buff_Torpedo.add({121153}, 'player', 'Blindside') -- Free dispatch --
+	Buff_Torpedo.add({115189}, 'player', 'Anticipation')
+	Buff_Torpedo.add({2823, 8679}, 'player', 'Deadly Poison')
+	Buff_Torpedo.add({5277}, 'player', 'Evasion')
+	Buff_Torpedo.add({74001}, 'player', 'Combat Readiness')
+	Buff_Torpedo.add({1966}, 'player', 'Feint')
+	Buff_Torpedo.add({73651}, 'player', 'Recuperate')
+	Buff_Torpedo.add({145418}, 'player', 'Slice and Dice')
+end
+
+
