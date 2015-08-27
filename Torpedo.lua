@@ -7,12 +7,39 @@
 -- Interface Code, the torpedo panel handles the main recommendation, whereas
 -- the torpedoCooldownPanel handles the cooldowns / secondary recommendations
 Torpedo = {}
+
+local function InitializeVariables()
+	for k,v in pairs({
+		torpedoPanelX = 500,
+		torpedoPanelY = -50
+	}) do
+		if Torpedo[k] == nil then 
+			Torpedo[k] = v
+		end
+	end
+	
+	if torpedoPanel then
+		torpedoPanel:SetPoint('TOPLEFT', Torpedo.torpedoPanelX, Torpedo.torpedoPanelY)
+	end
+end
+
 Torpedo_Temp = {}
 local torpedoPanel = CreateFrame('Frame', 'torpedoPanel', UIParent)
 torpedoPanel:SetPoint('TOPLEFT', 500, -50)
 torpedoPanel:SetFrameStrata('BACKGROUND')
 torpedoPanel:SetSize(64, 64)
 torpedoPanel:SetMovable(true)
+torpedoPanel:EnableMouse(true)
+torpedoPanel:SetMovable(true)
+torpedoPanel:RegisterForDrag('LeftButton')
+torpedoPanel:SetScript('OnDragStart', function() 
+	torpedoPanel:StartMoving()
+	torpedoCooldownPanel:StartMoving()
+end)
+torpedoPanel:SetScript('OnDragStop', function()
+	torpedoPanel:StopMovingOrSizing()
+	torpedoCooldownPanel:StopMovingOrSizing()
+end)
 torpedoPanel:Hide()
 torpedoPanel.icon = torpedoPanel:CreateTexture(nil, 'BACKGROUND')
 torpedoPanel.icon:SetAllPoints(torpedoPanel)
@@ -31,6 +58,7 @@ local torpedoCooldownPanel = CreateFrame('Frame', 'torpedoCooldownPanel', UIPare
 torpedoCooldownPanel:SetPoint('BOTTOMLEFT', torpedoPanel, 'BOTTOMRIGHT', 10, -5)
 torpedoCooldownPanel:SetSize(64, 64)
 torpedoCooldownPanel:SetFrameStrata('BACKGROUND')
+torpedoCooldownPanel:SetMovable(true)
 torpedoCooldownPanel:Hide()
 torpedoCooldownPanel.icon = torpedoCooldownPanel:CreateTexture(nil, 'BACKGROUND')
 torpedoCooldownPanel.icon:SetAllPoints(torpedoCooldownPanel)
@@ -181,6 +209,7 @@ function events:ADDON_LOADED(name)
 		-- we just got loaded
 		torpedoPanel:SetScale(1)
 		torpedoCooldownPanel:SetScale(0.7)
+		InitializeVariables()
 	end
 end
 
