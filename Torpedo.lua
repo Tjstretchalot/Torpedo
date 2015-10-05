@@ -151,7 +151,6 @@ function events:PLAYER_LOGIN()
 		DisableAddOn('Torpedo')
 		return 0
 	else
-		LoadAbilitiesAndBuffs_Torpedo()
 		events:PLAYER_SPECIALIZATION_CHANGED('player')
 		events:PLAYER_EQUIPMENT_CHANGED()
 	end
@@ -175,6 +174,7 @@ function events:PLAYER_REGEN_ENABLED()
 end
 
 function events:PLAYER_TARGET_CHANGED()
+	if Torpedo_Temp.ai_main == nil then return end
 	local prevHostile = Target.hostile
 	Target.hostile = UnitCanAttack('player', 'target') and not UnitIsDead('target')
 	
@@ -200,9 +200,13 @@ function events:PLAYER_SPECIALIZATION_CHANGED(unitName)
 		local id, name, description, icon, background, role = GetSpecializationInfo(specNumber)
 		
 		if id ~= 259 and Torpedo_Temp.ai_main ~= nil then
+			abilities_Torpedo = {}
+			buffs_Torpedo = {}
 			Torpedo_Temp.ai_main = nil
 			Torpedo_Temp.ai_cd = nil
+			Disappear()
 		elseif id == 259 and Torpedo_Temp.ai_main == nil then
+			LoadAbilitiesAndBuffs_Torpedo()
 			Torpedo_Temp.ai_main = AI_Assassination_Main()
 			Torpedo_Temp.ai_cd = AI_Assassination_CDs()
 		end
