@@ -201,7 +201,7 @@ function events:PLAYER_SPECIALIZATION_CHANGED(unitName)
 		if id ~= 259 and Torpedo_Temp.ai_main ~= nil then
 			Torpedo_Temp.ai_main = nil
 			Torpedo_Temp.ai_cd = nil
-		else if id == 259 and Torpedo_Temp.ai_main == nil then
+		elseif id == 259 and Torpedo_Temp.ai_main == nil then
 			Torpedo_Temp.ai_main = AI_Assassination_Main()
 			Torpedo_Temp.ai_cd = AI_Assassination_CDs()
 		end
