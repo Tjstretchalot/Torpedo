@@ -153,6 +153,7 @@ function events:PLAYER_LOGIN()
 	else
 		LoadAbilitiesAndBuffs_Torpedo()
 		events:PLAYER_SPECIALIZATION_CHANGED('player')
+		events:PLAYER_EQUIPMENT_CHANGED()
 	end
 	Torpedo_Temp.me = UnitGUID('player')
 	CreateOverlayGlows()
@@ -208,9 +209,27 @@ function events:PLAYER_SPECIALIZATION_CHANGED(unitName)
 	end
 end
 
+function events:PLAYER_EQUIPMENT_CHANGED()
+	local tier18Head = 124263
+	local tier18Legs = 124269
+	local tier18Hand = 124257
+	local tier18Shou = 124274
+	local tier18Ches = 124248
+	
+	local tier18Pcs = {tier18Head, tier18Legs, tier18Hand, tier18Shou, tier18Ches}
+	local numTier18 = 0
+	for _, itemId in ipairs(tier18Pcs) do
+		if IsEquippedItem(itemId) then
+			numTier18 = numTier18 + 1
+		end
+	end
+	
+	Torpedo_Temp.numberOfTier18Pieces = numTier18
+end
+
 function events:PLAYER_ENTERING_WORLD()
 	events:PLAYER_SPECIALIZATION_CHANGED('player')
-	-- also equipment, but we don't care
+	events:PLAYER_EQUIPMENT_CHANGED()
 end
 
 function events:ADDON_LOADED(name)

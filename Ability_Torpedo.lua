@@ -162,6 +162,7 @@ function LoadAbilitiesAndBuffs_Torpedo()
 	Ability_Torpedo.add({145418}, 'Slice and Dice')
 	Ability_Torpedo.add({157513}, 'Improved Slice and Dice')
 	Ability_Torpedo.add({114015}, 'Anticipation')
+	Ability_Torpedo.add({14185}, 'Preparation')
 	
 	Buff_Torpedo.add({1784, 11327},   'player', 'Stealth')
 	Buff_Torpedo.add({1943},   'target', 'Rupture')

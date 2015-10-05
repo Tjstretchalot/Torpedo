@@ -319,6 +319,39 @@ function AI_SpellNotOnCooldown_Torpedo(ability)
 	return result
 end
 
+function AI_SpellCooldownBetween_Torpedo(ability, mincd, maxcd) 
+	local result = AI_Torpedo.create()
+	
+	result.ability = ability
+	result.mincd = mincd
+	result.maxcd = maxcd
+	result.performDecision = function(self)
+		local start, duration, _ = GetSpellCooldown(ability.name)
+		local timeLeft = 0
+		if duration ~= 0 then
+			timeLeft = (start + duration) - GetTime()
+		end
+		
+		if timeLeft >= mincd and timeLeft <= maxcd then
+			return AIDecision_Torpedo.create(AIDecision_YES_Torpedo, nil)
+		end
+		return AIDecision_Torpedo.create(AIDecision_NO_Torpedo, nil)
+	end
+	return result
+end
+
+function AI_HaveTier18FourSet_Torpedo()
+	local result = AI_Torpedo.create()
+	
+	result.performDecision = function(self)
+		if Torpedo_Temp.numberOfTier18Pieces >= 4 then
+			return AIDecision_Torpedo.create(AIDecision_YES_Torpedo, nil)
+		end
+		return AIDecision_Torpedo.create(AIDecision_NO_Torpedo, nil)
+	end
+	return result
+end
+
 --         ============ FINAL BEHAVIORS ============
 function AI_Assassination_Main()
 	local PREP_TIME_ENERGY = 5
@@ -356,7 +389,7 @@ function AI_Assassination_Main()
 			-- If we have just applied vendetta and acquired Enhanced Vendetta (Guarranteed
 			-- crit chance on next Mutilate, Dispatch, Envenom), then we should either Envenom
 			-- (4-5 combo points) or mutilate, or Dispatch. --
-			-- This ensures we are not pooling energy & wastiing enhanced vendetta --
+			-- This ensures we are not pooling energy & wasting enhanced vendetta --
 			AI_SpellKnown_Torpedo(abilities_Torpedo['Vendetta']),
 			AI_BuffActive_Torpedo(buffs_Torpedo['Enhanced Vendetta']),
 			AI_Repeater_Torpedo({
@@ -384,7 +417,7 @@ function AI_Assassination_Main()
 			AI_Final_Torpedo(abilities_Torpedo['Envenom'])
 		}),
 		AI_Philosophizer_Torpedo({
-			-- Use Envenom if we are near energy cap and have 5 combo points, and have 3 or more Anticipation 
+			-- Use Envenom if we are near energy cap, have 5 combo points, and have 3 or more Anticipation 
 			-- stacks, regardless of current duration. This mostly happens when we have some sort of haste buff,
 			-- such as Heroism --
 			AI_SpellKnown_Torpedo(abilities_Torpedo['Envenom']),
@@ -398,19 +431,21 @@ function AI_Assassination_Main()
 			AI_Final_Torpedo(abilities_Torpedo['Envenom'])
 		}),
 		AI_Philosophizer_Torpedo({
-			-- If we can dispatch and it will not waste a combo point, use dispatch --
+			-- Use envenom if we are near energy cap, have 5 combo points, have the 4pc tier 18,
+			-- and the enemy is below 35% health --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Envenom']),
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Dispatch']),
+			AI_HaveTier18FourSet_Torpedo(),
+			AI_ComboPointsBetween_Torpedo(5, 5),
+			AI_EnergyCapTimeLessThan_Torpedo(5),
+			AI_HealthBetween_Torpedo('target', 0, 35),
+			AI_Final_Torpedo(abilities_Torpedo['Envenom'])
+		}),
+		AI_Philosophizer_Torpedo({
+			-- If we can dispatch without wasting combo points use dispatch. --
 			AI_SpellKnown_Torpedo(abilities_Torpedo['Dispatch']),
 			AI_IsUsableSpell_Torpedo(abilities_Torpedo['Dispatch']),
 			AI_ComboPointsBetween_Torpedo(0, 4),
-			AI_Final_Torpedo(abilities_Torpedo['Dispatch'])
-		}),
-		AI_Philosophizer_Torpedo({
-			-- If we have blindside (free dispatch), and we have Envenom up, we should
-			-- use dispatch. --
-			AI_SpellKnown_Torpedo(abilities_Torpedo['Dispatch']), 
-			AI_SpellKnown_Torpedo(abilities_Torpedo['Envenom']),
-			AI_BuffActive_Torpedo(buffs_Torpedo['Blindside']),
-			AI_BuffActive_Torpedo(buffs_Torpedo['Envenom']),
 			AI_Final_Torpedo(abilities_Torpedo['Dispatch'])
 		}),
 		AI_Philosophizer_Torpedo({
@@ -418,13 +453,6 @@ function AI_Assassination_Main()
 			AI_EnergyBetween_Torpedo(55 - PREP_TIME_ENERGY, UNLIM_ENERGY),
 			AI_ComboPointsBetween_Torpedo(0, 4),
 			AI_Final_Torpedo(abilities_Torpedo['Mutilate'])
-		}),
-		AI_Philosophizer_Torpedo({
-			-- If we can use dispatch and we're close to energy cap, we should use dispatch --
-			AI_SpellKnown_Torpedo(abilities_Torpedo['Dispatch']),
-			AI_IsUsableSpell_Torpedo(abilities_Torpedo['Dispatch']),
-			AI_EnergyCapTimeLessThan_Torpedo(3),
-			AI_Final_Torpedo(abilities_Torpedo['Dispatch'])
 		}),
 		AI_Philosophizer_Torpedo({
 			-- If we can use mutilate and we're close to energy cap, we should use mutilate --
@@ -498,17 +526,30 @@ function AI_Assassination_CDs()
 		}),
 		-- DPS Cooldowns --
 		AI_Philosophizer_Torpedo({
-			-- If we can vanish, we are in combat, we have envenom for at least 2 more seconds,
-			-- we have rupture for at least 4 more seconds, we have enough energy to cast
-			-- mutilate while stealthed, and we have 0-3 combo points, recommend vanish. --
+			-- If we can vanish, we are in combat, we have enough energy to cast
+			-- mutilate while stealthed, we have less than 60 energy, we have
+			-- 0-3 combo points, and we have at least 50 more seconds on the 
+			-- shadow reflection/vendetta cooldown, recommend vanish --
 			AI_SpellKnown_Torpedo(abilities_Torpedo['Vanish']),
-			AI_SpellKnown_Torpedo(abilities_Torpedo['Envenom']),
-			AI_SpellKnown_Torpedo(abilities_Torpedo['Rupture']),
 			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Vanish']),
 			AI_InCombat_Torpedo(),
-			AI_BuffTimeRemainingBetween_Torpedo(buffs_Torpedo['Envenom'], 2, UNLIM_TIME),
-			AI_BuffTimeRemainingBetween_Torpedo(buffs_Torpedo['Rupture'], 4, UNLIM_TIME),
-			AI_EnergyBetween_Torpedo(14, UNLIM_ENERGY),
+			AI_SpellCooldownBetween_Torpedo(abilities_Torpedo['Shadow Reflection'], 50, UNLIM_TIME),
+			AI_SpellCooldownBetween_Torpedo(abilities_Torpedo['Vendetta'], 50, UNLIM_TIME),
+			AI_EnergyBetween_Torpedo(14 - PREP_TIME_ENERGY, 60),
+			AI_ComboPointsBetween_Torpedo(0, 3),
+			AI_Final_Torpedo(abilities_Torpedo['Vanish'])
+		}),
+		AI_Philosophizer_Torpedo({
+			-- If we can vanish, we are in combat, we have enough energy to cast 
+			-- mutilate while stealthed, we have less than 60 energy, 0-3 combo points, 
+			-- and we have shadow reflection/vendetta active, recommend vanish. --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Vanish']),
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Shadow Reflection']),
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Vendetta']),
+			AI_InCombat_Torpedo(),
+			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Vanish']),
+			AI_BuffTimeRemainingBetween_Torpedo(buffs_Torpedo['Shadow Reflection'], 2, UNLIM_TIME),
+			AI_EnergyBetween_Torpedo(14 - PREP_TIME_ENERGY, 60),
 			AI_ComboPointsBetween_Torpedo(0, 3),
 			AI_Final_Torpedo(abilities_Torpedo['Vanish'])
 		}),
@@ -528,6 +569,18 @@ function AI_Assassination_CDs()
 			AI_BuffTimeRemainingBetween_Torpedo(buffs_Torpedo['Rupture'], -1, 10),
 			AI_ComboPointsBetween_Torpedo(5, 5),
 			AI_Final_Torpedo(abilities_Torpedo['Shadow Reflection'])
+		}),
+		AI_Philosophizer_Torpedo({
+			-- If we are in combat, shadow reflection and vendetta are active, and
+			-- vanish has 50 or more seconds on cooldown, recommend preparation --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Shadow Reflection']),
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Vendetta']),
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Preparation']),
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Vanish']),
+			AI_InCombat_Torpedo(),
+			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Preparation']),
+			AI_SpellCooldownBetween_Torpedo(abilities_Torpedo['Vanish'], 50, UNLIM_TIME),
+			AI_Final_Torpedo(abilities_Torpedo['Preperation'])
 		})
 	})
 end
