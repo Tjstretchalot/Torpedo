@@ -152,8 +152,7 @@ function events:PLAYER_LOGIN()
 		return 0
 	else
 		LoadAbilitiesAndBuffs_Torpedo()
-		Torpedo_Temp.ai_main = AI_Assassination_Main()
-		Torpedo_Temp.ai_cd = AI_Assassination_CDs()
+		events:PLAYER_SPECIALIZATION_CHANGED('player')
 	end
 	Torpedo_Temp.me = UnitGUID('player')
 	CreateOverlayGlows()
@@ -196,6 +195,16 @@ end
 
 function events:PLAYER_SPECIALIZATION_CHANGED(unitName)
 	if unitName == 'player' then
+		local specNumber = GetSpecialization()
+		local id, name, description, icon, background, role = GetSpecializationInfo(specNumber)
+		
+		if id ~= 259 and Torpedo_Temp.ai_main ~= nil then
+			Torpedo_Temp.ai_main = nil
+			Torpedo_Temp.ai_cd = nil
+		else if id == 259 and Torpedo_Temp.ai_main == nil then
+			Torpedo_Temp.ai_main = AI_Assassination_Main()
+			Torpedo_Temp.ai_cd = AI_Assassination_CDs()
+		end
 	end
 end
 
@@ -265,7 +274,6 @@ end
 local abilityTimer = 0
 torpedoPanel:SetScript('OnUpdate', function(self, elapsed)
 	if not Torpedo_Temp.ai_main or not Torpedo_Temp.ai_cd then 
-		print('AIs not loaded!')
 		return 
 	end
 	
