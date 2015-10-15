@@ -311,7 +311,7 @@ function AI_SpellNotOnCooldown_Torpedo(ability)
 	result.ability = ability
 	result.performDecision = function(self)
 		local _, duration, _ = GetSpellCooldown(ability.name)
-		if duration <= 0 then
+		if duration <= 1 then
 			return AIDecision_Torpedo.create(AIDecision_YES_Torpedo, nil)
 		end
 		return AIDecision_Torpedo.create(AIDecision_NO_Torpedo, nil)

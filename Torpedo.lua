@@ -48,16 +48,14 @@ torpedoPanel.border = torpedoPanel:CreateTexture(nil, 'BORDER')
 torpedoPanel.border:SetAllPoints(torpedoPanel)
 torpedoPanel.border:SetTexture('Interface\\AddOns\\Torpedo\\border.blp')
 torpedoPanel.border:Hide()
-torpedoPanel.gcd = CreateFrame('Cooldown', nil, torpedoPanel, 'CooldownFrameTemplate')
-torpedoPanel.gcd:SetAllPoints(torpedoPanel)
 torpedoPanel.dimmer = torpedoPanel:CreateTexture(nil, 'OVERLAY')
 torpedoPanel.dimmer:SetAllPoints(torpedoPanel)
 torpedoPanel.dimmer:SetTexture(0, 0, 0, 0.6)
 torpedoPanel.dimmer:Hide()
 local torpedoCooldownPanel = CreateFrame('Frame', 'torpedoCooldownPanel', UIParent)
 torpedoCooldownPanel:SetPoint('BOTTOMLEFT', torpedoPanel, 'BOTTOMRIGHT', 10, -5)
-torpedoCooldownPanel:SetSize(64, 64)
 torpedoCooldownPanel:SetFrameStrata('BACKGROUND')
+torpedoCooldownPanel:SetSize(64, 64)
 torpedoCooldownPanel:SetMovable(true)
 torpedoCooldownPanel:Hide()
 torpedoCooldownPanel.icon = torpedoCooldownPanel:CreateTexture(nil, 'BACKGROUND')
@@ -66,6 +64,7 @@ torpedoCooldownPanel.icon:SetTexCoord(0.05, 0.95, 0.05, 0.95)
 torpedoCooldownPanel.border = torpedoCooldownPanel:CreateTexture(nil, 'BORDER')
 torpedoCooldownPanel.border:SetAllPoints(torpedoCooldownPanel)
 torpedoCooldownPanel.border:SetTexture('Interface\\AddOns\\Torpedo\\border.blp')
+torpedoCooldownPanel.border:Hide()
 torpedoCooldownPanel.dimmer = torpedoCooldownPanel:CreateTexture(nil, 'OVERLAY')
 torpedoCooldownPanel.dimmer:SetAllPoints(torpedoCooldownPanel)
 torpedoCooldownPanel.dimmer:SetTexture(0, 0, 0, 0.6)
@@ -167,6 +166,7 @@ local function Disappear()
 	torpedoPanel:Hide()
 	torpedoPanel.border:Hide()
 	torpedoCooldownPanel:Hide()
+	torpedoCooldownPanel.border:Hide()
 end
 
 function events:PLAYER_REGEN_ENABLED()
@@ -183,6 +183,7 @@ function events:PLAYER_TARGET_CHANGED()
 		
 		abilityTimer = 0.05 -- frequency
 		torpedoPanel:Show()
+		torpedoCooldownPanel:Show()
 	elseif prevHostile then
 		Disappear()
 	end
@@ -250,13 +251,16 @@ for event in pairs(events) do
 	torpedoPanel:RegisterEvent(event)
 end
 
+local counter = 0
 local function UpdateMainAbility(newMainAbility) 
 	if currMainAbility ~= newMainAbility then
 		if newMainAbility then
+			print('AI Tick #'..tostring(counter)..', main ability became '..tostring(newMainAbility.name))
 			torpedoPanel.icon:SetTexture(newMainAbility.icon)
 			torpedoPanel.icon:Show()
 			torpedoPanel.border:Show()
 		else
+			print('AI Tick #'..tostring(counter)..', main ability became nil')
 			torpedoPanel.icon:Hide()
 			torpedoPanel.border:Hide()
 		end
@@ -274,14 +278,14 @@ end
 local function UpdateCDAbility(newCDAbility)
 	if currCDAbility ~= newCDAbility then
 		if newCDAbility then
+			print('AI Tick #'..tostring(counter)..', cd ability became '..tostring(newCDAbility.name))
 			torpedoCooldownPanel.icon:SetTexture(newCDAbility.icon)
 			torpedoCooldownPanel.icon:Show()
 			torpedoCooldownPanel.border:Show()
-			torpedoCooldownPanel:Show()
 		else
+			print('AI Tick #'..tostring(counter)..', cd ability became nil')
 			torpedoCooldownPanel.icon:Hide()
 			torpedoCooldownPanel.border:Hide()
-			torpedoCooldownPanel:Hide()
 		end
 		lastCDAbility = currCDAbility
 	end
@@ -297,19 +301,22 @@ end
 local abilityTimer = 0
 torpedoPanel:SetScript('OnUpdate', function(self, elapsed)
 	if not Torpedo_Temp.ai_main or not Torpedo_Temp.ai_cd then 
+		counter = 0
 		return 
 	end
 	
 	abilityTimer = abilityTimer + elapsed
 	if abilityTimer >= 0.05 then -- frequency
+		counter = counter + 1
 		UpdateAuras_Torpedo()
 		local mainDecision = Torpedo_Temp.ai_main:performDecision()
 		local cdDecision = Torpedo_Temp.ai_cd:performDecision()
 		local newMainAbility = mainDecision and mainDecision.ability or nil
 		local newCDAbility = cdDecision and cdDecision.ability or nil
 		
-		UpdateMainAbility(newMainAbility)
+		
 		UpdateCDAbility(newCDAbility)
+		UpdateMainAbility(newMainAbility)
 		
 		UpdateGlows()
 		abilityTimer = 0
