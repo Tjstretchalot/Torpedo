@@ -568,19 +568,20 @@ function AI_Assassination_CDs()
 			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Shadow Reflection']),
 			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Vendetta']),
 			AI_InCombat_Torpedo(),
-			AI_BuffTimeRemainingBetween_Torpedo(buffs_Torpedo['Envenom'], -1, 3 + PREP_TIME_SECONDS),
+			AI_BuffTimeRemainingBetween_Torpedo(buffs_Torpedo['Envenom'], -1, 3 + PREP_TIME_SECONDS), 
 			AI_BuffTimeRemainingBetween_Torpedo(buffs_Torpedo['Rupture'], -1, 10 + PREP_TIME_SECONDS),
 			AI_ComboPointsBetween_Torpedo(5, 5),
 			AI_Final_Torpedo(abilities_Torpedo['Shadow Reflection'])
 		}),
 		AI_Philosophizer_Torpedo({
-			-- If we are in combat, shadow reflection and vendetta are active, and
+			-- If we are in combat, shadow reflection is active, and
 			-- vanish has 50 or more seconds on cooldown, recommend preparation --
 			AI_SpellKnown_Torpedo(abilities_Torpedo['Shadow Reflection']),
 			AI_SpellKnown_Torpedo(abilities_Torpedo['Vendetta']),
 			AI_SpellKnown_Torpedo(abilities_Torpedo['Preparation']),
 			AI_SpellKnown_Torpedo(abilities_Torpedo['Vanish']),
 			AI_InCombat_Torpedo(),
+			AI_BuffTimeRemainingBetween_Torpedo(buffs_Torpedo['Shadow Reflection'], 2, UNLIM_TIME),
 			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Preparation']),
 			AI_SpellCooldownBetween_Torpedo(abilities_Torpedo['Vanish'], 50, UNLIM_TIME),
 			AI_Final_Torpedo(abilities_Torpedo['Preparation'])
