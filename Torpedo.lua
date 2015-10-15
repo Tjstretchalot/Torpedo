@@ -255,12 +255,12 @@ local counter = 0
 local function UpdateMainAbility(newMainAbility) 
 	if currMainAbility ~= newMainAbility then
 		if newMainAbility then
-			print('AI Tick #'..tostring(counter)..', main ability became '..tostring(newMainAbility.name))
+			--print('AI Tick #'..tostring(counter)..', main ability became '..tostring(newMainAbility.name))
 			torpedoPanel.icon:SetTexture(newMainAbility.icon)
 			torpedoPanel.icon:Show()
 			torpedoPanel.border:Show()
 		else
-			print('AI Tick #'..tostring(counter)..', main ability became nil')
+			--print('AI Tick #'..tostring(counter)..', main ability became nil')
 			torpedoPanel.icon:Hide()
 			torpedoPanel.border:Hide()
 		end
@@ -278,12 +278,12 @@ end
 local function UpdateCDAbility(newCDAbility)
 	if currCDAbility ~= newCDAbility then
 		if newCDAbility then
-			print('AI Tick #'..tostring(counter)..', cd ability became '..tostring(newCDAbility.name))
+			--print('AI Tick #'..tostring(counter)..', cd ability became '..tostring(newCDAbility.name))
 			torpedoCooldownPanel.icon:SetTexture(newCDAbility.icon)
 			torpedoCooldownPanel.icon:Show()
 			torpedoCooldownPanel.border:Show()
 		else
-			print('AI Tick #'..tostring(counter)..', cd ability became nil')
+			--print('AI Tick #'..tostring(counter)..', cd ability became nil')
 			torpedoCooldownPanel.icon:Hide()
 			torpedoCooldownPanel.border:Hide()
 		end
