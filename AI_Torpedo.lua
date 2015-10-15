@@ -5,7 +5,7 @@ AIDecision_YES_Torpedo = 1
 AIDecision_NO_Torpedo = 2
 AIDecision_FINAL_Torpedo = 3
 
-local function dump_Torpedo(thing, indent) 
+function dump_Torpedo(thing, indent) 
 	if not indent then indent='' end
 	if type(thing) == 'table' then
 		local oldIndent = indent
@@ -410,21 +410,23 @@ function AI_Assassination_Main()
 			AI_Final_Torpedo(abilities_Torpedo['Rupture'])
 		}),
 		AI_Philosophizer_Torpedo({
-			-- Use Envenom if it will refresh the duration without waste, and we have 5 combo points --
+			-- Use Envenom if it will refresh the duration without waste, we have 5 combo points, and
+			-- we have enough energy --
 			AI_SpellKnown_Torpedo(abilities_Torpedo['Envenom']),
 			AI_BuffTimeRemainingBetween_Torpedo(buffs_Torpedo['Envenom'], -1, 1.8),
 			AI_ComboPointsBetween_Torpedo(5, 5),
+			AI_EnergyBetween_Torpedo(35 - PREP_TIME_ENERGY, UNLIM_ENERGY),
 			AI_Final_Torpedo(abilities_Torpedo['Envenom'])
 		}),
 		AI_Philosophizer_Torpedo({
-			-- Use Envenom if we are near energy cap, have 5 combo points, and have 3 or more Anticipation 
+			-- Use Envenom if we are near energy cap, have 5 combo points, and have 2 or more Anticipation 
 			-- stacks, regardless of current duration. This mostly happens when we have some sort of haste buff,
 			-- such as Heroism --
 			AI_SpellKnown_Torpedo(abilities_Torpedo['Envenom']),
 			AI_ComboPointsBetween_Torpedo(5, 5),
 			AI_Repeater_Torpedo({ -- Either we don't know anticipation or we have 3-5 stacks of it
 				AI_Invert_Torpedo(AI_SpellKnown_Torpedo(abilities_Torpedo['Anticipation'])),
-				AI_BuffStacksBetween_Torpedo(buffs_Torpedo['Anticipation'], 3, 5)
+				AI_BuffStacksBetween_Torpedo(buffs_Torpedo['Anticipation'], 2, 5)
 
 			}),
 			AI_EnergyCapTimeLessThan_Torpedo(3),
@@ -432,7 +434,7 @@ function AI_Assassination_Main()
 		}),
 		AI_Philosophizer_Torpedo({
 			-- Use envenom if we are near energy cap, have 5 combo points, have the 4pc tier 18,
-			-- and the enemy is below 35% health --
+			-- and the enemy is below 35% health. --
 			AI_SpellKnown_Torpedo(abilities_Torpedo['Envenom']),
 			AI_SpellKnown_Torpedo(abilities_Torpedo['Dispatch']),
 			AI_HaveTier18FourSet_Torpedo(),
@@ -466,6 +468,7 @@ end
 
 function AI_Assassination_CDs()
 	local PREP_TIME_ENERGY = 0
+	local PREP_TIME_SECONDS = 2
 	local UNLIM_ENERGY = 9999
 	local UNLIM_TIME = 9999
 	return AI_Repeater_Torpedo({
@@ -533,8 +536,8 @@ function AI_Assassination_CDs()
 			AI_SpellKnown_Torpedo(abilities_Torpedo['Vanish']),
 			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Vanish']),
 			AI_InCombat_Torpedo(),
-			AI_SpellCooldownBetween_Torpedo(abilities_Torpedo['Shadow Reflection'], 50, UNLIM_TIME),
-			AI_SpellCooldownBetween_Torpedo(abilities_Torpedo['Vendetta'], 50, UNLIM_TIME),
+			AI_SpellCooldownBetween_Torpedo(abilities_Torpedo['Shadow Reflection'], 50 - PREP_TIME_SECONDS, UNLIM_TIME),
+			AI_SpellCooldownBetween_Torpedo(abilities_Torpedo['Vendetta'], 50 - PREP_TIME_SECONDS, UNLIM_TIME),
 			AI_EnergyBetween_Torpedo(14 - PREP_TIME_ENERGY, 60),
 			AI_ComboPointsBetween_Torpedo(0, 3),
 			AI_Final_Torpedo(abilities_Torpedo['Vanish'])
@@ -565,8 +568,8 @@ function AI_Assassination_CDs()
 			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Shadow Reflection']),
 			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Vendetta']),
 			AI_InCombat_Torpedo(),
-			AI_BuffTimeRemainingBetween_Torpedo(buffs_Torpedo['Envenom'], -1, 3),
-			AI_BuffTimeRemainingBetween_Torpedo(buffs_Torpedo['Rupture'], -1, 10),
+			AI_BuffTimeRemainingBetween_Torpedo(buffs_Torpedo['Envenom'], -1, 3 + PREP_TIME_SECONDS),
+			AI_BuffTimeRemainingBetween_Torpedo(buffs_Torpedo['Rupture'], -1, 10 + PREP_TIME_SECONDS),
 			AI_ComboPointsBetween_Torpedo(5, 5),
 			AI_Final_Torpedo(abilities_Torpedo['Shadow Reflection'])
 		}),
@@ -580,7 +583,7 @@ function AI_Assassination_CDs()
 			AI_InCombat_Torpedo(),
 			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Preparation']),
 			AI_SpellCooldownBetween_Torpedo(abilities_Torpedo['Vanish'], 50, UNLIM_TIME),
-			AI_Final_Torpedo(abilities_Torpedo['Preperation'])
+			AI_Final_Torpedo(abilities_Torpedo['Preparation'])
 		})
 	})
 end
