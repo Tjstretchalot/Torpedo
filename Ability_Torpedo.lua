@@ -23,7 +23,8 @@ function Ability_Torpedo.add(spellIds, debugName)
 		spellIds = spellIds,
 		name = name,
 		icon = icon,
-		debugName = debugName
+		debugName = debugName,
+		hints = {}
 	}
 	setmetatable(ability, Ability_Torpedo)
 	abilities_Torpedo[debugName] = ability
@@ -142,15 +143,15 @@ function Buff_Torpedo.down()
 	return not self:up()
 end
 
-function LoadAbilitiesAndBuffs_Torpedo() 
-	Ability_Torpedo.add({1784},   'Stealth')
-	Ability_Torpedo.add({1329, 1752},   'Mutilate') 
+function LoadAbilitiesAndBuffs_Assassination_Torpedo() 
+	Ability_Torpedo.add({1784}, 'Stealth')
+	Ability_Torpedo.add({1329, 1752}, 'Mutilate') 
 	Ability_Torpedo.add({1329}, 'Actual Mutilate')
 	Ability_Torpedo.add({145416, 2098}, 'Envenom')
-	Ability_Torpedo.add({1856},   'Vanish')
-	Ability_Torpedo.add({121733},   'Throw')
-	Ability_Torpedo.add({51723},  'Fan of Knives')
-	Ability_Torpedo.add({1943},   'Rupture')
+	Ability_Torpedo.add({1856}, 'Vanish')
+	Ability_Torpedo.add({121733}, 'Throw')
+	Ability_Torpedo.add({51723}, 'Fan of Knives')
+	Ability_Torpedo.add({1943}, 'Rupture')
 	Ability_Torpedo.add({111240, 1752}, 'Dispatch') -- So apparently dispatch replaces sinister strike - Y U DO THIS.
 	Ability_Torpedo.add({152151}, 'Shadow Reflection')
 	Ability_Torpedo.add({79140},  'Vendetta')
@@ -176,7 +177,28 @@ function LoadAbilitiesAndBuffs_Torpedo()
 	Buff_Torpedo.add({74001}, 'player', 'Combat Readiness')
 	Buff_Torpedo.add({1966}, 'player', 'Feint')
 	Buff_Torpedo.add({73651}, 'player', 'Recuperate')
-	Buff_Torpedo.add({145418}, 'player', 'Slice and Dice')
 end
 
+function LoadAbilitiesAndBuffs_Subtlety_Torpedo()
+	Ability_Torpedo.add({1784}, 'Stealth')
+	Ability_Torpedo.add({53}, 'Backstab')
+	Ability_Torpedo.add({2823, 8679}, 'Deadly Poison')
+	Ability_Torpedo.add({8676}, 'Ambush')
+	Ability_Torpedo.add({1943}, 'Rupture')
+	Ability_Torpedo.add({2098}, 'Eviscerate')
+	Ability_Torpedo.add({5171}, 'Slice and Dice')
+	Ability_Torpedo.add({1856}, 'Vanish')
+	Ability_Torpedo.add({51713}, 'Shadow Dance')
+	Ability_Torpedo.add({14183}, 'Premeditation')
+	Ability_Torpedo.add({152151}, 'Shadow Reflection')
+	Ability_Torpedo.add({14185}, 'Preparation')
+	
+	Buff_Torpedo.add({1784, 11327, 115191, 115192, 51713}, 'player', 'Stealth')
+	Buff_Torpedo.add({2823, 8679}, 'player', 'Deadly Poison')
+	Buff_Torpedo.add({1943},   'target', 'Rupture')
+	Buff_Torpedo.add({5171}, 'player', 'Slice and Dice')
+	Buff_Torpedo.add({91021}, 'target', 'Find Weakness')
+	Buff_Torpedo.add({115189}, 'player', 'Anticipation')
+	Buff_Torpedo.add({152151}, 'target', 'Shadow Reflection')
+end
 

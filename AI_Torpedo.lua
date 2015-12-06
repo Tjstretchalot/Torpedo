@@ -16,7 +16,7 @@ function dump_Torpedo(thing, indent)
 				print(indent..k..'='..tostring(v))
 			else
 				print(indent..k..'=')
-				dump_Torpedo(v)
+				dump_Torpedo(v, indent)
 			end
 		end
 		print(oldIndent..']')
@@ -51,10 +51,12 @@ end
 --[[
 	Returns the behavior indicating the ability should be performed
 ]]
-function AI_Final_Torpedo(ability) 
+function AI_Final_Torpedo(ability, dim)
 	local result = AI_Torpedo.create()
 	result.ability = ability
+	result.dimmer = dim
 	result.performDecision = function(self)
+		self.ability.hints.showDimmer = self.dimmer
 		return AIDecision_Torpedo.create(AIDecision_FINAL_Torpedo, self.ability)
 	end
 	return result
@@ -77,7 +79,10 @@ function AI_Philosophizer_Torpedo(ais)
 				return AIDecision_Torpedo.create(AIDecision_NO_Torpedo, nil)
 			end
 		end
-		result = self.ais[#self.ais]:performDecision()
+		result = self.ais[#self.ais]
+		if result ~= 'pool' then
+			result = result:performDecision()
+		end
 		return result
 	end
 	return result
@@ -95,8 +100,9 @@ function AI_Repeater_Torpedo(ais)
 	result.ais = ais
 	result.performDecision = function(self) 
 		for i=1, #self.ais do
+			if self.ais[i] == 'pool' then return 'pool' end
 			local result = self.ais[i]:performDecision()
-			if result.decisionType == AIDecision_FINAL_Torpedo then
+			if result == 'pool' or result.decisionType == AIDecision_FINAL_Torpedo then
 				return result
 			end
 		end
@@ -201,16 +207,25 @@ function AI_EnergyBetween_Torpedo(minEnergy, maxEnergy)
 	return result
 end
 
+function TimeToCapEnergy_Torpedo() 
+	local maxPower, power, powerRegen, outOfCombatRegen
+	maxPower = UnitPowerMax('player')
+	power = UnitPower('player')
+	outOfCombatRegen, powerRegen = GetPowerRegen()
+	
+	if buffs_Torpedo['Slice and Dice'] and buffs_Torpedo['Slice and Dice']:up() then 
+		powerRegen = powerRegen + 4
+	end
+	
+	return (maxPower - power) / powerRegen
+end
+
 function AI_EnergyCapTimeLessThan_Torpedo(timeToCapEnergy)
 	local result = AI_Torpedo.create()
 	result.timeToCapEnergy = timeToCapEnergy
 	
 	result.performDecision = function(self)
-		local maxPower, power, powerRegen
-		maxPower = UnitPowerMax('player')
-		power = UnitPower('player')
-		outOfCombatRegen, powerRegen = GetPowerRegen()
-		local timeToCap = (maxPower - power) / powerRegen
+		local timeToCap = TimeToCapEnergy_Torpedo()
 		if timeToCap <= timeToCapEnergy then
 			return AIDecision_Torpedo.create(AIDecision_YES_Torpedo, nil)
 		end
@@ -267,12 +282,13 @@ function AI_BuffStacksBetween_Torpedo(buff, minStacks, maxStacks)
 	result.minStacks = minStacks
 	result.maxStacks = maxStacks
 	result.performDecision = function(self)
-		local stacks = self.buff:stacks()
+		local stacks = buff:stacks()
 		if stacks >= minStacks and stacks <= maxStacks then
 			return AIDecision_Torpedo.create(AIDecision_YES_Torpedo, nil)
 		end
 		return AIDecision_Torpedo.create(AIDecision_NO_Torpedo, nil)
 	end
+	return result
 end	
 
 function AI_ComboPointsBetween_Torpedo(minComboPoints, maxComboPoints)
@@ -340,6 +356,25 @@ function AI_SpellCooldownBetween_Torpedo(ability, mincd, maxcd)
 	return result
 end
 
+function AI_SpellCooldownEndsBeforeEnergyCaps_Torpedo(ability)
+	local result = AI_Torpedo.create()
+	
+	result.ability = ability
+	result.performDecision = function(self)
+		local start, duration, _ = GetSpellCooldown(ability.name)
+		local timeLeft = 0
+		if duration ~= 0 then
+			timeLeft = (start + duration) - GetTime()
+		end
+		
+		if timeLeft <= TimeToCapEnergy_Torpedo() then
+			return AIDecision_Torpedo.create(AIDecision_YES_Torpedo, nil)
+		end
+		return AIDecision_Torpedo.create(AIDecision_NO_Torpedo, nil)
+	end
+	return result
+end
+
 function AI_HaveTier18FourSet_Torpedo()
 	local result = AI_Torpedo.create()
 	
@@ -353,9 +388,19 @@ function AI_HaveTier18FourSet_Torpedo()
 end
 
 --         ============ FINAL BEHAVIORS ============
+local PREP_TIME_ENERGY = 0
+local PREP_TIME_SECONDS = 2
+local UNLIM_ENERGY = 9999
+local UNLIM_TIME = 9999
+
+
+-- ======================================================
+-- =                                                    =
+-- =                    ASSASSINATION                   =
+-- =                                                    =
+-- ======================================================
+
 function AI_Assassination_Main()
-	local PREP_TIME_ENERGY = 5
-	local UNLIM_ENERGY = 9999
 	-- Things that are listed earlier in the top-level repeater recieve precedence --
 	return AI_Repeater_Torpedo({
 		AI_Philosophizer_Torpedo({
@@ -467,10 +512,6 @@ function AI_Assassination_Main()
 end
 
 function AI_Assassination_CDs()
-	local PREP_TIME_ENERGY = 0
-	local PREP_TIME_SECONDS = 2
-	local UNLIM_ENERGY = 9999
-	local UNLIM_TIME = 9999
 	return AI_Repeater_Torpedo({
 		-- Survival Abilities --
 		AI_Philosophizer_Torpedo({
@@ -584,6 +625,208 @@ function AI_Assassination_CDs()
 			AI_BuffTimeRemainingBetween_Torpedo(buffs_Torpedo['Shadow Reflection'], 2, UNLIM_TIME),
 			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Preparation']),
 			AI_SpellCooldownBetween_Torpedo(abilities_Torpedo['Vanish'], 50, UNLIM_TIME),
+			AI_Final_Torpedo(abilities_Torpedo['Preparation'])
+		})
+	})
+end
+
+-- ======================================================
+-- =                                                    =
+-- =                      SUBTLETY                      =
+-- =                                                    =
+-- ======================================================
+
+function AI_Subtlety_Main()
+	return AI_Repeater_Torpedo({
+		-- PREFIGHT -- 
+		AI_Philosophizer_Torpedo({
+			-- If we do not have poisons applied, apply poisons --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Deadly Poison']),
+			AI_Invert_Torpedo(AI_BuffActive_Torpedo(buffs_Torpedo['Deadly Poison'])),
+			AI_Final_Torpedo(abilities_Torpedo['Deadly Poison'])
+		}),
+		AI_Philosophizer_Torpedo({
+			-- If we are not in combat, use stealth --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Stealth']),
+			AI_Invert_Torpedo(AI_BuffActive_Torpedo(buffs_Torpedo['Stealth'])),
+			AI_Invert_Torpedo(AI_InCombat_Torpedo()),
+			AI_Final_Torpedo(abilities_Torpedo['Stealth'])
+		}),
+		AI_Philosophizer_Torpedo({
+			-- If we are in stealth and premeditation is not on cooldown, and we have 3 
+			-- or less combo points, suggest premeditation --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Stealth']),
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Premeditation']),
+			AI_BuffActive_Torpedo(buffs_Torpedo['Stealth']),
+			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Premeditation']),
+			AI_ComboPointsBetween_Torpedo(0, 3),
+			AI_Final_Torpedo(abilities_Torpedo['Premeditation'])
+		}),
+		-- FINISHERS --
+		AI_Philosophizer_Torpedo({
+			-- If we have 5 combo points and rupture has 8 seconds or less
+			-- remaining, use rupture --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Rupture']),
+			AI_ComboPointsBetween_Torpedo(5, 5),
+			AI_BuffTimeRemainingBetween_Torpedo(buffs_Torpedo['Rupture'], -1, 8),
+			AI_Final_Torpedo(abilities_Torpedo['Rupture'])
+		}),
+		AI_Philosophizer_Torpedo({
+			-- If we have 5 combo points and slice and dice has 10 seconds or less
+			-- remaining, use slice and dice --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Slice and Dice']),
+			AI_ComboPointsBetween_Torpedo(5, 5),
+			AI_BuffTimeRemainingBetween_Torpedo(buffs_Torpedo['Slice and Dice'], -1, 10),
+			AI_Final_Torpedo(abilities_Torpedo['Slice and Dice'])
+		}),
+		AI_Philosophizer_Torpedo({
+			-- If we have 5 combo points and find weakness, and we don't have
+			-- stealth, use eviscerate --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Eviscerate']),
+			AI_ComboPointsBetween_Torpedo(5, 5),
+			AI_BuffActive_Torpedo(buffs_Torpedo['Find Weakness']),
+			AI_Invert_Torpedo(AI_BuffActive_Torpedo(buffs_Torpedo['Stealth'])),
+			AI_Final_Torpedo(abilities_Torpedo['Eviscerate'])
+		}),
+		AI_Philosophizer_Torpedo({
+			-- If we have 5 combo points and 3 anticipation stacks, and we are
+			-- going to cap energy in less than 2 seconds, use eviscerate --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Eviscerate']),
+			AI_ComboPointsBetween_Torpedo(5, 5),
+			AI_BuffStacksBetween_Torpedo(buffs_Torpedo['Anticipation'], 3, 5),
+			AI_EnergyCapTimeLessThan_Torpedo(2),
+			AI_Final_Torpedo(abilities_Torpedo['Eviscerate'])
+		}),
+		AI_Philosophizer_Torpedo({
+			-- If we have 5 combo points and 3 anticipation stacks, and we have
+			-- find weakness, use eviscerate (regardless of stealth) --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Eviscerate']),
+			AI_ComboPointsBetween_Torpedo(5, 5),
+			AI_BuffActive_Torpedo(buffs_Torpedo['Find Weakness']),
+			AI_Final_Torpedo(abilities_Torpedo['Eviscerate'])
+		}),
+		-- BUILDERS --
+		AI_Philosophizer_Torpedo({
+			-- If we are in stealth or have subterfuge, use ambush --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Stealth']),
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Ambush']),
+			AI_BuffActive_Torpedo(buffs_Torpedo['Stealth']),
+			AI_Final_Torpedo(abilities_Torpedo['Ambush'])
+		}),
+		AI_Philosophizer_Torpedo({
+			-- If we need to build combo points and will cap 
+			-- energy in less than 2 seconds, use backstab --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Backstab']),
+			AI_ComboPointsBetween_Torpedo(0, 4),
+			AI_EnergyCapTimeLessThan_Torpedo(2),
+			AI_Final_Torpedo(abilities_Torpedo['Backstab'])
+		}),
+		AI_Philosophizer_Torpedo({
+			-- If we need to build combo points and don't have
+			-- slice and dice active, use backstab --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Backstab']),
+			AI_ComboPointsBetween_Torpedo(0, 4),
+			AI_Invert_Torpedo(AI_BuffActive_Torpedo(buffs_Torpedo['Slice and Dice'])),
+			AI_Final_Torpedo(abilities_Torpedo['Backstab'])
+		}),
+		AI_Philosophizer_Torpedo({
+			-- If we need to build combo points and don't have
+			-- rupture active, use backstab --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Backstab']),
+			AI_ComboPointsBetween_Torpedo(0, 4),
+			AI_Invert_Torpedo(AI_BuffActive_Torpedo(buffs_Torpedo['Rupture'])),
+			AI_Final_Torpedo(abilities_Torpedo['Backstab'])
+		}),
+		AI_Philosophizer_Torpedo({
+			-- If we need to build combo points and find weakness is
+			-- active, use backstab --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Backstab']),
+			AI_ComboPointsBetween_Torpedo(0, 4),
+			AI_BuffActive_Torpedo(buffs_Torpedo['Find Weakness']),
+			AI_Final_Torpedo(abilities_Torpedo['Backstab'])
+		}),
+		AI_Philosophizer_Torpedo({
+			-- If combo points could be put into anticipation and we're
+			-- going to cap energy in less than 2 seconds, use backstab --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Backstab']),
+			AI_ComboPointsBetween_Torpedo(5, 5),
+			AI_BuffStacksBetween_Torpedo(buffs_Torpedo['Anticipation'], 0, 4),
+			AI_EnergyCapTimeLessThan_Torpedo(2),
+			AI_Final_Torpedo(abilities_Torpedo['Backstab'])
+		}),
+		'pool'
+	})
+end
+
+function AI_Subtlety_CDs()
+	return AI_Repeater_Torpedo({
+		-- Cooldowns -- 
+		
+		-- Shadow Reflection Combo --
+		AI_Philosophizer_Torpedo({
+			-- If we have shadow reflection ready, we have vanish ready, we have shadow dance ready, 
+			-- and we have 100 or more energy, suggest shadow reflection --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Shadow Reflection']),
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Vanish']),
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Shadow Dance']),
+			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Shadow Reflection']),
+			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Vanish']),
+			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Shadow Dance']),
+			AI_EnergyBetween_Torpedo(100, UNLIM_ENERGY),
+			AI_Final_Torpedo(abilities_Torpedo['Shadow Reflection'])
+		}),
+		AI_Philosophizer_Torpedo({
+			-- If we have shadow reflection buff and we have vanish ready, use vanish --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Shadow Reflection']),
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Vanish']),
+			AI_BuffActive_Torpedo(buffs_Torpedo['Shadow Reflection']),
+			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Vanish']),
+			AI_Final_Torpedo(abilities_Torpedo['Vanish'])
+		}),
+		AI_Philosophizer_Torpedo({
+			-- If we have shadow reflection buff and we have shadow dance ready, use shadow dance --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Shadow Reflection']),
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Shadow Dance']),
+			AI_BuffActive_Torpedo(buffs_Torpedo['Shadow Reflection']),
+			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Shadow Dance']),
+			AI_Final_Torpedo(abilities_Torpedo['Shadow Dance'])
+		}),
+		
+		
+		-- Shadow Dance Combo (Between Shadow Reflections) --
+		AI_Philosophizer_Torpedo({
+			-- If we have vanish ready and we have shadow dance ready, and we have 30 or more seconds
+			-- on the shadow reflection cooldown, suggest vanish --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Vanish']),
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Shadow Dance']),
+			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Vanish']),
+			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Shadow Dance']),
+			AI_SpellCooldownBetween_Torpedo(abilities_Torpedo['Shadow Reflection'], 30, UNLIM_TIME),
+			AI_Final_Torpedo(abilities_Torpedo['Vanish'])
+		}),
+		AI_Philosophizer_Torpedo({
+			-- If we have shadow dance ready, we are in combat, and we are stealthed, suggest shadow
+			-- dance --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Shadow Dance']),
+			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Shadow Dance']),
+			AI_InCombat_Torpedo(),
+			AI_BuffActive_Torpedo(buffs_Torpedo['Stealth']),
+			AI_Final_Torpedo(abilities_Torpedo['Shadow Dance'])
+		}),
+		
+		-- Preparation --
+		AI_Philosophizer_Torpedo({
+			-- If preparation is ready, shadow reflection has 1 and a half minutes or more left, vanish has
+			-- 60 seconds or more left for cd, and shadow dance has 30 seconds or more left for cd, 
+			-- suggest preparation --
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Preparation']),
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Shadow Reflection']),
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Vanish']),
+			AI_SpellKnown_Torpedo(abilities_Torpedo['Shadow Dance']),
+			AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Preparation']),
+			AI_SpellCooldownBetween_Torpedo(abilities_Torpedo['Shadow Reflection'], 90, UNLIM_TIME),
+			AI_SpellCooldownBetween_Torpedo(abilities_Torpedo['Vanish'], 60, UNLIM_TIME),
+			AI_SpellCooldownBetween_Torpedo(abilities_Torpedo['Shadow Dance'], 30, UNLIM_TIME),
 			AI_Final_Torpedo(abilities_Torpedo['Preparation'])
 		})
 	})

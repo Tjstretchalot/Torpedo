@@ -115,8 +115,8 @@ end
 local function ShouldGlow(icon) 
 	if not icon then return false end
 	
-	if currMainAbility and icon == currMainAbility.icon then return true end
-	if currCDAbility and icon == currCDAbility.icon then return true end
+	if currMainAbility and currMainAbility ~= 'pool' and icon == currMainAbility.icon then return true end
+	if currCDAbility and currCDAbility ~= 'pool' and icon == currCDAbility.icon then return true end
 	
 	return false
 end
@@ -199,17 +199,20 @@ function events:PLAYER_SPECIALIZATION_CHANGED(unitName)
 	if unitName == 'player' then
 		local specNumber = GetSpecialization()
 		local id, name, description, icon, background, role = GetSpecializationInfo(specNumber)
+		abilities_Torpedo = {}
+		buffs_Torpedo = {}
+		Torpedo_Temp.ai_main = nil
+		Torpedo_Temp.ai_cd = nil
+		Disappear()
 		
-		if id ~= 259 and Torpedo_Temp.ai_main ~= nil then
-			abilities_Torpedo = {}
-			buffs_Torpedo = {}
-			Torpedo_Temp.ai_main = nil
-			Torpedo_Temp.ai_cd = nil
-			Disappear()
-		elseif id == 259 and Torpedo_Temp.ai_main == nil then
-			LoadAbilitiesAndBuffs_Torpedo()
+		if id == 259 then
+			LoadAbilitiesAndBuffs_Assassination_Torpedo()
 			Torpedo_Temp.ai_main = AI_Assassination_Main()
 			Torpedo_Temp.ai_cd = AI_Assassination_CDs()
+		elseif id == 261 then
+			LoadAbilitiesAndBuffs_Subtlety_Torpedo()
+			Torpedo_Temp.ai_main = AI_Subtlety_Main()
+			Torpedo_Temp.ai_cd = AI_Subtlety_CDs()
 		end
 	end
 end
@@ -256,7 +259,11 @@ local function UpdateMainAbility(newMainAbility)
 	if currMainAbility ~= newMainAbility then
 		if newMainAbility then
 			--print('AI Tick #'..tostring(counter)..', main ability became '..tostring(newMainAbility.name))
-			torpedoPanel.icon:SetTexture(newMainAbility.icon)
+			if newMainAbility == 'pool' then 
+				torpedoPanel.icon:SetTexture('Interface\\ICONS\\INV_Drink_15.blp')
+			else
+				torpedoPanel.icon:SetTexture(newMainAbility.icon)
+			end
 			torpedoPanel.icon:Show()
 			torpedoPanel.border:Show()
 		else
@@ -265,9 +272,11 @@ local function UpdateMainAbility(newMainAbility)
 			torpedoPanel.border:Hide()
 		end
 		lastMainAbility = currMainAbility
+	elseif not currMainAbility then
+		torpedoPanel.icon:Hide()
 	end
 	
-	if not newMainAbility or newMainAbility:usable() then
+	if not newMainAbility or newMainAbility == 'pool' or (newMainAbility:usable() and not newMainAbility.hints.showDimmer) then
 		torpedoPanel.dimmer:Hide()
 	else
 		torpedoPanel.dimmer:Show()
@@ -279,7 +288,11 @@ local function UpdateCDAbility(newCDAbility)
 	if currCDAbility ~= newCDAbility then
 		if newCDAbility then
 			--print('AI Tick #'..tostring(counter)..', cd ability became '..tostring(newCDAbility.name))
-			torpedoCooldownPanel.icon:SetTexture(newCDAbility.icon)
+			if newCDAbility == 'pool' then 
+				torpedoCooldownPanel.icon:SetTexture('Interface\\ICONS\\INV_Drink_15.blp')
+			else
+				torpedoCooldownPanel.icon:SetTexture(newCDAbility.icon)
+			end
 			torpedoCooldownPanel.icon:Show()
 			torpedoCooldownPanel.border:Show()
 		else
@@ -288,9 +301,11 @@ local function UpdateCDAbility(newCDAbility)
 			torpedoCooldownPanel.border:Hide()
 		end
 		lastCDAbility = currCDAbility
+	elseif not currCDAbility then
+		torpedoCooldownPanel.icon:Hide()
 	end
 	
-	if not newCDAbility or newCDAbility:usable() then
+	if not newCDAbility or newCDAbility == 'pool' or (newCDAbility:usable() and not newCDAbility.hints.showDimmer) then
 		torpedoCooldownPanel.dimmer:Hide()
 	else
 		torpedoCooldownPanel.dimmer:Show()
@@ -311,8 +326,11 @@ torpedoPanel:SetScript('OnUpdate', function(self, elapsed)
 		UpdateAuras_Torpedo()
 		local mainDecision = Torpedo_Temp.ai_main:performDecision()
 		local cdDecision = Torpedo_Temp.ai_cd:performDecision()
-		local newMainAbility = mainDecision and mainDecision.ability or nil
-		local newCDAbility = cdDecision and cdDecision.ability or nil
+		local newMainAbility = mainDecision
+		local newCDAbility = cdDecision
+		
+		if mainDecision and mainDecision ~= 'pool' then newMainAbility = mainDecision.ability end
+		if cdDecision and cdDecision ~= 'pool' then newCDAbility = cdDecision.ability end
 		
 		
 		UpdateCDAbility(newCDAbility)
