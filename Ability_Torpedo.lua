@@ -39,23 +39,49 @@ function Ability_Torpedo:usable()
 end
 
 function Ability_Torpedo:firstKnownSpellId() 
+  if self.cachedFirstKnownSpellId then return self.cachedFirstKnownSpellId end
 	for i=1, #self.spellIds do
-		if IsSpellKnown(self.spellIds[i]) then return self.spellIds[i] end
+		if IsSpellKnown(self.spellIds[i]) then
+      self.cachedFirstKnownSpellId = self.spellIds[i]
+      return self.spellIds[i] 
+    end
 	end
 	return false
 end
 
 function Ability_Torpedo:known()
-	if debugName == 'Dispatch' then
-		if not abilities_Torpedo['Actual Mutilate']:known() then
-			return false
-		end
-	end
-	
 	for i=1, #self.spellIds do
 		if IsSpellKnown(self.spellIds[i]) then return true end
 	end
 	return false
+end
+
+--[[
+  Returns the cooldown, in seconds, until the ability can be used again.
+  
+  Returns false if the spell is not on cooldown
+]]
+function Ability_Torpedo:cooldown()
+  local spellIdToUse = self:firstKnownSpellId()
+  
+  local start, duration = GetSpellCooldown(spellIdToUse)
+  
+  if start == 0 then return false end
+  
+  return (start + duration) - GetTime()
+end
+
+--[[
+  Returns currentCharges, maxCharges, timeUntilNextChargeInSeconds
+]]
+function Ability_Torpedo:charges()
+  local spellIdToUse = self:firstKnownSpellId()
+  
+  local currentCharges, maxCharges, cdStarted, duration = GetSpellCharges(spellIdToUse)
+  
+  if currentCharges == maxCharges then return currentCharges, maxCharges, -1 end
+  
+  return currentCharges, maxCharges, ( (cdStarted + duration) - GetTime() )
 end
 
 
@@ -181,24 +207,20 @@ end
 
 function LoadAbilitiesAndBuffs_Subtlety_Torpedo()
 	Ability_Torpedo.add({1784}, 'Stealth')
-	Ability_Torpedo.add({53}, 'Backstab')
-	Ability_Torpedo.add({2823, 8679}, 'Deadly Poison')
-	Ability_Torpedo.add({8676}, 'Ambush')
-	Ability_Torpedo.add({1943}, 'Rupture')
-	Ability_Torpedo.add({2098}, 'Eviscerate')
-	Ability_Torpedo.add({5171}, 'Slice and Dice')
+	Ability_Torpedo.add({53, 200758}, 'Backstab') -- Includes Gloomblade if you chose that lv15 talent
+	Ability_Torpedo.add({2098, 196819}, 'Eviscerate')
 	Ability_Torpedo.add({1856}, 'Vanish')
-	Ability_Torpedo.add({51713}, 'Shadow Dance')
-	Ability_Torpedo.add({14183}, 'Premeditation')
-	Ability_Torpedo.add({152151}, 'Shadow Reflection')
-	Ability_Torpedo.add({14185}, 'Preparation')
-	
-	Buff_Torpedo.add({1784, 11327, 115191, 115192, 51713}, 'player', 'Stealth')
-	Buff_Torpedo.add({2823, 8679}, 'player', 'Deadly Poison')
-	Buff_Torpedo.add({1943},   'target', 'Rupture')
-	Buff_Torpedo.add({5171}, 'player', 'Slice and Dice')
-	Buff_Torpedo.add({91021}, 'target', 'Find Weakness')
+	Ability_Torpedo.add({51713, 185313}, 'Shadow Dance')
+  Ability_Torpedo.add({212283}, 'Symbols of Death')
+  Ability_Torpedo.add({195452}, 'Nightblade')
+  Ability_Torpedo.add({193531}, 'Deeper Stratagem')
+  Ability_Torpedo.add({185438}, 'Shadowstrike')
+	Ability_Torpedo.add({121471}, 'Shadow Blades')
+  
+	Buff_Torpedo.add({1784, 11327, 115191, 115192, 51713, 185422}, 'player', 'Stealth')
+  Buff_Torpedo.add({212283}, 'player', 'Symbols of Death')
 	Buff_Torpedo.add({115189}, 'player', 'Anticipation')
-	Buff_Torpedo.add({152151}, 'target', 'Shadow Reflection')
+  Buff_Torpedo.add({195452}, 'target', 'Nightblade')
+	Buff_Torpedo.add({121471}, 'player', 'Shadow Blades')
 end
 

@@ -1,9 +1,9 @@
 ## Interface: 60200
 ## Title: Torpedo
-## Notes: Helps assassination rogues
+## Notes: Helps subtlety rogues
 ## Author: Tjstretchalot
 ## SavedVariablesPerCharacter: Torpedo
-## Version: 6.2.0-04
+## Version: 7.0.3
 Ability_Torpedo.lua
 AI_Torpedo.lua
 Torpedo.lua
