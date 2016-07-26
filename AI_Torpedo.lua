@@ -82,7 +82,7 @@ function MaxComboPoints_Torpedo()
 end
 
 function MaxUsableComboPoints_Torpedo()
-  if abilities_Torpedo['Deeper Stratagem']:known() then 
+  if talents_Torpedo['Deeper Stratagem']:selected() then 
     return 6
   else 
     return 5
@@ -356,14 +356,11 @@ end
 
 --         ========= INTERMEDIATE BEHAVIORS =========
 function AI_SpellKnown_Torpedo(ability)
-	if not ability then ability:known() end
+	if not ability then error('Ability is nil, probably a typo') end
 	local result = AI_Torpedo.create()
 	result.ability = ability
 	result.performDecision = function(self)
-		if self.ability:known() then
-			return AIDecision_Torpedo.create(AIDecision_YES_Torpedo, nil)
-		end
-		return AIDecision_Torpedo.create(AIDecision_NO_Torpedo, nil)
+		return BoolToDecision_Torpedo(self.ability:known())
 	end
 	return result
 end
@@ -426,14 +423,19 @@ end
 
 function AI_HaveTier18FourSet_Torpedo()
 	local result = AI_Torpedo.create()
-	
 	result.performDecision = function(self)
-		if Torpedo_Temp.numberOfTier18Pieces >= 4 then
-			return AIDecision_Torpedo.create(AIDecision_YES_Torpedo, nil)
-		end
-		return AIDecision_Torpedo.create(AIDecision_NO_Torpedo, nil)
+		BoolToDecision_Torpedo(Torpedo_Temp.numberOfTier18Pieces >= 4)
 	end
 	return result
+end
+
+function AI_TalentSelected_Torpedo(talent)
+  local result = AI_Torpedo.create()
+  result.talent = talent
+  result.performDecision = function(self)
+    return BoolToDecision_Torpedo(self.talent:selected())
+  end
+  return result
 end
 
 --         ============ FINAL BEHAVIORS ============
@@ -452,13 +454,189 @@ local UNLIM_TIME = 9999
 function AI_Assassination_Main()
 	-- Things that are listed earlier in the top-level repeater recieve precedence --
 	return AI_Repeater_Torpedo({
+    -- Pre-fight --
+    AI_Philosophizer_Torpedo({
+      -- If deadly poison is not applied apply deadly poison --
+      AI_SpellKnown_Torpedo(abilities_Torpedo['Deadly Poison']),
+      AI_Invert_Torpedo(AI_BuffActive_Torpedo(buffs_Torpedo['Deadly Poison'])),
+      AI_Final_Torpedo(abilities_Torpedo['Deadly Poison'])
+    }),
+    AI_Philosophizer_Torpedo({
+      -- If we are not in combat and deadly poison has less than 10 minutes left, 
+      -- apply deadly poison --
+      AI_SpellKnown_Torpedo(abilities_Torpedo['Deadly Poison']),
+      AI_Invert_Torpedo(AI_InCombat_Torpedo()),
+      AI_ValueLtOrEqual_Torpedo(function() return buffs_Torpedo['Deadly Poison']:remaining() end, 600),
+      AI_Final_Torpedo(abilities_Torpedo['Deadly Poison'])
+    }),
+    AI_Philosophizer_Torpedo({
+      -- If we are not in combat and not stealthed, apply stealth --
+      AI_SpellKnown_Torpedo(abilities_Torpedo['Stealth']),
+      AI_Invert_Torpedo(AI_InCombat_Torpedo()),
+      AI_Invert_Torpedo(AI_BuffActive_Torpedo(buffs_Torpedo['Stealth'])),
+      AI_Final_Torpedo(abilities_Torpedo['Stealth'])
+    }),
+    -- Fight --
+    -- Combo finishers --
+    AI_Philosophizer_Torpedo({
+      -- If we have max combo points and rupture is either off, about to wear off (<7 seconds), or 
+      -- has a worse multiplier than we have currently and we won't apply a worse rupture, 
+      -- then apply rupture or pool energy to rupture --
+      AI_SpellKnown_Torpedo(abilities_Torpedo['Rupture']),
+      AI_HaveMaxUsableComboPoints_Torpedo(),
+      AI_Selector_Torpedo({
+        AI_Invert_Torpedo(AI_BuffActive_Torpedo(buffs_Torpedo['Rupture'])), -- Rupture is not active
+        AI_ValueLtOrEqual_Torpedo(function() return buffs_Torpedo['Rupture']:remaining() end, 7), -- Rupture is about to wear off
+        AI_ValueGrt_Torpedo(function() return buffs_Torpedo['Rupture']:getCurrentMultiplier() end, function() return buffs_Torpedo['Rupture'].multiplier or 0 end) -- Current rupture is better than previous rupture
+      }),
+      AI_Selector_Torpedo({
+        AI_Invert_Torpedo(AI_BuffActive_Torpedo(buffs_Torpedo['Rupture'])), -- Rupture is not active
+        AI_ValueGrtOrEqual_Torpedo(function() return buffs_Torpedo['Rupture']:getCurrentMultiplier() end, function() return buffs_Torpedo['Rupture'].multiplier or 0 end) -- New rupture isn't worse than previous rupture
+      }),
+      AI_Selector_Torpedo({
+        AI_FinalOrNo_Torpedo(AI_Philosophizer_Torpedo({
+          AI_ValueLt_Torpedo(function() return UnitPower('player') end, 25 - PREP_TIME_ENERGY),
+          'pool'
+        })),
+        AI_Final_Torpedo(abilities_Torpedo['Rupture'])
+      })
+    }),
+    AI_Philosophizer_Torpedo({
+      -- If rupture is off and we have at least 2 combo points and less than 70 energy, use rupture --
+      AI_SpellKnown_Torpedo(abilities_Torpedo['Rupture']),
+      AI_Invert_Torpedo(AI_BuffActive_Torpedo(buffs_Torpedo['Rupture'])),
+      AI_ValueGrtOrEqual_Torpedo(function() return GetComboPoints('player', 'target') end, 2),
+      AI_ValueLt_Torpedo(function() return UnitPower('player') end, 70 - PREP_TIME_ENERGY),
+      AI_Final_Torpedo(abilities_Torpedo['Rupture'])
+    }),
+    AI_Philosophizer_Torpedo({
+      -- If we have max combo points and envonem is either off or about to wear off, then 
+      -- use Envenom or pool --
+      AI_SpellKnown_Torpedo(abilities_Torpedo['Envenom']),
+      AI_HaveMaxUsableComboPoints_Torpedo(),
+      AI_Selector_Torpedo({
+        AI_Invert_Torpedo(AI_BuffActive_Torpedo(buffs_Torpedo['Envenom'])),
+        AI_ValueLtOrEqual_Torpedo(function() return buffs_Torpedo['Envenom']:remaining() end, 2)
+      }),
+      AI_Selector_Torpedo({
+        AI_FinalOrNo_Torpedo(AI_Philosophizer_Torpedo({
+          AI_ValueLt_Torpedo(function() return UnitPower('player') end, 35 - PREP_TIME_ENERGY),
+          'pool'
+        })),
+        AI_Final_Torpedo(abilities_Torpedo['Envenom'])
+      })
+    }),
+    -- Combo builders --
+    AI_Philosophizer_Torpedo({
+      -- If garrote is available, either off or about to wear off, and a new garrote isn't worse than the old 
+      -- garrote, apply garrote or pool --
+      AI_SpellKnown_Torpedo(abilities_Torpedo['Garrote']),
+      AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Garrote']),
+      AI_Selector_Torpedo({
+        AI_Invert_Torpedo(AI_BuffActive_Torpedo(buffs_Torpedo['Garrote'])),
+        AI_ValueLtOrEqual_Torpedo(function() return buffs_Torpedo['Garrote']:remaining() end, 4)
+      }),
+      AI_Selector_Torpedo({
+        AI_Invert_Torpedo(AI_BuffActive_Torpedo(buffs_Torpedo['Garrote'])),
+        AI_ValueGrtOrEqual_Torpedo(function() return buffs_Torpedo['Garrote']:getCurrentMultiplier() end, function() return buffs_Torpedo['Garrote'].multiplier or 0 end)
+      }),
+      AI_Selector_Torpedo({
+        AI_FinalOrNo_Torpedo(AI_Philosophizer_Torpedo({
+          AI_ValueLt_Torpedo(function() return UnitPower('player') end, 45 - PREP_TIME_ENERGY),
+          'pool'
+        })),
+        AI_Final_Torpedo(abilities_Torpedo['Garrote'])
+      })
+    }),
+    AI_Philosophizer_Torpedo({
+      -- If hemorrhage is either off or about to wear off, apply hemorrhage or pool --
+      AI_SpellKnown_Torpedo(abilities_Torpedo['Hemorrhage']),
+      AI_Selector_Torpedo({
+        AI_Invert_Torpedo(AI_BuffActive_Torpedo(buffs_Torpedo['Hemorrhage'])),
+        AI_ValueLtOrEqual_Torpedo(function() return buffs_Torpedo['Hemorrhage']:remaining() end, 6)
+      }),
+      AI_Selector_Torpedo({
+        AI_FinalOrNo_Torpedo(AI_Philosophizer_Torpedo({
+          AI_ValueLt_Torpedo(function() return UnitPower('player') end, 30 - PREP_TIME_ENERGY),
+          'pool'
+        })),
+        AI_Final_Torpedo(abilities_Torpedo['Hemorrhage'])
+      })
+    }),
+    AI_Philosophizer_Torpedo({
+      -- If we have less than the maximum usable combo points and rupture is off 
+      -- or about to wear off, use mutilate or pool --
+      AI_SpellKnown_Torpedo(abilities_Torpedo['Rupture']),
+      AI_SpellKnown_Torpedo(abilities_Torpedo['Mutilate']),
+      AI_Invert_Torpedo(AI_HaveMaxUsableComboPoints_Torpedo()),
+      AI_Selector_Torpedo({
+        AI_Invert_Torpedo(AI_BuffActive_Torpedo(buffs_Torpedo['Rupture'])),
+        AI_ValueLtOrEqual_Torpedo(function() return buffs_Torpedo['Rupture']:remaining() end, 7)
+      }),
+      AI_Selector_Torpedo({
+        AI_FinalOrNo_Torpedo(AI_Philosophizer_Torpedo({
+          AI_ValueLt_Torpedo(function() return UnitPower('player') end, 55 - PREP_TIME_ENERGY),
+          'pool'
+        })),
+        AI_Final_Torpedo(abilities_Torpedo['Mutilate'])
+      })
+    }),
+    AI_Philosophizer_Torpedo({ 
+      -- If we have less than the maximum usable combo points and we have 
+      -- at least 75 energy, use mutilate --
+      AI_SpellKnown_Torpedo(abilities_Torpedo['Mutilate']),
+      AI_Invert_Torpedo(AI_HaveMaxUsableComboPoints_Torpedo()),
+      AI_ValueGrtOrEqual_Torpedo(function() return UnitPower('player') end, 75 - PREP_TIME_ENERGY),
+      AI_Final_Torpedo(abilities_Torpedo['Mutilate'])
+    }),
     'pool'
 	})
 end
 
 function AI_Assassination_CDs()
 	return AI_Repeater_Torpedo({
-	  'pool'
+    AI_Philosophizer_Torpedo({
+      -- If we meet vanish's requirements and vendetta is not on cooldown, suggest vendetta --
+      AI_SpellKnown_Torpedo(abilities_Torpedo['Vanish']),
+      AI_SpellKnown_Torpedo(abilities_Torpedo['Vendetta']),
+      AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Vendetta']),
+      AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Vanish']),
+      AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Exsanguinate']),
+      AI_HaveMaxUsableComboPoints_Torpedo(),
+      AI_Invert_Torpedo(AI_BuffActive_Torpedo(buffs_Torpedo['Stealth'])),
+      AI_Selector_Torpedo({
+        AI_Invert_Torpedo(AI_BuffActive_Torpedo(buffs_Torpedo['Rupture'])),
+        AI_ValueLt_Torpedo(function() return buffs_Torpedo['Rupture'].multiplier or 0 end, 1.5)
+      }),
+      AI_ValueGrtOrEqual_Torpedo(function() return UnitPower('player') end, 25 - PREP_TIME_ENERGY),
+      AI_Final_Torpedo(abilities_Torpedo['Vendetta'])
+    }),
+    AI_Philosophizer_Torpedo({
+      -- If vendetta is on cooldown, vanish is not on cooldown, we're not stealthed, rupture has less than 12 seconds left, 
+      -- rupture multiplier is less than 1.5, and we have at least 25 energy, suggest vanish --
+      AI_SpellKnown_Torpedo(abilities_Torpedo['Vanish']),
+      AI_Invert_Torpedo(AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Vendetta'])),
+      AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Vanish']),
+      AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Exsanguinate']),
+      AI_HaveMaxUsableComboPoints_Torpedo(),
+      AI_Invert_Torpedo(AI_BuffActive_Torpedo(buffs_Torpedo['Stealth'])),
+      AI_Selector_Torpedo({
+        AI_Invert_Torpedo(AI_BuffActive_Torpedo(buffs_Torpedo['Rupture'])),
+        AI_ValueLt_Torpedo(function() return buffs_Torpedo['Rupture'].multiplier or 0 end, 1.5)
+      }),
+      AI_ValueGrtOrEqual_Torpedo(function() return UnitPower('player') end, 25 - PREP_TIME_ENERGY),
+      AI_Final_Torpedo(abilities_Torpedo['Vanish'])
+    }),
+    AI_Philosophizer_Torpedo({
+      -- If Exsanguinate is available and the target has rupture for at least another 24 seconds, 
+      -- suggest exsanguinate, unless vanish is going to be ready in the next 3 seconds --
+      AI_TalentSelected_Torpedo(talents_Torpedo['Exsanguinate']),
+      AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Exsanguinate']),
+      AI_ValueGrtOrEqual_Torpedo(function() return buffs_Torpedo['Rupture']:remaining() end, 24 - PREP_TIME_SECONDS),
+      AI_Invert_Torpedo(AI_SpellNotOnCooldown_Torpedo(abilities_Torpedo['Vanish'])),
+      AI_ValueGrt_Torpedo(function() return abilities_Torpedo['Vanish']:cooldown() end, 5 + PREP_TIME_SECONDS),
+      AI_Final_Torpedo(abilities_Torpedo['Exsanguinate'])
+    })
 	})
 end
 

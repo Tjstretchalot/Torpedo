@@ -249,6 +249,10 @@ function events:ADDON_LOADED(name)
 	end
 end
 
+function events:COMBAT_LOG_EVENT_UNFILTERED(unknown, eventType, hideCaster, srcGUID, srcName, srcFlags, srcRaidFlags, dstGUID, dstName, dstFlags, dstRaidFlags, spellId)
+  UpdateAbilitiesAndBuffs_CombatLogEventUnfiltered(unknown, eventType, hideCaster, srcGUID, srcName, srcFlags, srcRaidFlags, dstGUID, dstName, dstFlags, dstRaidFlags, spellId)
+end
+
 torpedoPanel:SetScript('OnEvent', function(self, event, ...) events[event](self, ...) end)
 for event in pairs(events) do
 	torpedoPanel:RegisterEvent(event)

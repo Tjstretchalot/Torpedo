@@ -169,51 +169,106 @@ function Buff_Torpedo.down()
 	return not self:up()
 end
 
+Talent_Torpedo = {}
+Talent_Torpedo.__index = Talent_Torpedo
+
+talents_Torpedo = {}
+
+function Talent_Torpedo.add(tier, column, group, debugName)
+  local talent = {
+    tier = tier,
+    column = column,
+    group = group,
+    debugName = debugName
+  }
+  setmetatable(talent, Talent_Torpedo)
+  talents_Torpedo[debugName] = talent
+  return talent
+end
+
+function Talent_Torpedo:selected()
+  if self.cachedSelected == nil then
+    local talentId, name, texture, selected, available = GetTalentInfo(self.tier, self.column, self.group)
+    
+    self.cachedSelected = selected
+  end
+  
+  return self.cachedSelected
+end
+
+--[[
+  Sets up the multiplier variable on dots where relevant; the multiplier is only relative
+  to the players base, so things like mastery are ignored.
+  
+  Multiplier is only valid that in if the getCurrentMultiplier is larger than it was, then it'll
+  do more damage.
+]]
+function UpdateAbilitiesAndBuffs_CombatLogEventUnfiltered(unknown, eventType, hideCaster, srcGUID, srcName, srcFlags, srcRaidFlags, dstGUID, dstName, dstFlags, dstRaidFlags, spellId)
+  local bleeds = {'Rupture', 'Garrote'}
+  if srcGUID == Torpedo_Temp.me then
+    if eventType == 'SPELL_CAST_SUCCESS' then
+      for _, bleedName in ipairs(bleeds) do 
+        if spellId == abilities_Torpedo[bleedName]:firstKnownSpellId() then 
+          buffs_Torpedo[bleedName].multiplier = buffs_Torpedo[bleedName].getCurrentMultiplier()
+          return
+        end
+      end
+      
+      if spellId == abilities_Torpedo['Exsanguinate']:firstKnownSpellId() then
+        for _, bleedName in ipairs(bleeds) do 
+          local bleed = buffs_Torpedo[bleedName]
+          
+          if bleed:up() then 
+            bleed.multiplier = bleed.multiplier + 4
+          end
+        end
+      end
+    end
+  end
+end
+
 function LoadAbilitiesAndBuffs_Assassination_Torpedo() 
-	Ability_Torpedo.add({1784}, 'Stealth')
-	Ability_Torpedo.add({1329, 1752}, 'Mutilate') 
-	Ability_Torpedo.add({1329}, 'Actual Mutilate')
-	Ability_Torpedo.add({145416, 2098}, 'Envenom')
+  Ability_Torpedo.add({1784}, 'Stealth')
+  Ability_Torpedo.add({2823}, 'Deadly Poison')
+  Ability_Torpedo.add({1943}, 'Rupture')
+  Ability_Torpedo.add({703}, 'Garrote')
+  Ability_Torpedo.add({1329}, 'Mutilate')
+  Ability_Torpedo.add({32645}, 'Envenom')
+  Ability_Torpedo.add({16511}, 'Hemorrhage')
+  Ability_Torpedo.add({200806}, 'Exsanguinate')
 	Ability_Torpedo.add({1856}, 'Vanish')
-	Ability_Torpedo.add({121733}, 'Throw')
-	Ability_Torpedo.add({51723}, 'Fan of Knives')
-	Ability_Torpedo.add({1943}, 'Rupture')
-	Ability_Torpedo.add({111240, 1752}, 'Dispatch') -- So apparently dispatch replaces sinister strike - Y U DO THIS.
-	Ability_Torpedo.add({152151}, 'Shadow Reflection')
-	Ability_Torpedo.add({79140},  'Vendetta')
-	Ability_Torpedo.add({2823, 8679}, 'Deadly Poison')
-	Ability_Torpedo.add({5277}, 'Evasion')
-	Ability_Torpedo.add({74001}, 'Combat Readiness')
-	Ability_Torpedo.add({1966}, 'Feint')
-	Ability_Torpedo.add({73651}, 'Recuperate')
-	Ability_Torpedo.add({145418}, 'Slice and Dice')
-	Ability_Torpedo.add({157513}, 'Improved Slice and Dice')
-	Ability_Torpedo.add({114015}, 'Anticipation')
-	Ability_Torpedo.add({14185}, 'Preparation')
-	
-	Buff_Torpedo.add({1784, 11327},   'player', 'Stealth')
-	Buff_Torpedo.add({1943},   'target', 'Rupture')
-	Buff_Torpedo.add({32645}, 'player', 'Envenom')
-	Buff_Torpedo.add({152151}, 'target', 'Shadow Reflection')
-	Buff_Torpedo.add({158108}, 'player', 'Enhanced Vendetta')
-	Buff_Torpedo.add({121153}, 'player', 'Blindside') -- Free dispatch --
-	Buff_Torpedo.add({2823, 8679}, 'player', 'Deadly Poison')
-	Buff_Torpedo.add({115189}, 'player', 'Anticipation')
-	Buff_Torpedo.add({5277}, 'player', 'Evasion')
-	Buff_Torpedo.add({74001}, 'player', 'Combat Readiness')
-	Buff_Torpedo.add({1966}, 'player', 'Feint')
-	Buff_Torpedo.add({73651}, 'player', 'Recuperate')
+  Ability_Torpedo.add({79140}, 'Vendetta')
+  
+	Buff_Torpedo.add({1784, 11327, 115191, 115192, 51713, 185422}, 'player', 'Stealth')
+  Buff_Torpedo.add({2823}, 'player', 'Deadly Poison')
+  Buff_Torpedo.add({32645}, 'player', 'Envenom')
+  Buff_Torpedo.add({16511}, 'target', 'Hemorrhage')
+  
+  -- 'Special' buffs
+  Buff_Torpedo.add({1943}, 'target', 'Rupture')
+  buffs_Torpedo['Rupture'].getCurrentMultiplier = function(self)
+    local multiplier = 1
+    if buffs_Torpedo['Stealth']:up() and talents_Torpedo['Nightstalker']:selected() then 
+      multiplier = multiplier + 0.5
+    end
+    return multiplier
+  end
+  Buff_Torpedo.add({703}, 'target', 'Garrote')
+  buffs_Torpedo['Garrote'].getCurrentMultiplier = buffs_Torpedo['Rupture'].getCurrentMultiplier
+  
+  Talent_Torpedo.add(2, 1, 1, 'Nightstalker')
+  Talent_Torpedo.add(3, 1, 1, 'Deeper Stratagem')
+  Talent_Torpedo.add(6, 3, 1, 'Exsanguinate')
 end
 
 function LoadAbilitiesAndBuffs_Subtlety_Torpedo()
 	Ability_Torpedo.add({1784}, 'Stealth')
-	Ability_Torpedo.add({53, 200758}, 'Backstab') -- Includes Gloomblade if you chose that lv15 talent
+	Ability_Torpedo.add({53, 200758}, 'Backstab') -- Includes Gloomblade if you chose that tier 1 talent
 	Ability_Torpedo.add({2098, 196819}, 'Eviscerate')
 	Ability_Torpedo.add({1856}, 'Vanish')
 	Ability_Torpedo.add({51713, 185313}, 'Shadow Dance')
   Ability_Torpedo.add({212283}, 'Symbols of Death')
   Ability_Torpedo.add({195452}, 'Nightblade')
-  Ability_Torpedo.add({193531}, 'Deeper Stratagem')
   Ability_Torpedo.add({185438}, 'Shadowstrike')
 	Ability_Torpedo.add({121471}, 'Shadow Blades')
   
@@ -222,5 +277,7 @@ function LoadAbilitiesAndBuffs_Subtlety_Torpedo()
 	Buff_Torpedo.add({115189}, 'player', 'Anticipation')
   Buff_Torpedo.add({195452}, 'target', 'Nightblade')
 	Buff_Torpedo.add({121471}, 'player', 'Shadow Blades')
+  
+  Talent_Torpedo.add(3, 1, 3, 'Deeper Stratagem')
 end
 
