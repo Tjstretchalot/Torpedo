@@ -204,6 +204,7 @@ end
   do more damage.
 ]]
 function UpdateAbilitiesAndBuffs_CombatLogEventUnfiltered(unknown, eventType, hideCaster, srcGUID, srcName, srcFlags, srcRaidFlags, dstGUID, dstName, dstFlags, dstRaidFlags, spellId)
+  if not abilities_Torpedo['Rupture'] then return end
   local bleeds = {'Rupture', 'Garrote'}
   if srcGUID == Torpedo_Temp.me then
     if eventType == 'SPELL_CAST_SUCCESS' then
