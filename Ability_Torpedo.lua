@@ -279,6 +279,6 @@ function LoadAbilitiesAndBuffs_Subtlety_Torpedo()
   Buff_Torpedo.add({195452}, 'target', 'Nightblade')
 	Buff_Torpedo.add({121471}, 'player', 'Shadow Blades')
   
-  Talent_Torpedo.add(3, 1, 3, 'Deeper Stratagem')
+  Talent_Torpedo.add(3, 1, 1, 'Deeper Stratagem')
 end
 
