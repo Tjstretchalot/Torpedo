@@ -766,7 +766,6 @@ local options = {
                   get = function(info) return Torpedo.db.profile.assassination.cdPriorities.vendetta end,
                   set = function(info, val) Torpedo:TrySetCDPriority('assassination', 'vendetta', val) end,
                   disabled = function(info) return not Torpedo.db.profile.assassination.vendettaEnabled end,
-                  validate = 'IsCDPriorityValid',
                   order = 2,
                   width = 'full',
                   min = 1,
@@ -774,7 +773,339 @@ local options = {
                   softMin = 1,
                   softMax = 1000,
                   order = 2, 
+                  width = 'full',
+                  step = 1,
+                  bigStep = 1
+                },
+                vendettaWaitsForVanish = {
+                  type = 'toggle',
+                  name = 'Vendetta waits for vanish',
+                  desc = 'Should vendetta try to combo with vanish? This allows the improved rupture damage to coincide with the 50% stronger rupture that is applied when rupturing from stealth, if Nightstalker is selected',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaWaitsForVanish end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vendettaWaitsForVanish = val end,
+                  disabled = function(info) return not Torpedo.db.profile.assassination.vendettaEnabled end,
+                  order = 3,
                   width = 'full'
+                },
+                vendettaLetsVanishHaveSomeCD = {
+                  type = 'toggle',
+                  name = 'Vendetta allows vanish some cooldown',
+                  desc = 'Is there any wiggle room in the vanish cooldown?',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaLetsVanishHaveSomeCD end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vendettaLetsVanishHaveSomeCD = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaWaitsForVanish) end,
+                  order = 4,
+                  width = 'full'
+                },
+                vendettaMaxAllowedVanishCDRemaining = {
+                  type = 'range',
+                  name = 'Vanish remaining cooldown allowed',
+                  desc = 'What is the maximum remaining cooldown on vanish to suggest vendetta?',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaMaxAllowedVanishCDRemaining end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vendettaMaxAllowedVanishCDRemaining = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaWaitsForVanish) or (not Torpedo.db.profile.assassination.vendettaLetsVanishHaveSomeCD) end,
+                  order = 5,
+                  width = 'full',
+                  min = 1,
+                  max = 120,
+                  softMin = 1,
+                  softMax = 120,
+                  step = 0.01,
+                  bigStep = 1
+                },
+                vendettaIgnoresVanishCDIfLongWayOff = {
+                  type = 'toggle',
+                  name = 'Ignore vanish cooldown if long way off',
+                  desc = 'If vanish has a long time left on its cooldown and we\'re ready to vanish, should we not wait for it?',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaIgnoresVanishCDIfLongWayOff end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vendettaIgnoresVanishCDIfLongWayOff = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaWaitsForVanish) end,
+                  order = 6,
+                  width = 'full'
+                },
+                vendettaVanishMinCdToIgnore = {
+                  type = 'range',
+                  name = 'Vanish long way off cooldown',
+                  desc = 'How many seconds left on vanishs cooldown constitutes a \'long way off\'?',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaVanishMinCdToIgnore end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vendettaVanishMinCdToIgnore = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaWaitsForVanish) or (not Torpedo.db.profile.assassination.vendettaIgnoresVanishCDIfLongWayOff) end,
+                  order = 7,
+                  width = 'full',
+                  min = 1,
+                  max = 120,
+                  softMin = 1,
+                  softMax = 120,
+                  step = 0.01,
+                  bigStep = 1
+                },
+                vendettaWaitsForExsanguinate = {
+                  type = 'toggle',
+                  name = 'Vendetta waits for exsanguinate',
+                  desc = 'Should vendetta try to combo with exsanguinate? This allows the improved rupture from vanish to combo with exsanguinate for incredible burst damage.',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaWaitsForExsanguinate end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vendettaWaitsForExsanguinate = val end,
+                  disabled = function(info) return not Torpedo.db.profile.assassination.vendettaEnabled end,
+                  order = 8,
+                  width = 'full'
+                },
+                vendettaLetsExsanguinateHaveSomeCD = {
+                  type = 'toggle',
+                  name = 'Vendetta allows exsanguinate some cooldown',
+                  desc = 'Is there any wiggle room in the remaining exsanguinate cooldown?',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaLetsExsanguinateHaveSomeCD end,
+                  set = function(info, val) Torpedo.db.profile.vendettaLetsExsanguinateHaveSomeCD = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaWaitsForExsanguinate) end,
+                  order = 9,
+                  width = 'full'
+                },
+                vendettaMaxAllowedExsanguinateCDRemaining = {
+                  type = 'range',
+                  name = 'Exsanguinate max cooldown allowed',
+                  desc = 'What is the maximum remaining cooldown on exsanguinate to suggest vendetta?',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaMaxAllowedExsanguinateCDRemaining end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vendettaMaxAllowedExsanguinateCDRemaining = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaWaitsForExsanguinate) or (not Torpedo.db.profile.assassination.vendettaLetsExsanguinateHaveSomeCD) end,
+                  order = 10,
+                  width = 'full',
+                  min = 1,
+                  max = 45,
+                  softMin = 1,
+                  softMax = 45,
+                  step = 0.01,
+                  bigStep = 1
+                },
+                vendettaIgnoresExsanguinateCDIfLongWayOff = {
+                  type = 'toggle',
+                  name = 'Ignore exsanguinate cooldown if long way off',
+                  desc = 'If exsanguinate has a long time left on its cooldown and we\'re ready to vendetta, should we not wait for it?',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaIgnoresExsanguinateCDIfLongWayOff end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vendettaIgnoresExsanguinateCDIfLongWayOff = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaWaitsForExsanguinate) end,
+                  order = 11,
+                  width = 'full'
+                },
+                vendettaExsanguinateMinCdToIgnore = {
+                  type = 'range',
+                  name = 'Exsanguinate long way off cooldown',
+                  desc = 'How many seconds left on exsanguinate constitutes a \'long way off\'?',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaExsanguinateMinCdToIgnore end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vendettaExsanguinateMinCdToIgnore = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaWaitsForExsanguinate) or (not Torpedo.db.profile.assassination.vendettaIgnoresExsanguinateCDIfLongWayOff) end,
+                  order = 12,
+                  width = 'full',
+                  min = 1,
+                  max = 45,
+                  softMin = 1,
+                  softMax = 45,
+                  step = 0.01,
+                  bigStep = 1
+                },
+                vendettaChecksComboPoints = {
+                  type = 'toggle',
+                  name = 'Check combo points',
+                  desc = 'Should we look at our combo points before suggesting vendetta? Recall it\'s very good to rupture from stealth with the Nightstalker talent',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaChecksComboPoints end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vendettaChecksComboPoints = val end,
+                  disabled = function(info) return not Torpedo.db.profile.assassination.vendettaEnabled end,
+                  order = 13,
+                  width = 'full'
+                },
+                vendettaRequiresMaxComboPoints = {
+                  type = 'toggle',
+                  name = 'Use only at max combo points',
+                  desc = 'Should we only vendetta at max combo points? (6 if deeper stratagem is selected, 5 otherwise)',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaRequiresMaxComboPoints end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vendettaRequiresMaxComboPoints = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaChecksComboPoints) end,
+                  order = 14,
+                  width = 'full'
+                },
+                vendettaHasMinCP = {
+                  type = 'toggle',
+                  name = 'Have minimum combo points',
+                  desc = 'Do we have a minimum number of combo points to suggest vendetta?',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaHasMinCP end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vendettaHasMinCP = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaChecksComboPoints) or (Torpedo.db.profile.assassination.vendettaRequiresMaxComboPoints) end,
+                  order = 15,
+                  width = 'full'
+                },
+                vendettaMinCP = {
+                  type = 'range',
+                  name = 'Minimum combo points',
+                  desc = 'What is the minimum combo points to suggest vendetta?',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaMinCP end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vendettaMinCP = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaChecksComboPoints) or (Torpedo.db.profile.assassination.vendettaRequiresMaxComboPoints) or (not Torpedo.db.profile.assassination.vendettaHasMinCP) end,
+                  order = 16,
+                  width = 'full',
+                  min = 1,
+                  max = 6,
+                  softMin = 1,
+                  softMax = 6,
+                  step = 1,
+                  bigStep = 1
+                },
+                vendettaHasMaxCP = {
+                  type = 'toggle',
+                  name = 'Have maximum combo points',
+                  desc = 'Do we have a maximum number of combo points to suggest vendetta?',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaHasMaxCP end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vendettaHasMaxCP = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaChecksComboPoints) or (Torpedo.db.profile.assassination.vendettaRequiresMaxComboPoints) end,
+                  order = 17,
+                  width = 'full'
+                },
+                vendettaMaxCP = {
+                  type = 'range',
+                  name = 'Maximum combo points',
+                  desc = 'What is the maximum number of combo points to suggest vendetta?',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaMaxCP end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vendettaMaxCP = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaChecksComboPoints) or (Torpedo.db.profile.assassination.vendettaRequiresMaxComboPoints) or (not Torpedo.db.profile.assassination.vendettaHasMaxCP) end,
+                  order = 18,
+                  width = 'full',
+                  min = 1,
+                  max = 6,
+                  softMin = 1,
+                  softMax = 6,
+                  step = 1,
+                  bigStep = 1
+                },
+                vendettaChecksStealthyTristate = {
+                  type = 'toggle',
+                  tristate = true,
+                  name = function(info)
+                    local curVal = Torpedo.db.profile.assassination.vendettaChecksStealthyTristate 
+                    if curVal == nil then 
+                      return 'Ensure we are not already stealthy'
+                    elseif curVal == true then 
+                      return 'Ensure we are stealthy already'
+                    else
+                      return 'Check stealthiness'
+                    end
+                  end,
+                  desc = 'Should we ignore/ensure/avoid stealthiness, where stealthiness is the ability to use stealth abilities?',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaChecksStealthyTristate end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vendettaChecksStealthyTristate = val end,
+                  disabled = function(info) return not Torpedo.db.profile.assassination.vendettaEnabled end,
+                  order = 19,
+                  width = 'full'
+                },
+                vendettaChecksRuptureDuration = {
+                  type = 'toggle',
+                  name = 'Check rupture duration',
+                  desc = 'Should we check how much time is left on rupture before using vendetta?',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaChecksRuptureDuration end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vendettaChecksRuptureDuration = val end,
+                  disabled = function(info) return not Torpedo.db.profile.assassination.vendettaEnabled end,
+                  order = 20,
+                  width = 'full'
+                },
+                vendettaMaxRuptureRemaining = {
+                  type = 'range',
+                  name = 'Maximum rupture duration remaining',
+                  desc = 'What is the maximum time left on rupture to use vendetta?',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaMaxRuptureRemaining end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vendettaMaxRuptureRemaining = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaChecksRuptureDuration) end,
+                  order = 21,
+                  width = 'full',
+                  min = 1,
+                  max = 28,
+                  softMin = 1,
+                  softMax = 28,
+                  step = 1,
+                  bigStep = 1
+                },
+                vendettaChecksRuptureMultiplier = {
+                  type = 'toggle',
+                  name = 'Check rupture multiplier',
+                  desc = 'Should we check the multiplier on the current rupture if it\'s up? The multiplier would be 1 if we applied out of stealth and didn\'t exsanguinate, 1.5 if we applied from stealth and didn\'t exsanguinate, 5 if applied out of stealth and exsanguinated, and 5.5 if applied from stealth and exsanguinated.',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaChecksRuptureMultiplier end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vendettaChecksRuptureMultiplier = val end,
+                  disabled = function(info) return not Torpedo.db.profile.assassination.vendettaEnabled end,
+                  order = 22,
+                  width = 'full'
+                },
+                vendettaMaxRuptureMultiplier = {
+                  type = 'range',
+                  name = 'Maximum rupture multiplier',
+                  desc = 'What is the maximum rupture multiplier to suggest vendetta? 1 would mean suggest vendetta if and only if the old rupture wasn\'t buffed at all, 1.5 would mean suggest vendetta if and only if the current rupture isn\'t improved by exsanguinate, 5 would mean suggest vendetta if and only if the current rupture isn\'t a rupture from stealth that was exsanguinated, and 5.5 would effectively mean ignore rupture multiplier',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaMaxRuptureMultiplier end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vendettaMaxRuptureMultiplier = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaChecksRuptureMultiplier) end,
+                  order = 23,
+                  width = 'full',
+                  min = 1,
+                  max = 5.5,
+                  softMin = 1,
+                  softMax = 5.5,
+                  step = 0.01,
+                  bigStep = 0.5
+                },
+                vendettaChecksEnergy = {
+                  type = 'toggle',
+                  name = 'Check energy',
+                  desc = 'Should we check our energy levels before using vendetta?',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaChecksEnergy end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vendettaChecksEnergy = val end,
+                  disabled = function(info) return not Torpedo.db.profile.assassination.vendettaEnabled end,
+                  order = 24,
+                  width = 'full'
+                },
+                vendettaHasMinEnergy = {
+                  type = 'toggle',
+                  name = 'Have minimum energy',
+                  desc = 'Is there a minimum energy amount for using vendetta?',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaHasMinEnergy end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vendettaHasMinEnergy = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaChecksEnergy) end,
+                  order = 25,
+                  width = 'full'
+                },
+                vendettaMinEnergy = {
+                  type = 'range',
+                  name = 'Minimum energy',
+                  desc = 'What is the minimum energy amount for using vendetta?',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaMinEnergy end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vendettaMinEnergy = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaChecksEnergy) or (not Torpedo.db.profile.assassination.vendettaHasMinEnergy) end,
+                  order = 26,
+                  width = 'full',
+                  min = 1,
+                  max = 156,
+                  softMin = 1,
+                  softMax = 125,
+                  step = 1,
+                  bigStep = 5
+                },
+                vendettaHasMaxEnergy = {
+                  type = 'toggle',
+                  name = 'Have maximum energy',
+                  desc = 'Is there a maximum energy amount for using vendetta?',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaHasMaxEnergy end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vendettaHasMaxEnergy = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaChecksEnergy) end,
+                  order = 27,
+                  width = 'full'
+                },
+                vendettaMaxEnergy = {
+                  type = 'range',
+                  name = 'Maximum energy',
+                  desc = 'What is the maximum energy amount for using vendetta?',
+                  get = function(info) return Torpedo.db.profile.assassination.vendettaMaxEnergy end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vendettaMaxEnergy = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaChecksEnergy) or (not Torpedo.db.profile.assassination.vendettaMaxEnergy) end,
+                  order = 28,
+                  width = 'full',
+                  min = 1,
+                  max = 156,
+                  softMin = 1,
+                  softMax = 125,
+                  step = 1,
+                  bigStep = 5
                 }
               }
             }
@@ -823,7 +1154,6 @@ local defaults = {
       frequency = 0.05,
       deadlyPoisonEnabled = true,
       refreshDeadlyPoisonOOCSeconds = 600,
-      vendettaEnabled = true,
       stealthEnabled = true,
       ruptureEnabled = true,
       applyRuptureEarlyWhenLowEnergy = true,
@@ -860,7 +1190,34 @@ local defaults = {
       mutilateLenientCPCheck = true,
       maxCPToMutilate = 5,
       minEnergyToMutilate = 75,
-      ignoreCPForMutilateEnergy = 100
+      ignoreCPForMutilateEnergy = 100,
+      vendettaEnabled = true,
+      vendettaWaitsForVanish = true,
+      vendettaLetsVanishHaveSomeCD = false,
+      vendettaMaxAllowedVanishCDRemaining = 2,
+      vendettaIgnoresVanishCDIfLongWayOff = false,
+      vendettaVanishMinCdToIgnore = 90,
+      vendettaWaitsForExsanguinate = true,
+      vendettaLetsExsanguinateHaveSomeCD = false,
+      vendettaMaxAllowedExsanguinateCDRemaining = 2,
+      vendettaIgnoresExsanguinateCDIfLongWayOff = false,
+      vendettaExsanguinateMinCdToIgnore = 30,
+      vendettaChecksComboPoints = true,
+      vendettaRequiresMaxComboPoints = true,
+      vendettaHasMinCP = false,
+      vendettaMinCP = 5,
+      vendettaHasMaxCP = false,
+      vendettaMaxCP = 6,
+      vendettaChecksStealthyTristate = nil,
+      vendettaChecksRuptureDuration = false,
+      vendettaMaxRuptureRemaining = 7,
+      vendettaChecksRuptureMultiplier = true,
+      vendettaMaxRuptureMultiplier = 1,
+      vendettaChecksEnergy = true,
+      vendettaHasMinEnergy = true,
+      vendettaMinEnergy = 25,
+      vendettaHasMaxEnergy = false,
+      vendettaMaxEnergy = 100
     }
   }
 }
@@ -1301,7 +1658,7 @@ local function initialize_assassination(db)
       if haveEnoughEnergy then 
         return assass_spells.Mutilate
       else
-        if db.profile.poolEnergyWaitingForMutilate then 
+        if db.profile.assassination.poolEnergyWaitingForMutilate then 
           return pool_energy_sugg
         end
       end
@@ -1312,12 +1669,72 @@ local function initialize_assassination(db)
   ai_cd = TorpedoAI:New()
   
   ai_cd:RegisterSuggestion(db.profile.assassination.cdPriorities.vendetta, function(self, db)
-    if not db.profile.assassination.vendettaEnabled then return end
+    -- If vendetta is not on cooldown, vanish is not on cooldown, exsanguinate is not on cooldown, 
+    -- we have the max usable combo points, we're not stealthed, and rupture is either off, about
+    -- to wear off, or weak and we have at least 25 energy, suggest vendetta --
+    local cfg = db.profile.assassination -- make lines less long
+    if not cfg.vendettaEnabled then return end
     
     local vendettaCdStart, vendettaCdDuration = GetSpellCooldown(assass_spells.Vendetta.spell_id)
+    local vanishCdStart, vanishCdDuration = GetSpellCooldown(assass_spells.Vanish.spell_id)
+    local exsanguinateCdStart, exsanguinateCdDuration = GetSpellCooldown(assass_spells.Exsanguinate.spell_id)
     
-    if vendettaCdStart == 0 then return assass_spells.Vendetta end
+    local the_time = GetTime()
+    local vendettaCdRemaining = (vendettaCdStart ~= 0) and (vendettaCdStart + vendettaCdDuration - the_time) or 0
+    local vanishCdRemaining = (vanishCdStart ~= 0) and (vanishCdStart + vanishCdDuration - the_time) or 0
+    local exsanguinateCdRemaining = (exsanguinateCdStart ~= 0) and (exsanguinateCdStart + exsanguinateCdDuration - the_time) or 0
+    
+    local comboPoints = GetComboPoints('player', 'target')
+    local haveMaxComboPoints = comboPoints == max_usable_combo_points()
+    local energy = UnitPower('player')
+    local oldRuptureMultiplier = auras.Rupture:up() and auras.Rupture.multiplier or 0
+    
+    local vendettaCdOK = (vendettaCdStart == 0)
+    if not vendettaCdOK then return end
+    
+    local vanishCdOK = (not cfg.vendettaWaitsForVanish) 
+      or (vanishCdStart == 0) 
+      or (cfg.vendettaLetsVanishHaveSomeCD and vanishCdRemaining <= cfg.vendettaMaxAllowedVanishCDRemaining) 
+      or (cfg.vendettaIgnoresVanishCDIfLongWayOff and vanishCdRemaining >= cfg.vendettaVanishMinCdToIgnore)
+    if not vanishCdOK then return end
+    
+    local exsanguinateCdOK = (not cfg.vendettaWaitsForExsanguinate)
+      or (exsanguinateCdStart == 0)
+      or (cfg.vendettaLetsExsanguinateHaveSomeCD and exsanguinateCdRemaining <= cfg.vendettaMaxAllowedExsanguinateCDRemaining)
+      or (cfg.vendettaIgnoresExsanguinateCDIfLongWayOff and exsanguinateCdRemaining >= cfg.vendettaExsanguinateMinCdToIgnore)
+    if not exsanguinateCdOK then return end
+    
+    local comboPointsOK = (not cfg.vendettaChecksComboPoints)
+      or (cfg.vendettaRequiresMaxComboPoints and haveMaxComboPoints)
+      or (not cfg.vendettaRequiresMaxComboPoints
+        and ((not cfg.vendettaHasMinCP) or (comboPoints >= cfg.vendettaMinCP))
+        and ((not cfg.vendettaHasMaxCP) or (comboPoints <= cfg.vendettaMaxCP)))
+    if not comboPointsOK then return end
+    
+    local stealthOK = (cfg.vendettaChecksStealthyTristate == false)
+      or ((cfg.vendettaChecksStealthyTristate == nil) and (not stealthy))
+      or ((cfg.vendettaChecksStealthyTristate == true) and stealthy)
+    if not stealthOK then return end
+    
+    local ruptureDurationOK = (not cfg.vendettaChecksRuptureDuration)
+      or (not auras.Rupture:up())
+      or (auras.Rupture:remaining() <= cfg.vendettaMaxRuptureRemaining)
+    if not ruptureDurationOK then return end
+    
+    local ruptureMultiplierOK = (not cfg.vendettaChecksRuptureMultiplier)
+      or (not auras.Rupture:up())
+      or (oldRuptureMultiplier <= cfg.vendettaMaxRuptureMultiplier)
+    if not ruptureMultiplierOK then return end
+    
+    local energyOK = (not cfg.vendettaChecksEnergy)
+      or (  ((not cfg.vendettaHasMinEnergy) or energy >= cfg.vendettaMinEnergy)
+        and ((not cfg.vendettaHasMaxEnergy) or energy <= cfg.vendettaMaxEnergy))
+    if not energyOK then return end
+    
+    return assass_spells.Vendetta
   end)
+  
+  
 end
 
 local function initialize_subtlety(db)
