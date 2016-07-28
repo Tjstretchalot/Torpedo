@@ -303,7 +303,7 @@ local options = {
                 allowRuptureWorsen = {
                   type = 'toggle',
                   name = 'Allow re-apply worse rupture',
-                  desc = 'Not all ruptures are made alike - for example, when rupturing from stealth with the Nightstalker talent the rupture is 50% more effective. Should we avoid overwriting a better rupture with a worse one?',
+                  desc = 'Not all ruptures are made alike - for example, when rupturing from stealth with the Nightstalker talent the rupture is 50% more effective. Should we allow overwriting a better rupture with a worse one?',
                   get = function(info) return Torpedo.db.profile.assassination.allowRuptureWorsen end,
                   set = function(info, val) Torpedo.db.profile.assassination.allowRuptureWorsen = val end,
                   disabled = function(info) return not Torpedo.db.profile.assassination.ruptureEnabled end,
@@ -332,7 +332,7 @@ local options = {
                 },
                 applyRuptureEarlyWhenExsanguinateReady = {
                   type = 'toggle',
-                  name = 'Aggresively rupture if exsanguinate ready',
+                  name = 'Aggressively rupture if exsanguinate ready',
                   desc = 'Should we ignore everything but having 25 energy and max combo points if exsanguinate is ready? It\'s almost always worth it to miss an envenom rather than miss an exsanguinate',
                   get = function(info) return Torpedo.db.profile.assassination.applyRuptureEarlyWhenExsanguinateReady end,
                   set = function(info, val) Torpedo.db.profile.assassination.applyRuptureEarlyWhenExsanguinateReady = val end,
