@@ -93,7 +93,8 @@ local auras = {
   Garrote = Aura:new(703, 'target'),
   SymbolsofDeath = Aura:new(212283, 'player'),
   Nightblade = Aura:new(195452, 'target'),
-  ShadowBlades = Aura:new(121471, 'player')
+  ShadowBlades = Aura:new(121471, 'player'),
+  Vendetta = Aura:new(79140, 'target')
 }
 
 
@@ -114,14 +115,17 @@ local options = {
     assassination = {
       name = 'Assassination',
       type = 'group',
+      order = 1,
       args = {
         primaryAbilities = {
           name = 'Primary Suggestions',
           type = 'group',
+          order = 1,
           args = {
             deadlyPoison = {
               name = 'Deadly Poison',
               type = 'group',
+              order = 1,
               args = {
                 deadlyPoisonEnabled = {
                   type = 'toggle',
@@ -169,6 +173,7 @@ local options = {
             stealth = {
               name = 'Stealth',
               type = 'group',
+              order = 2,
               args = {
                 stealthEnabled = {
                   type = 'toggle',
@@ -201,6 +206,7 @@ local options = {
             rupture = {
               name = 'Rupture',
               type = 'group',
+              order = 3,
               args = {
                 ruptureEnabled = {
                   type = 'toggle',
@@ -323,12 +329,23 @@ local options = {
                   disabled = function(info) return (not Torpedo.db.profile.assassination.ruptureEnabled) or (not Torpedo.db.profile.assassination.poolEnergyWaitingForRupture) end,
                   order = 10,
                   width = 'full'
+                },
+                applyRuptureEarlyWhenExsanguinateReady = {
+                  type = 'toggle',
+                  name = 'Aggresively rupture if exsanguinate ready',
+                  desc = 'Should we ignore everything but having 25 energy and max combo points if exsanguinate is ready? It\'s almost always worth it to miss an envenom rather than miss an exsanguinate',
+                  get = function(info) return Torpedo.db.profile.assassination.applyRuptureEarlyWhenExsanguinateReady end,
+                  set = function(info, val) Torpedo.db.profile.assassination.applyRuptureEarlyWhenExsanguinateReady = val end,
+                  disabled = function(info) return not Torpedo.db.profile.assassination.ruptureEnabled end,
+                  order = 11,
+                  width = 'full'
                 }
               }
             },
             envenom = {
               name = 'Envenom',
               type = 'group',
+              order = 4,
               args = {
                 envenomEnabled = {
                   type = 'toggle',
@@ -438,6 +455,7 @@ local options = {
             garrote = {
               name = 'Garrote',
               type = 'group',
+              order = 5,
               args = {
                 garroteEnabled = {
                   name = 'Suggest garrote',
@@ -535,6 +553,7 @@ local options = {
             hemorrhage = {
               name = 'Hemorrhage',
               type = 'group',
+              order = 6,
               args = {
                 hemorrhageEnabled = {
                   name = 'Suggest hemorrhage',
@@ -592,6 +611,7 @@ local options = {
             mutilate = {
               name = 'Mutilate',
               type = 'group',
+              order = 7,
               args = {
                 mutilateEnabled = {
                   name = 'Suggest mutilate',
@@ -745,10 +765,12 @@ local options = {
         secondaryAbilities = {
           name = 'Secondary Suggestions',
           type = 'group',
+          order = 2,
           args = {
             vendetta = {
               name = 'Vendetta',
               type = 'group',
+              order = 1,
               args = {
                 vendettaEnabled = {
                   type = 'toggle',
@@ -1097,7 +1119,7 @@ local options = {
                   desc = 'What is the maximum energy amount for using vendetta?',
                   get = function(info) return Torpedo.db.profile.assassination.vendettaMaxEnergy end,
                   set = function(info, val) Torpedo.db.profile.assassination.vendettaMaxEnergy = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaChecksEnergy) or (not Torpedo.db.profile.assassination.vendettaMaxEnergy) end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaChecksEnergy) or (not Torpedo.db.profile.assassination.vendettaHasMaxEnergy) end,
                   order = 28,
                   width = 'full',
                   min = 1,
@@ -1108,6 +1130,476 @@ local options = {
                   bigStep = 5
                 }
               }
+            },
+            vanish = {
+              type = 'group',
+              name = 'Vanish',
+              order = 2,
+              args = {
+                vanishEnabled = {
+                  name = 'Suggest vanish',
+                  type = 'toggle',
+                  desc = 'Toggle if vanish should ever be suggested.',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishEnabled end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vanishEnabled = val end,
+                  order = 1,
+                  width = 'full'
+                },
+                vanishPriority = {
+                  type = 'range',
+                  name = 'Priority',
+                  desc = PRIORITY_DESC,
+                  get = function(info) return Torpedo.db.profile.assassination.cdPriorities.vanish end,
+                  set = function(info, val) TrySetCDPriority('assassination', 'vanish', val) end,
+                  disabled = function(info) return not Torpedo.db.profile.assassination.vanishEnabled end,
+                  order = 2,
+                  width = 'full',
+                  min = 1,
+                  max = 2000,
+                  softMin = 1,
+                  softMax = 1000,
+                  step = 1,
+                  bigStep = 1
+                },
+                vanishRequiresVendettaBuff = {
+                  type = 'toggle',
+                  name = 'Require vendetta buff',
+                  desc = 'Should we only use vanish if vendetta is active?',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishRequiresVendettaBuff end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vanishRequiresVendettaBuff = val end,
+                  disabled = function(info) return not Torpedo.db.profile.assassination.vanishEnabled end,
+                  order = 3,
+                  width = 'full'
+                },
+                vanishRequiresVendettaBuffMinDuration = {
+                  type = 'toggle',
+                  name = 'Require vendetta minimum duration',
+                  desc = 'Is there some minimum duration remaining on vendetta to use vanish?',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishRequiresVendettaBuffMinDuration end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vanishRequiredVendettaBuffMinDuration = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishRequiresVendettaBuff) end,
+                  order = 4,
+                  width = 'full'
+                },
+                vanishRequiredVendettaBuffMinDuration = {
+                  type = 'range',
+                  name = 'Vendetta minimum duration',
+                  desc = 'What is the minimum duration remaining on vendetta to use vanish?',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishRequiredVendettaBuffMinDuration end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vanishRequiredVendettaBuffMinDuration = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishRequiresVendettaBuff) or (not Torpedo.db.profile.assassination.vanishRequiresVendettaBuffMinDuration) end,
+                  order = 5,
+                  width = 'full',
+                  min = 1,
+                  max = 20,
+                  softMin = 1,
+                  softMax = 20,
+                  step = 0.01,
+                  bigStep = 1
+                },
+                vanishWaitsForExsanguinate = {
+                  type = 'toggle',
+                  name = 'Vanish waits for exsanguinate',
+                  desc = 'Should vanish wait for exsanguinate? This is especially important if vendetta is waiting on vanish - exsanguinate will get the much-needed energy to burst during vendetta.',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishWaitsForExsanguinate end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vanishWaitsForExsanguinate = val end,
+                  disabled = function(info) return not Torpedo.db.profile.assassination.vanishEnabled end,
+                  order = 6,
+                  width = 'full'
+                },
+                vanishLetsExsanguinateHaveSomeCD = {
+                  type = 'toggle',
+                  name = 'Vanish allows exsanguinate some cooldown',
+                  desc = 'Is there any wiggle room in the cooldown for exsanguinate to use vanish?',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishLetsExsanguinateHaveSomeCD end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vanishLetsExsanguinateHaveSomeCD = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishWaitsForExsanguinate) end,
+                  order = 7,
+                  width = 'full'
+                },
+                vanishMaxAllowedExsanguinateCDRemaining = {
+                  type = 'range',
+                  name = 'Max allowed exsanguinate cooldown',
+                  desc = 'What is the maximum exsanguinate cooldown remaining to use vanish?',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishMaxAllowedExsanguinateCDRemaining end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vanishMaxAllowedExsanguinateCDRemaining = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishWaitsForExsanguinate) or (not Torpedo.db.profile.assassination.vanishLetsExsanguinateHaveSomeCD) end,
+                  order = 8,
+                  width = 'full'
+                },
+                vanishWaitsForVendetta = {
+                  type = 'toggle',
+                  name = 'Vanish waits for vendetta',
+                  desc = 'Should vanish wait for vendetta? Be careful to avoid circular logic with vendetta waiting on vanish if they are intended to overlap.',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishWaitsForVendetta end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vanishWaitsForVendetta = val end,
+                  disabled = function(info) return not Torpedo.db.profile.assassination.vanishEnabled end,
+                  order = 9,
+                  width = 'full'
+                },
+                vanishLetsVendettaHaveSomeCD = {
+                  type = 'toggle',
+                  name = 'Vanish allows vendetta some cooldown',
+                  desc = 'Is there any wiggle room in the cooldown for vendetta to use vanish?',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishLetsVendettaHaveSomeCD end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vanishLetsVendettaHaveSomeCD = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishWaitsForVendetta) end,
+                  order = 10,
+                  width = 'full'
+                },
+                vanishMaxAllowedVendettaCDRemaining = {
+                  type = 'range',
+                  name = 'Max allowed vendetta cooldown',
+                  desc = 'What is the maximum vendetta cooldown remaining to use vanish?',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishMaxAllowedVendettaCDRemaining end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vanishMaxAllowedVendettaCDRemaining = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishWaitsForVendetta) or (not Torpedo.db.profile.assassination.vanishLetsVendettaHaveSomeCD) end,
+                  order = 11,
+                  width = 'full',
+                  min = 1,
+                  max = 120,
+                  softMin = 1,
+                  softMax = 120,
+                  step = 0.01,
+                  bigStep = 1
+                },
+                vanishChecksComboPoints = {
+                  type = 'toggle',
+                  name = 'Check combo points',
+                  desc = 'Should we check our combo points before using vanish?',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishChecksComboPoints end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vanishChecksComboPoints = val end,
+                  disabled = function(info) return not Torpedo.db.profile.assassination.vanishEnabled end,
+                  order = 12,
+                  width = 'full'
+                },
+                vanishRequiresMaxComboPoints = {
+                  type = 'toggle',
+                  name = 'Require max combo points',
+                  desc = 'Should we require that we have the maximum usable combo points (6 with deeper stratagem, 5 otherwise) to use vanish?',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishRequiresMaxComboPoints end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vanishRequiresMaxComboPoints = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishChecksComboPoints) end,
+                  order = 13,
+                  width = 'full'
+                },
+                vanishHasMinCP = {
+                  type = 'toggle',
+                  name = 'Have minimum combo points',
+                  desc = 'Is there some minimum number of combo points to use vanish?',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishHasMinCP end,
+                  set = function(info) Torpedo.db.profile.assassination.vanishHasMinCP = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishChecksComboPoints) or Torpedo.db.profile.assassination.vanishRequiresMaxComboPoints end,
+                  order = 14,
+                  width = 'full'
+                },
+                vanishMinCP = {
+                  type = 'range',
+                  name = 'Minimum combo points',
+                  desc = 'What is the minimum number of combo points we should have to use vanish?',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishMinCP end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vanishMinCP = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishChecksComboPoints) or Torpedo.db.profile.assassination.vanishRequiresMaxComboPoints or (not Torpedo.db.profile.assassination.vanishHasMinCP) end,
+                  order = 15,
+                  width = 'full',
+                  min = 1,
+                  max = 6,
+                  softMin = 1,
+                  softMax = 6,
+                  step = 1,
+                  bigStep = 1
+                },
+                vanishHasMaxCP = {
+                  type = 'toggle',
+                  name = 'Have maximum combo points',
+                  desc = 'Is there some maximum number of combo points to use vanish?',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishHasMaxCP end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vanishHasMaxCP = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishChecksComboPoints) or Torpedo.db.profile.assassination.vanishRequiresMaxComboPoints end,
+                  order = 16,
+                  width = 'full'
+                },
+                vanishMaxCP = {
+                  type = 'range',
+                  name = 'Maximum combo points',
+                  desc = 'What is the maximum number of combo points we should have to use vanish?',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishMaxCP end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vanishMaxCP = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishChecksComboPoints) or Torpedo.db.profile.assassination.vanishRequiresMaxComboPoints or (not Torpedo.db.profile.assassination.vanishHasMaxCP) end,
+                  order = 17,
+                  width = 'full',
+                  min = 1,
+                  max = 6,
+                  softMin = 1,
+                  softMax = 6,
+                  step = 1,
+                  bigStep = 1
+                },
+                vanishChecksStealthyTristate = {
+                  type = 'toggle',
+                  tristate = true,
+                  name = function(info)
+                    local curVal = Torpedo.db.profile.assassination.vanishChecksStealthyTristate 
+                    if curVal == nil then 
+                      return 'Ensure we are not already stealthy'
+                    elseif curVal == true then 
+                      return 'Ensure we are stealthy already'
+                    else
+                      return 'Check stealthiness'
+                    end
+                  end,
+                  desc = 'Should we ignore/ensure/avoid stealthiness, where stealthiness is the ability to use stealth abilities?',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishChecksStealthyTristate end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vanishChecksStealthyTristate = val end,
+                  disabled = function(info) return not Torpedo.db.profile.assassination.vanishEnabled end,
+                  order = 18,
+                  width = 'full'
+                },
+                vanishChecksRuptureDuration = {
+                  type = 'toggle',
+                  name = 'Check rupture duration',
+                  desc = 'Should we check how much time is left on rupture before using vanish?',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishChecksRuptureDuration end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vanishChecksRuptureDuration = val end,
+                  disabled = function(info) return not Torpedo.db.profile.assassination.vanishEnabled end,
+                  order = 20,
+                  width = 'full'
+                },
+                vanishMaxRuptureRemaining = {
+                  type = 'range',
+                  name = 'Maximum rupture duration remaining',
+                  desc = 'What is the maximum time left on rupture to use vanish?',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishMaxRuptureRemaining end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vanishMaxRuptureRemaining = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishChecksRuptureDuration) end,
+                  order = 21,
+                  width = 'full',
+                  min = 1,
+                  max = 28,
+                  softMin = 1,
+                  softMax = 28,
+                  step = 1,
+                  bigStep = 1
+                },
+                vanishChecksRuptureMultiplier = {
+                  type = 'toggle',
+                  name = 'Check rupture multiplier',
+                  desc = 'Should we check the multiplier on the current rupture if it\'s up? The multiplier would be 1 if we applied out of stealth and didn\'t exsanguinate, 1.5 if we applied from stealth and didn\'t exsanguinate, 5 if applied out of stealth and exsanguinated, and 5.5 if applied from stealth and exsanguinated.',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishChecksRuptureMultiplier end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vanishChecksRuptureMultiplier = val end,
+                  disabled = function(info) return not Torpedo.db.profile.assassination.vanishEnabled end,
+                  order = 22,
+                  width = 'full'
+                },
+                vanishMaxRuptureMultiplier = {
+                  type = 'range',
+                  name = 'Maximum rupture multiplier',
+                  desc = 'What is the maximum rupture multiplier to suggest vanish? 1 would mean suggest vanish if and only if the old rupture wasn\'t buffed at all, 1.5 would mean suggest vanish if and only if the current rupture isn\'t improved by exsanguinate, 5 would mean suggest vanish if and only if the current rupture isn\'t a rupture from stealth that was exsanguinated, and 5.5 would effectively mean ignore rupture multiplier',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishMaxRuptureMultiplier end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vanishMaxRuptureMultiplier = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishChecksRuptureMultiplier) end,
+                  order = 23,
+                  width = 'full',
+                  min = 1,
+                  max = 5.5,
+                  softMin = 1,
+                  softMax = 5.5,
+                  step = 0.01,
+                  bigStep = 0.5
+                },
+                vanishChecksEnergy = {
+                  type = 'toggle',
+                  name = 'Check energy',
+                  desc = 'Should we check our energy levels before using vanish?',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishChecksEnergy end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vanishChecksEnergy = val end,
+                  disabled = function(info) return not Torpedo.db.profile.assassination.vanishEnabled end,
+                  order = 24,
+                  width = 'full'
+                },
+                vanishHasMinEnergy = {
+                  type = 'toggle',
+                  name = 'Have minimum energy',
+                  desc = 'Is there a minimum energy amount for using vanish?',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishHasMinEnergy end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vanishHasMinEnergy = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishChecksEnergy) end,
+                  order = 25,
+                  width = 'full'
+                },
+                vanishMinEnergy = {
+                  type = 'range',
+                  name = 'Minimum energy',
+                  desc = 'What is the minimum energy amount for using vanish?',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishMinEnergy end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vanishMinEnergy = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishChecksEnergy) or (not Torpedo.db.profile.assassination.vanishHasMinEnergy) end,
+                  order = 26,
+                  width = 'full',
+                  min = 1,
+                  max = 156,
+                  softMin = 1,
+                  softMax = 125,
+                  step = 1,
+                  bigStep = 5
+                },
+                vanishHasMaxEnergy = {
+                  type = 'toggle',
+                  name = 'Have maximum energy',
+                  desc = 'Is there a maximum energy amount for using vanish?',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishHasMaxEnergy end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vanishHasMaxEnergy = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishChecksEnergy) end,
+                  order = 27,
+                  width = 'full'
+                },
+                vanishMaxEnergy = {
+                  type = 'range',
+                  name = 'Maximum energy',
+                  desc = 'What is the maximum energy amount for using vanish?',
+                  get = function(info) return Torpedo.db.profile.assassination.vanishMaxEnergy end,
+                  set = function(info, val) Torpedo.db.profile.assassination.vanishMaxEnergy = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishChecksEnergy) or (not Torpedo.db.profile.assassination.vanishHasMaxEnergy) end,
+                  order = 28,
+                  width = 'full',
+                  min = 1,
+                  max = 156,
+                  softMin = 1,
+                  softMax = 125,
+                  step = 1,
+                  bigStep = 5
+                }
+              }
+            },
+            exsanguinate = {
+              type = 'group',
+              name = 'Exsanguinate',
+              order = 3,
+              args = {
+                exsanguinateEnabled = {
+                  type = 'toggle',
+                  name = 'Suggest exsanguinate',
+                  desc = 'Toggle if exsanguinate should ever be suggested.',
+                  get = function(info) return Torpedo.db.profile.assassination.exsanguinateEnabled end,
+                  set = function(info, val) Torpedo.db.profile.assassination.exsanguinateEnabled = val end,
+                  order = 1,
+                  width = 'full'
+                },
+                exsanguinatePriority = {
+                  type = 'range',
+                  name = 'Priority',
+                  desc = PRIORITY_DESC,
+                  get = function(info) return Torpedo.db.profile.assassination.cdPriorities.exsanguinate end,
+                  set = function(info, val) TrySetCDPriority('assassination', 'exsanguinate', val) end,
+                  disabled = function(info) return not Torpedo.db.profile.assassination.exsanguinateEnabled end,
+                  order = 2,
+                  width = 'full',
+                  min = 1,
+                  max = 2000,
+                  softMin = 1,
+                  softMax = 1000,
+                  step = 1,
+                  bigStep = 1
+                },
+                exsChecksVendettaCD = {
+                  type = 'toggle',
+                  name = 'Check vendetta cooldown',
+                  desc = 'Should we check the cooldown on vendetta before using exsanguinate? Exsanguinate is very strong by itself, but if vendetta is almost ready it might be worth waiting a few seconds',
+                  get = function(info) return Torpedo.db.profile.assassination.exsChecksVendettaCD end,
+                  set = function(info, val) Torpedo.db.profile.assassination.exsChecksVendettaCD = val end,
+                  disabled = function(info) return not Torpedo.db.profile.assassination.exsanguinateEnabled end,
+                  order = 3,
+                  width = 'full'
+                },
+                exsHasMinVendettaCdLeft = {
+                  type = 'toggle',
+                  name = 'Have minimum vendetta cooldown',
+                  desc = 'Do we have a minimum time remaining on vendettas cooldown to use exsanguinate?',
+                  get = function(info) return Torpedo.db.profile.assassination.exsHasMinVendettaCdLeft end,
+                  set = function(info, val) Torpedo.db.profile.assassination.exsHasMinVendettaCdLeft = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.exsanguinateEnabled) or (not Torpedo.db.profile.assassination.exsChecksVendettaCD) end,
+                  order = 4,
+                  width = 'full'
+                },
+                exsMinVendettaCdLeft = {
+                  type = 'range',
+                  name = 'Minimum vendetta cooldown',
+                  desc = 'What is the minimum time remaining on vendettas cooldown to use exsanguinate?',
+                  get = function(info) return Torpedo.db.profile.assassination.exsMinVendettaCdLeft end,
+                  set = function(info, val) Torpedo.db.profile.assassination.exsMinVendettaCdLeft = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.exsanguinateEnabled) or (not Torpedo.db.profile.assassination.exsChecksVendettaCD) or (not Torpedo.db.profile.assassination.exsHasMinVendettaCdLeft) end,
+                  order = 5,
+                  width = 'full',
+                  min = 1,
+                  max = 120,
+                  softMin = 1,
+                  softMax = 120,
+                  step = 0.01,
+                  bigStep = 1
+                },
+                exsChecksVanishCD = {
+                  type = 'toggle',
+                  name = 'Check vanish cooldown',
+                  desc = 'Should we check the cooldown on vanish before using exsanguinate? Exsanguinate is very strong by itself, but if vanish is almost ready it might be worth waiting a few seconds',
+                  get = function(info) return Torpedo.db.profile.assassination.exsChecksVanishCD end,
+                  set = function(info, val) Torpedo.db.profile.assassination.exsChecksVanishCD = val end,
+                  disabled = function(info) return not Torpedo.db.profile.assassination.exsanguinateEnabled end,
+                  order = 6,
+                  width = 'full'
+                },
+                exsHasMinVanishCdLeft = {
+                  type = 'toggle',
+                  name = 'Have minimum vanish cooldown',
+                  desc = 'Do we have a minimum time remaining on vanishs cooldown to use exsanguinate?',
+                  get = function(info) return Torpedo.db.profile.assassination.exsHasMinVanishCdLeft end,
+                  set = function(info, val) Torpedo.db.profile.assassination.exsHasMinVanishCdLeft = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.exsanguinateEnabled) or (not Torpedo.db.profile.assassination.exsChecksVanishCD) end,
+                  order = 7,
+                  width = 'full'
+                },
+                exsMinVanishCdLeft = {
+                  type = 'range',
+                  name = 'Minimum vanish cooldown',
+                  desc = 'What is the minimum time remaining on vendettas cooldown to use exsanguinate?',
+                  get = function(info) return Torpedo.db.profile.assassination.exsMinVanishCdLeft end,
+                  set = function(info, val) Torpedo.db.profile.assassination.exsMinVanishCdLeft = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.exsanguinateEnabled) or (not Torpedo.db.profile.assassination.exsChecksVanishCD) or (not Torpedo.db.profile.assassination.exsHasMinVanishCdLeft) end,
+                  order = 8,
+                  width = 'full',
+                  min = 1,
+                  max = 120,
+                  softMin = 1,
+                  softMax = 120,
+                  step = 0.01,
+                  bigStep = 1
+                },
+                exsChecksRuptureDuration = {
+                  type = 'toggle',
+                  name = 'Check rupture duration',
+                  desc = 'Should we check how much time is left on rupture before using exsanguinate?',
+                  get = function(info) return Torpedo.db.profile.assassination.exsChecksRuptureDuration end,
+                  set = function(info, val) Torpedo.db.profile.assassination.exsChecksRuptureDuration = val end,
+                  disabled = function(info) return not Torpedo.db.profile.assassination.exsanguinateEnabled end,
+                  order = 9,
+                  width = 'full'
+                },
+                exsMinRuptureRemaining = {
+                  type = 'range',
+                  name = 'Minimum rupture duration remaining',
+                  desc = 'What is the minimum time left on rupture to use exsanguinate?',
+                  get = function(info) return Torpedo.db.profile.assassination.exsMinRuptureRemaining end,
+                  set = function(info, val) Torpedo.db.profile.assassination.exsMinRuptureRemaining = val end,
+                  disabled = function(info) return (not Torpedo.db.profile.assassination.exsanguinateEnabled) or (not Torpedo.db.profile.assassination.exsChecksRuptureDuration) end,
+                  order = 10,
+                  width = 'full',
+                  min = 1,
+                  max = 28,
+                  softMin = 1,
+                  softMax = 28,
+                  step = 1,
+                  bigStep = 1
+                }
+              }
             }
           }
         }
@@ -1116,10 +1608,12 @@ local options = {
     subtlety = {
       name = 'Subtlety',
       type = 'group',
+      order = 2,
       args = { 
         mainAbilities = {
           name = 'Primary Abilities',
           type = 'group',
+          order = 1,
           args = {
             
           }
@@ -1127,6 +1621,7 @@ local options = {
         secondaryAbilities = {
           name = 'Secondary Abilities',
           type = 'group',
+          order = 2,
           args = {
           
           }
@@ -1149,7 +1644,9 @@ local defaults = {
         mutilate = 790
       },
       cdPriorities = {
-        vendetta = 1000
+        vendetta = 1000,
+        vanish = 995,
+        exsanguinate = 990
       },
       frequency = 0.05,
       deadlyPoisonEnabled = true,
@@ -1157,13 +1654,14 @@ local defaults = {
       stealthEnabled = true,
       ruptureEnabled = true,
       applyRuptureEarlyWhenLowEnergy = true,
-      ruptureLowEnergy = 70,
+      ruptureLowEnergy = 55,
       ruptureMinComboPoints = 2,
       ruptureReapplyTime = 7,
       allowRuptureWorsen = false,
       cutoffRuptureWhenBetterMultiplier = true,
       poolEnergyWaitingForRupture = true,
       poolEnergyToCutoffRupture = true,
+      applyRuptureEarlyWhenExsanguinateReady = true,
       envenomEnabled = true,
       avoidCuttingOffEnvenom = true,
       envenomReapplyTime = 2,
@@ -1217,7 +1715,42 @@ local defaults = {
       vendettaHasMinEnergy = true,
       vendettaMinEnergy = 25,
       vendettaHasMaxEnergy = false,
-      vendettaMaxEnergy = 100
+      vendettaMaxEnergy = 100,
+      vanishEnabled = true,
+      vanishRequiresVendettaBuff = true,
+      vanishRequiresVendettaBuffMinDuration = true,
+      vanishRequiredVendettaBuffMinDuration = 10,
+      vanishWaitsForExsanguinate = true,
+      vanishLetsExsanguinateHaveSomeCD = false,
+      vanishMaxAllowedExsanguinateCDRemaining = 2,
+      vanishWaitsForVendetta = false,
+      vanishLetsVendettaHaveSomeCD = false,
+      vanishMaxAllowedVendettaCDRemaining = 2,
+      vanishChecksComboPoints = true,
+      vanishRequiresMaxComboPoints = true,
+      vanishHasMinCP = false,
+      vanishMinCP = 5,
+      vanishHasMaxCP = false,
+      vanishMaxCP = 6,
+      vanishChecksStealthyTristate = nil,
+      vanishChecksRuptureDuration = false,
+      vanishMaxRuptureRemaining = 7,
+      vanishChecksRuptureMultiplier = true,
+      vanishMaxRuptureMultiplier = 1,
+      vanishChecksEnergy = true,
+      vanishHasMinEnergy = true,
+      vanishMinEnergy = 25,
+      vanishHasMaxEnergy = false,
+      vanishMaxEnergy = 100,
+      exsanguinateEnabled = true,
+      exsChecksVendettaCD = true,
+      exsHasMinVendettaCdLeft = true,
+      exsMinVendettaCdLeft = 3,
+      exsChecksVanishCD = true,
+      exsHasMinVanishCdLeft = true,
+      exsMinVanishCdLeft = 3,
+      exsChecksRuptureDuration = true,
+      exsMinRuptureRemaining = 24
     }
   }
 }
@@ -1471,6 +2004,7 @@ local function initialize_assassination(db)
   end)
   ai_main:RegisterSuggestion(db.profile.assassination.mainPriorities.rupture, function(self, db)
     -- If rupture is off apply rupture if we have at least 2 combo points and 70 energy --
+    -- If exsanguinate is ready apply rupture if we have max combo points and 25 energy --
     -- If we have max combo points and rupture is about to wear off and reapplying rupture 
     -- won't worsen it, reapply rupture --
     -- If ruptures multiplier is worse than our current multiplier and we have max combo 
@@ -1493,11 +2027,21 @@ local function initialize_assassination(db)
       end
     end
     
+    local haveMaxComboPoints = comboPoints == max_usable_combo_points()
+    
+    if db.profile.assassination.applyRuptureEarlyWhenExsanguinateReady then
+      local exsanguinateCdStart, exsanguinateCdDuration = GetSpellCooldown(assass_spells.Exsanguinate.spell_id)
+      
+      local exsReady = exsanguinateCdDuration ~= 45
+      if exsReady and haveEnoughEnergy and haveMaxComboPoints then 
+        return assass_spells.Rupture
+      end
+    end
+    
     local oldMultiplier = (not auras.Rupture:up()) and 0 or auras.Rupture.multiplier
     local newMultiplier = bleed_multiplier()
     local haveWorseMultiplier = newMultiplier < oldMultiplier
     local haveBetterMultiplier = newMultiplier > oldMultiplier
-    local haveMaxComboPoints = comboPoints == max_usable_combo_points()
     local withinReapplyTime = (not auras.Rupture:up()) or (auras.Rupture:remaining() < db.profile.assassination.ruptureReapplyTime)
     local multiplierOK = db.profile.assassination.allowRuptureWorsen or (not haveWorseMultiplier)
     if haveMaxComboPoints and withinReapplyTime and multiplierOK then 
@@ -1566,7 +2110,7 @@ local function initialize_assassination(db)
     local newMultiplier = bleed_multiplier()
     local haveWorseMultiplier = newMultiplier < oldMultiplier
     local haveBetterMultiplier = newMultiplier > oldMultiplier
-    local garroteReady = cdStart == 0
+    local garroteReady = cdDuration ~= 15
     local dontHaveTooMuchGarroteLeft = (not db.profile.assassination.avoidCuttingOffGarrote) or (not auras.Garrote:up()) or (auras.Garrote:remaining() < db.profile.assassination.garroteReapplyTime)
     local haveEnoughEnergy = energy >= 45
     
@@ -1689,19 +2233,20 @@ local function initialize_assassination(db)
     local energy = UnitPower('player')
     local oldRuptureMultiplier = auras.Rupture:up() and auras.Rupture.multiplier or 0
     
-    local vendettaCdOK = (vendettaCdStart == 0)
+    local vendettaCdOK = (vendettaCdDuration ~= 120)
     if not vendettaCdOK then return end
     
     local vanishCdOK = (not cfg.vendettaWaitsForVanish) 
-      or (vanishCdStart == 0) 
+      or (vanishCdDuration ~= 120) 
       or (cfg.vendettaLetsVanishHaveSomeCD and vanishCdRemaining <= cfg.vendettaMaxAllowedVanishCDRemaining) 
       or (cfg.vendettaIgnoresVanishCDIfLongWayOff and vanishCdRemaining >= cfg.vendettaVanishMinCdToIgnore)
     if not vanishCdOK then return end
     
     local exsanguinateCdOK = (not cfg.vendettaWaitsForExsanguinate)
-      or (exsanguinateCdStart == 0)
+      or (exsanguinateCdDuration ~= 45)
       or (cfg.vendettaLetsExsanguinateHaveSomeCD and exsanguinateCdRemaining <= cfg.vendettaMaxAllowedExsanguinateCDRemaining)
       or (cfg.vendettaIgnoresExsanguinateCDIfLongWayOff and exsanguinateCdRemaining >= cfg.vendettaExsanguinateMinCdToIgnore)
+      
     if not exsanguinateCdOK then return end
     
     local comboPointsOK = (not cfg.vendettaChecksComboPoints)
@@ -1734,6 +2279,111 @@ local function initialize_assassination(db)
     return assass_spells.Vendetta
   end)
   
+  ai_cd:RegisterSuggestion(db.profile.assassination.cdPriorities.vanish, function(self, db)
+    -- If vendetta is active, vanish is not on cooldown, exsanguinate is not on cooldown, 
+    -- we have the max usable combo points, we're not stealthed, and rupture is either off, about
+    -- to wear off, or weak and we have at least 25 energy, suggest vanish --
+    local cfg = db.profile.assassination 
+    if not cfg.vanishEnabled then return end
+    
+    local vendettaCdStart, vendettaCdDuration = GetSpellCooldown(assass_spells.Vendetta.spell_id)
+    local vanishCdStart, vanishCdDuration = GetSpellCooldown(assass_spells.Vanish.spell_id)
+    local exsanguinateCdStart, exsanguinateCdDuration = GetSpellCooldown(assass_spells.Exsanguinate.spell_id)
+    
+    local the_time = GetTime()
+    local vendettaCdRemaining = (vendettaCdStart ~= 0) and (vendettaCdStart + vendettaCdDuration - the_time) or 0
+    local vanishCdRemaining = (vanishCdStart ~= 0) and (vanishCdStart + vanishCdDuration - the_time) or 0
+    local exsanguinateCdRemaining = (exsanguinateCdStart ~= 0) and (exsanguinateCdStart + exsanguinateCdDuration - the_time) or 0
+    
+    local comboPoints = GetComboPoints('player', 'target')
+    local haveMaxComboPoints = comboPoints == max_usable_combo_points()
+    local energy = UnitPower('player')
+    local oldRuptureMultiplier = auras.Rupture:up() and auras.Rupture.multiplier or 0
+    
+    local vendettaAuraOK = (not cfg.vanishRequiresVendettaBuff)
+      or ((not cfg.vanishRequiresVendettaBuffMinDuration) and auras.Vendetta:up())
+      or (auras.Vendetta:remaining() >= cfg.vanishRequiredVendettaBuffMinDuration)
+    if not vendettaAuraOK then return end
+    
+    local vanishCdOK = vanishCdDuration ~= 120
+    if not vanishCdOK then return end
+    
+    local exsanguinateCdOK = (not cfg.vanishWaitsForExsanguinate)
+      or (exsanguinateCdDuration ~= 45)
+      or (cfg.vanishLetsExsanguinateHaveSomeCD and exsanguinateCdRemaining <= cfg.vanishMaxAllowedExsanguinateCDRemaining)
+    if not exsanguinateCdOK then return end
+    
+    local vendettaCdOK = (not cfg.vanishWaitsForVendetta)
+      or (vendettaCdDuration ~= 120)
+      or (cfg.vanishLetsVendettaHaveSomeCD and vendettaCdRemaining <= cfg.vanishMaxAllowedVendettaCDRemaining)
+    if not vendettaCdOK then return end
+    
+    local comboPointsOK = (not cfg.vanishChecksComboPoints)
+      or (cfg.vanishRequiresMaxComboPoints and haveMaxComboPoints) 
+      or (not cfg.vanishRequiresMaxComboPoints
+        and ((not cfg.vanishHasMinCP) or (comboPoints >= cfg.vanishMinCP))
+        and ((not cfg.vanishHasMaxCP) or (comboPoints <= cfg.vanishMaxCP)))
+    if not comboPointsOK then return end
+    
+    local stealthOK = (cfg.vanishChecksStealthyTristate == false)
+      or ((cfg.vanishChecksStealthyTristate == nil) and (not stealthy))
+      or ((cfg.vanishChecksStealthyTristate == true) and stealthy)
+    if not stealthOK then return end
+    
+    local ruptureDurationOK = (not cfg.vanishChecksRuptureDuration)
+      or (not auras.Rupture:up())
+      or (auras.Rupture:remaining() <= cfg.vanishChecksRuptureDuration)
+    if not ruptureDurationOK then return end
+    
+    local ruptureMultiplierOK = (not cfg.vanishChecksRuptureDuration)
+      or (not auras.Rupture:up())
+      or (oldRuptureMultiplier <= cfg.vanishChecksRuptureDuration)
+    if not ruptureMultiplierOK then return end
+    
+    local energyOK = (not cfg.vanishChecksEnergy)
+      or (  ((not cfg.vanishHasMinEnergy) or energy >= cfg.vanishMinEnergy)
+        and ((not cfg.vanishHasMaxEnergy) or energy <= cfg.vanishMaxEnergy))
+    if not energyOK then return end
+    
+    return assass_spells.Vanish
+  end)
+  
+  ai_cd:RegisterSuggestion(db.profile.assassination.cdPriorities.exsanguinate, function(self, db)
+    -- If exsanguinate is available and the target has rupture for at least another 24 seconds,
+    -- and vanish/vendetta is not almost ready, suggest exsanguinate --
+    local cfg = db.profile.assassination
+    if not cfg.exsanguinateEnabled then return end
+    
+    local vendettaCdStart, vendettaCdDuration = GetSpellCooldown(assass_spells.Vendetta.spell_id)
+    local vanishCdStart, vanishCdDuration = GetSpellCooldown(assass_spells.Vanish.spell_id)
+    local exsanguinateCdStart, exsanguinateCdDuration = GetSpellCooldown(assass_spells.Exsanguinate.spell_id)
+    
+    local the_time = GetTime()
+    local vendettaCdRemaining = (vendettaCdStart ~= 0) and (vendettaCdStart + vendettaCdDuration - the_time) or 0
+    local vanishCdRemaining = (vanishCdStart ~= 0) and (vanishCdStart + vanishCdDuration - the_time) or 0
+    local exsanguinateCdRemaining = (exsanguinateCdStart ~= 0) and (exsanguinateCdStart + exsanguinateCdDuration - the_time) or 0
+    
+    local comboPoints = GetComboPoints('player', 'target')
+    local haveMaxComboPoints = comboPoints == max_usable_combo_points()
+    local energy = UnitPower('player')
+    
+    local exsanguinateCdOK = exsanguinateCdDuration ~= 45
+    if not exsanguinateCdOK then return end
+    
+    local vendettaCdOK = (not cfg.exsChecksVendettaCD)
+      or ((not cfg.exsHasMinVendettaCdLeft) or (vendettaCdDuration ~= 120) or (vendettaCdRemaining >= cfg.exsMinVendettaCdLeft))
+    if not vendettaCdOK then return end
+    
+    local vanishCdOK = (not cfg.exsChecksVanishCD)
+      or ((not cfg.exsHasMinVanishCdLeft) or (vanishCdDuration ~= 120) or (vanishCdRemaining >= cfg.exsMinVanishCdLeft))
+    if not vanishCdOK then return end
+    
+    local ruptureDurationOK = (not cfg.exsChecksRuptureDuration)
+      or (auras.Rupture:remaining() >= cfg.exsMinRuptureRemaining)
+    if not ruptureDurationOK then return end
+    
+    return assass_spells.Exsanguinate
+  end)
   
 end
 
@@ -1815,12 +2465,12 @@ end
 local function update_main_ability(newMainAbility) 
 	if currMainAbility ~= newMainAbility then
 		if newMainAbility then
-			-- print('AI Tick #'..tostring(counter)..', main ability became '..tostring(newMainAbility.icon_id))
+			--print('AI Tick #'..tostring(counter)..', main ability became '..tostring(newMainAbility.icon_id))
       torpedoPanel.icon:SetTexture(newMainAbility.icon_id)
 			torpedoPanel.icon:Show()
 			torpedoPanel.border:Show()
 		else
-			-- print('AI Tick #'..tostring(counter)..', main ability became nil')
+			--print('AI Tick #'..tostring(counter)..', main ability became nil')
 			torpedoPanel.icon:Hide()
 			torpedoPanel.border:Hide()
 		end
@@ -1840,12 +2490,12 @@ end
 local function update_cd_ability(newCDAbility)
 	if currCDAbility ~= newCDAbility then
 		if newCDAbility then
-			-- print('AI Tick #'..tostring(counter)..', cd ability became '..tostring(newCDAbility.icon_id))
+			--print('AI Tick #'..tostring(counter)..', cd ability became '..tostring(newCDAbility.icon_id))
 		  torpedoCooldownPanel.icon:SetTexture(newCDAbility.icon_id)
 			torpedoCooldownPanel.icon:Show()
 			torpedoCooldownPanel.border:Show()
 		else
-			-- print('AI Tick #'..tostring(counter)..', cd ability became nil')
+			--print('AI Tick #'..tostring(counter)..', cd ability became nil')
 			torpedoCooldownPanel.icon:Hide()
 			torpedoCooldownPanel.border:Hide()
 		end
