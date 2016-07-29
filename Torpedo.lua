@@ -5,29 +5,29 @@
 ]]--
 
 local assass_spells = {
-  Stealth = { spell_id = 115191, icon_id = 132320 },
-  DeadlyPoison = { spell_id = 2823, icon_id = 132290 },
-  Rupture = { spell_id = 1943, icon_id = 132302 },
-  Garrote = { spell_id = 703, icon_id = 132297 },
-  Mutilate = { spell_id = 1329, icon_id = 132304 },
-  Envenom = { spell_id = 32645, icon_id = 132287 },
-  Hemorrhage = { spell_id = 16511, icon_id = 136168 },
-  Exsanguinate = { spell_id = 200806, talent_id = 22344, icon_id = 538040 },
-  Vanish = { spell_id = 1856, icon_id = 132331 },
-  Vendetta = { spell_id = 79140, icon_id = 458726 }
+  Stealth = { spell_id = 115191, icon_id = 132320, max_cd = 1 },
+  DeadlyPoison = { spell_id = 2823, icon_id = 132290, max_cd = 1 },
+  Rupture = { spell_id = 1943, icon_id = 132302, max_cd = 1 },
+  Garrote = { spell_id = 703, icon_id = 132297, max_cd = 1 },
+  Mutilate = { spell_id = 1329, icon_id = 132304, max_cd = 1 },
+  Envenom = { spell_id = 32645, icon_id = 132287, max_cd = 1 },
+  Hemorrhage = { spell_id = 16511, icon_id = 136168, max_cd = 1 },
+  Exsanguinate = { spell_id = 200806, talent_id = 22344, icon_id = 538040, max_cd = 45 },
+  Vanish = { spell_id = 1856, icon_id = 132331, max_cd = 120 },
+  Vendetta = { spell_id = 79140, icon_id = 458726, max_cd = 120 }
 }
 
 local subtlety_spells = {
-  Stealth = { spell_id = 115191, icon_id = 132320 },
-  Backstab = { spell_id = 53, icon_id = 132090 },
-  Gloomblade = { spell_id = 200758, icon_id = 1035040 },
-  Eviscerate = { spell_id = 196819, icon_id = 132292 },
-  Vanish = { spell_id = 1856, icon_id = 132331 },
-  ShadowDance = { spell_id = 185313, icon_id = 236279 },
-  SymbolsofDeath = { spell_id = 212283, icon_id = 252272 },
-  Nightblade = { spell_id = 195452, icon_id = 1373907 },
-  Shadowstrike = { spell_id = 185438, icon_id = 1373912 },
-  ShadowBlades = { spell_id = 121471, icon_id = 376022 }
+  Stealth = { spell_id = 115191, icon_id = 132320, max_cd = 1 },
+  Backstab = { spell_id = 53, icon_id = 132090, max_cd = 1 },
+  Gloomblade = { spell_id = 200758, icon_id = 1035040, max_cd = 1 },
+  Eviscerate = { spell_id = 196819, icon_id = 132292, max_cd = 1 },
+  Vanish = { spell_id = 1856, icon_id = 132331, max_cd = 120 },
+  ShadowDance = { spell_id = 185313, icon_id = 236279, max_cd = 60, max_charges = 3 },
+  SymbolsofDeath = { spell_id = 212283, icon_id = 252272, max_cd = 10 },
+  Nightblade = { spell_id = 195452, icon_id = 1373907, max_cd = 1 },
+  Shadowstrike = { spell_id = 185438, icon_id = 1373912, max_cd = 1 },
+  ShadowBlades = { spell_id = 121471, icon_id = 376022, max_cd = 180 }
 }
 
 local auras_cache = { player = {}, target = {} }
@@ -52,8 +52,8 @@ local function update_auras_for_unit(unitName)
 end
 
 local Aura = {}
-function Aura:new(id, unitName)
-  local res = { aura_id = id, unit_name = unitName }
+function Aura:new(id, unitName, maxDuration)
+  local res = { aura_id = id, unit_name = unitName, max_duration = maxDuration }
   setmetatable(res, self)
   self.__index = self
   return res
@@ -85,16 +85,16 @@ function Aura:up()
 end
 
 local auras = {
-  Stealth = Aura:new(1784, 'player'), -- Use stealthy when checking if abilities are usable
-  DeadlyPoison = Aura:new(2823, 'player'),
-  Envenom = Aura:new(32645, 'player'),
-  Hemorrhage = Aura:new(16511, 'target'),
-  Rupture = Aura:new(1943, 'target'),
-  Garrote = Aura:new(703, 'target'),
-  SymbolsofDeath = Aura:new(212283, 'player'),
-  Nightblade = Aura:new(195452, 'target'),
-  ShadowBlades = Aura:new(121471, 'player'),
-  Vendetta = Aura:new(79140, 'target')
+  Stealth = Aura:new(1784, 'player', 1), -- Use stealthy when checking if abilities are usable!
+  DeadlyPoison = Aura:new(2823, 'player', 3600),
+  Envenom = Aura:new(32645, 'player', 7),
+  Hemorrhage = Aura:new(16511, 'target', 20),
+  Rupture = Aura:new(1943, 'target', 28),
+  Garrote = Aura:new(703, 'target', 18),
+  SymbolsofDeath = Aura:new(212283, 'player', 35),
+  Nightblade = Aura:new(195452, 'target', 18),
+  ShadowBlades = Aura:new(121471, 'player', 15),
+  Vendetta = Aura:new(79140, 'target', 20)
 }
 
 
@@ -106,6 +106,548 @@ local DEEPER_STRATAGEM_TALENT_ID = 19239
 local Torpedo = LibStub('AceAddon-3.0'):NewAddon('Torpedo', 'AceConsole-3.0', 'AceEvent-3.0', 'AceTimer-3.0')
 
 local PRIORITY_DESC = 'The relative priority of choosing this ability. Abilities with a higher priority are chosen over those with lower priority, if their requirements are met.'
+
+-- This works for the subtlety conventions; I was still getting the hang of 
+-- AceConfig for assassination. Assassination should be changed to use this --
+
+--[[
+  Builds an abilities options, e.g. deadly poison, with functions 
+  to add different types of configuration, such as enabled/disabled,
+  with an internal order counter.
+  
+  Basic usage: OptionBuilder:New('subtlety', 'stealth', 'Stealth', 1, true)
+    :AddEnabled()
+    :AddPriority()
+    :Build()
+--]]
+local OptionBuilder = {}
+function OptionBuilder:New(profileName, abbrName, prettyName, order, isMain)
+  local res = {
+    profileName = profileName,
+    abbrName = abbrName, 
+    prettyName = prettyName,
+    order = order,
+    orderCounter = 0,
+    isMain = isMain,
+    result = {}}
+  setmetatable(res, self)
+  self.__index = self
+  return res
+end
+
+function OptionBuilder:IncOrderCounter()
+  self.orderCounter = self.orderCounter + 1
+  return self.orderCounter
+end
+
+--[[
+  Gets a function that returns true based on names of 
+  boolean variables passed to it. Accepts strings, tables, and functions.
+  Always strict - if *any* of the passed in things suggest
+  disabled, returns disabled
+  Strings are assumed to be inverted (i.e. true represents that
+  the option is enabled)
+  
+  Ex: Never disabled
+  optionBuilder:GetDisabledFunction(false)
+  
+  Ex: Always disabled
+  optionBuilder:GetDisabledFunction(true)
+  
+  Ex: Want it to return true if 'enabled' is false
+  optionBuilder:GetDisabledFunction('enabled')
+  OR (since enabled is special)
+  optionBuilder:GetDisabledFunction()
+  
+  Ex: Want it to return true if 'enabled' is false or 
+      'ignoreXYZ' is true
+  optionBuilder:GetDisabledFunction('enabled', { name = 'ignoreXYZ', invert = false })
+]]
+function OptionBuilder:GetDisabledFunction(...)
+  local things = {...}
+  local asFns = {}
+  
+  if #things == 1 and type(things[1]) == 'boolean' then 
+    return things[1] 
+  end
+  
+  if #things == 0 then 
+    table.insert(things, 'enabled')
+  end
+  
+  for i = 1, #things do 
+    if type(things[i]) == 'string' then 
+      local varName = things[i]
+      table.insert(asFns, function(info) return not Torpedo.db.profile[self.profileName][self.abbrName][varName] end)
+    elseif type(things[i]) == 'table' then 
+      local params = things[i]
+      if not params.name then error('OptionBuilder:GetDisabledFunction(...) passed in a table, but it doesn\'t have a name key/value pair!', 2) end
+      if type(params.name) ~= 'string' then error('OptionBuilder:GetDisabledFunction(...) passed in a table, and it has a name, but that name resolves to a ' .. type(params.name) .. ' - string expected', 2) end
+      table.insert(asFns, function(info)
+        local result = Torpedo.db.profile[self.profileName][self.abbrName][params.name]
+        
+        if params.is_nil then result = (result == nil) end
+        if params.strict then result = (result == true) end
+        if params.invert then result = not result end
+        
+        return result
+      end)
+    elseif type(things[i]) == 'function' then 
+      table.insert(asFns, things[i])
+    else
+      error('OptionBuilder:GetDisabledFunction(...) passed in a ' .. type(things[i]) .. ' - string or table expected', 2)
+    end
+  end
+  
+  return function(info)
+    for i = 1, #asFns do 
+      if asFns[i]() then return true end
+    end
+    return false
+  end
+end
+
+--[[
+  The next call to AddCustom will have the key/value 
+  pairs from this infection table shallow-copied in,
+  overwriting any previous values.
+  
+  This allows for additional code re-use, and sounds 
+  awesome. Win-win.
+  
+  Mostly used for stuff like tri-states that want to toggle visible
+  on otherwise standard components depending on the tristate. 
+]]
+function OptionBuilder:InfectNext(infectionTable)
+  if self.infectionTable then 
+    error('Already have an infection table!', 2)
+  end
+  
+  self.infectionTable = infectionTable
+  return self
+end
+
+--[[
+  Adds the specified option to the result
+  
+  Sets the order to be the order it was called in
+  Sets the width to 'full'
+  Sets the disabled if it's nil to check 'enabled'
+  
+  Handles infection from InfectNext
+]]
+function OptionBuilder:AddCustom(custom)
+  custom.order = self:IncOrderCounter()
+  custom.width = 'full'
+  if type(custom.disabled) == 'nil' then 
+    custom.disabled = GetDisabledFunction()
+  end
+  table.insert(self.result, custom)
+  
+  if self.infectionTable then 
+    for key, val in pairs(self.infectionTable) do
+      custom[key] = val
+    end
+    self.infectionTable = nil
+  end
+  
+  return self
+end
+
+--[[
+  Adds the specified option to the result directly.
+  
+  See GetDisabledFunction for more info on extra arguments!
+  
+  Sets the get/set to retrieve varName, then calls AddCustom
+]]
+function OptionBuilder:AddSimpleCustom(custom, varName, ...)
+  if type(custom) ~= 'table' then error('OptionBuilder:AddSimpleCustom(custom, varName, ...): custom - table expected, got ' .. tostring(varName), 2) end
+  if type(varName) ~= 'string' then error('OptionBuilder:AddSimpleCustom(custom, varName, ...): varName - string expected, got ' .. tostring(varName), 2) end
+  
+  local cacheProfileName = self.profileName
+  local cacheAbbrName = self.abbrName
+  custom.get = function(info) return Torpedo.db.profile[cacheProfileName][cacheAbbrName][varName] end
+  custom.set = function(info, val) Torpedo.db.profile[cacheProfileName][cacheAbbrName][varName] = val end
+  custom.disabled = self:GetDisabledFunction(...)
+  return self:AddCustom(custom)
+end
+
+--[[
+  Adds a simple toggle, which is tied to varName.
+  
+  See GetDisabledFunction for more info on extra arguments!
+  
+  Ex: optionBuilder:AddSimpleToggle('enabled', 'Suggest stealth', 'Should stealth be suggested?', false)
+]]
+function OptionBuilder:AddSimpleToggle(varName, prettyName, desc, ...)
+  local result = {
+    name = prettyName,
+    type = 'toggle',
+    desc = desc
+  }
+  
+  return self:AddSimpleCustom(result, varName, ...)
+end
+
+--[[
+  Adds a simple tristate checkbox, which is tied to varName
+  
+  Cycle is unchecked (ignore this) (val = false) -> checked (val = true) -> checked 2 (val = nil)
+  
+  See GetDisabledFunction for more info on extra arguments!
+  
+  Ex: optionBuilder:AddSimpleTristate('stealthyTristate', 'Check stealth', 'Require stealth', 'Require not stealthed', 'Should we check if we\'re stealthed?')
+]]
+function OptionBuilder:AddSimpleTristate(varName, uncheckedName, option1Name, option2Name, desc, ...)
+  local cacheProfileName = self.profileName
+  local cacheAbbrName = self.abbrName
+  local result = {
+    name = function(info)
+      local val = Torpedo.db.profile[cacheProfileName][cacheAbbrName][varName]
+      
+      if val == nil then return option2Name 
+      elseif val == true then return option1Name 
+      elseif val == false then return uncheckedName end
+      error('type(val) = ' .. type(val) .. ', tostring(val) = ' .. tostring(val))
+    end,
+    type = 'toggle',
+    tristate = true,
+    desc = desc
+  }
+  
+  return self:AddSimpleCustom(result, varName, ...)
+end
+
+--[[
+  Adds a simple range, which is tied to varName. disabled is optional; it defaults to checking 'enabled'.
+  
+  See GetDisabledFunction for more info on extra arguments!
+  
+  Ex: optionBuilder:AddSimpleRange('refreshTimeSeconds', 'Refresh time (seconds)', 1, 3600, 1, 1800, 1, 5, 'enabled', {name = 'refreshEarly', invert = false})
+]]
+function OptionBuilder:AddSimpleRange(varName, prettyName, desc, minim, maxim, softMin, softMax, step, bigStep, ...)
+  local result = {
+    name = prettyName,
+    type = 'range',
+    desc = desc,
+    min = minim,
+    max = maxim,
+    softMin = softMin,
+    softMax = softMax,
+    step = step,
+    bigStep = bigStep
+  }
+  
+  return self:AddSimpleCustom(result, varName, ...)
+end
+
+function OptionBuilder:AddEnabled()
+  return self:AddSimpleToggle('enabled', 
+    'Suggest ' .. self.prettyName, 
+    'Should ' .. string.lower(self.prettyName) .. ' ever be suggested?',
+    false)
+end
+
+function OptionBuilder:AddPriority()
+  -- Nothing about priority is particularly simple, so we build it from scratch --
+  local cacheIsMain = self.isMain
+  local cacheProfileName = self.profileName
+  local cacheAbbrName = self.abbrName
+  local result = {
+    name = 'Priority',
+    type = 'range',
+    desc = PRIORITY_DESC,
+    get = function(info)
+      if cacheIsMain then 
+        return Torpedo.db.profile[cacheProfileName].mainPriorities[cacheAbbrName]
+      else
+        return Torpedo.db.profile[cacheProfileName].cdPriorities[cacheAbbrName]
+      end
+    end,
+    set = function(info, val)
+      if cacheIsMain then 
+        Torpedo:TrySetMainPriority(cacheProfileName, cacheAbbrName, val)
+      else
+        Torpedo:TrySetCDPriority(cacheProfileName, cacheAbbrName, val)
+      end
+    end,
+    disabled = self:GetDisabledFunction(),
+    width = 'full',
+    min = 1,
+    max = 2000,
+    softMin = 1,
+    softMax = 1000,
+    step = 1,
+    bigStep = 1
+  }
+  return self:AddCustom(result)
+end
+
+--[[
+  Look at energy / combo points to see how this works and looks
+]]
+function OptionBuilder:AddMinMaxCheck(thingUpperCamel, thingPretty, minim, maxim, softMin, softMax, step, bigStep)
+  return self:AddSimpleToggle('check' .. thingUpperCamel, 
+    'Check ' .. string.lower(thingPretty), 
+    'Should we check our ' .. string.lower(thingPretty) .. ' before using ' .. string.lower(self.prettyName) .. '?')
+  :InfectNext({
+    hidden = self:GetDisabledFunction('check' .. thingUpperCamel)
+  })
+  :AddSimpleToggle('hasMin' .. thingUpperCamel,
+    'Have minimum ' .. string.lower(thingPretty),
+    'Do we have a minimum ' .. string.lower(thingPretty) .. ' requirement for using ' .. string.lower(self.prettyName) .. '?',
+    'enabled', 'check' .. thingUpperCamel)
+  :InfectNext({
+    hidden = self:GetDisabledFunction('check' .. thingUpperCamel, 'hasMin' .. thingUpperCamel)
+  })
+  :AddSimpleRange('min' .. thingUpperCamel, 
+    'Minimum ' .. string.lower(thingPretty),
+    'What is the minimum ' .. string.lower(thingPretty) .. ' to use ' .. string.lower(self.prettyName) .. '?',
+    minim, 
+    maxim,
+    softMin,
+    softMax,
+    step,
+    bigStep,
+    'enabled', 'check' .. thingUpperCamel, 'hasMin' .. thingUpperCamel)
+  :InfectNext({
+    hidden = self:GetDisabledFunction('check' .. thingUpperCamel)
+  })
+  :AddSimpleToggle('hasMax' .. thingUpperCamel,
+    'Have maximum ' .. string.lower(thingPretty),
+    'If we have too much ' .. string.lower(thingPretty) .. ', should we avoid using ' .. string.lower(self.prettyName) .. '?',
+    'enabled', 'check' .. thingUpperCamel)
+  :InfectNext({
+    hidden = self:GetDisabledFunction('check' .. thingUpperCamel, 'hasMax' .. thingUpperCamel)
+  })
+  :AddSimpleRange('max' .. thingUpperCamel,
+    'Maximum ' .. string.lower(thingPretty),
+    'What is the maximum ' .. string.lower(thingPretty) .. ' to use ' .. string.lower(self.prettyName) .. '?',
+    minim,
+    maxim,
+    softMin,
+    softMax,
+    step,
+    bigStep,
+    'enabled', 'check' .. thingUpperCamel, 'hasMax' .. thingUpperCamel)
+end
+
+--[[
+  Adds necessary widgets for energy check
+]]
+function OptionBuilder:AddEnergyCheck()
+  return self:AddMinMaxCheck('Energy', 'Energy', 0, 160, 0, 160, 1, 1)
+end
+
+--[[
+  Adds necessary widgets for combo points check
+]]
+function OptionBuilder:AddComboPointCheck()
+  return self:AddMinMaxCheck('ComboPoints', 'Combo Points', 0, 6, 0, 6, 1, 1)
+end
+
+--[[
+  Adds a simple way to look at charges of a spell
+]]
+function OptionBuilder:AddSpellChargesCheck(spellNameUpperCamel, prettyName, descExt, maxCharges)
+  return self:AddMinMaxCheck(spellNameUpperCamel .. 'Charges', prettyName .. ' Charges', 0, maxCharges, 0, maxCharges, 1, 1)
+end
+
+--[[
+  Adds necessary widgets for stealthiness check.
+]]
+function OptionBuilder:AddStealthCheck()
+  return self:AddSimpleTristate('stealthyTristate',
+    'Check stealth',
+    'Require stealth',
+    'Require not stealthed',
+    'Should we check if we can use stealth abilities?')
+end
+
+--[[
+  Adds necessary widgets for combat check.
+]]
+function OptionBuilder:AddCombatCheck()
+  return self:AddSimpleTristate('combatTristate',
+    'Check combat',
+    'Require combat',
+    'Require not in combat',
+    'Should we check if we are in combat?')
+end
+
+--[[
+  Adds necessary widgets for combat check.
+]]
+function OptionBuilder:AddPoolIfLow()
+  return self:AddSimpleToggle('poolIfNeeded',
+    'Pool energy if other requirements met',
+    'Should we pool energy if all the other requirements are met, but we don\'t have enough energy? Alternatively, we can give lower-priority actions a chance to suggest something'
+  )
+end
+
+--[[
+  Adds necessary widgets for checking information about an auras duration. Allows 
+  an optional note after the typical tooltip.
+  
+  Usage: optionBuilder:AddAuraDurationCheck('Rupture', 'Rupture', 'Otherwise, we\'re going to cut rupture off way early!')
+]]
+function OptionBuilder:AddAuraDurationCheck(auraNameUpperCamel, prettyName, descExt, maxDuration)
+  if descExt then 
+    descExt = ' ' .. descExt
+  else
+    descExt = ''
+  end
+  
+  local checkDurName = 'check' .. auraNameUpperCamel .. 'Duration'
+  return self:AddSimpleToggle(checkDurName,
+    'Check ' .. string.lower(prettyName) .. ' duration',
+    'Should we check ' .. string.lower(prettyName) .. '\'s remaining duration before using ' .. string.lower(self.prettyName) .. '?' .. descExt)
+  :InfectNext({
+    hidden = self:GetDisabledFunction(checkDurName)
+  })
+  :AddSimpleToggle('haveMinDurationFor' .. auraNameUpperCamel,
+    'Have minimum duration for ' .. string.lower(prettyName) .. '?',
+    'Should we avoid using ' .. string.lower(self.prettyName) .. ' if ' .. string.lower(prettyName) .. ' is about to wear off?',
+    'enabled', checkDurName)
+  :InfectNext({
+    hidden = self:GetDisabledFunction(checkDurName, 'haveMinDurationFor' .. auraNameUpperCamel)
+  })
+  :AddSimpleRange('minDurationFor' .. auraNameUpperCamel,
+    'Minimum duration for ' .. string.lower(prettyName),
+    'What is the minimum duration remaining on ' .. string.lower(prettyName) .. ' to use ' .. string.lower(self.prettyName) .. '? (Use 0 for up)',
+    0,
+    maxDuration,
+    0,
+    maxDuration,
+    0.05,
+    1,
+    'enabled', checkDurName, 'haveMinDurationFor' .. auraNameUpperCamel)
+  :InfectNext({
+    hidden = self:GetDisabledFunction(checkDurName)
+  })
+  :AddSimpleToggle('haveMaxDurationFor' .. auraNameUpperCamel,
+    'Have maximum duration for ' .. string.lower(prettyName),
+    'Should we avoid using ' .. string.lower(self.prettyName) .. ' if ' .. string.lower(prettyName) .. ' has a lot of time left?',
+    'enabled', checkDurName)
+  :InfectNext({
+    hidden = self:GetDisabledFunction(checkDurName, 'haveMaxDurationFor' .. auraNameUpperCamel)
+  })
+  :AddSimpleRange(
+    'maxDurationFor' .. auraNameUpperCamel,
+    'Maximum duration for ' .. string.lower(prettyName),
+    'What is the maximum duration remaining on ' .. string.lower(prettyName) .. ' to use ' .. string.lower(self.prettyName) .. '? (Use 0 for down)',
+    0,
+    maxDuration,
+    0,
+    maxDuration,
+    0.05,
+    1,
+    'enabled', checkDurName, 'haveMaxDurationFor' .. auraNameUpperCamel
+  )
+end
+
+--[[
+  Adds necessary widgets for checking information about a spells cooldown, and 
+  an optional note in addition to the standard tooltip.
+  
+  Usage: optionBuilder:AddSpellCooldownCheck('ShadowofDeath', 'Shadow of Death', nil, 35)
+]]
+function OptionBuilder:AddSpellCooldownCheck(spellNameUpperCamel, prettyName, descExt, maxCd)
+  if descExt then 
+    descExt = ' ' .. descExt
+  else
+    descExt = ''
+  end
+  
+  local checkCdName = 'check' .. spellNameUpperCamel .. 'Cooldown'
+  
+  return self:AddSimpleToggle(checkCdName,
+    'Check ' .. string.lower(prettyName) .. '\'s cooldown',
+    'Should we check ' .. string.lower(prettyName) .. '\'s cooldown before using ' .. string.lower(self.prettyName) .. '?' .. descExt)
+  :InfectNext({
+    hidden = self:GetDisabledFunction(checkCdName)
+  })
+  :AddSimpleToggle('haveMinCooldownRemFor' .. spellNameUpperCamel,
+    'Have minimum cd for ' .. string.lower(prettyName),
+    'Should we avoid using ' .. string.lower(self.prettyName) .. ' unless ' .. string.lower(prettyName) .. ' has a cooldown? (Use 0 for at least some cooldown)')
+  :InfectNext({
+    hidden = self:GetDisabledFunction(checkCdName, 'haveMinCooldownRemFor' .. spellNameUpperCamel)
+  })
+  :AddSimpleRange('minCooldownRemFor' .. spellNameUpperCamel,
+    'Minimum cd for ' .. string.lower(prettyName),
+    'What is the minimum cooldown remaining on ' .. string.lower(prettyName) .. ' to use ' .. string.lower(self.prettyName) .. '? (Use 0 for atleast some)',
+    0,
+    maxCd,
+    0,
+    maxCd,
+    0.05,
+    1,
+    'enabled', checkCdName, 'haveMinCooldownRemFor' .. spellNameUpperCamel)
+  :InfectNext({
+    hidden = self:GetDisabledFunction(checkCdName)
+  })
+  :AddSimpleToggle('haveMaxCooldownRemFor' .. spellNameUpperCamel,
+    'Have maximum cd for ' .. string.lower(prettyName),
+    'Should we avoid using ' .. string.lower(self.prettyName) .. ' when there is a cooldown left on ' .. string.lower(prettyName) .. '?',
+    'enabled', checkCdName)
+  :InfectNext({
+    hidden = self:GetDisabledFunction(checkCdName, 'haveMaxCooldownRemFor' .. spellNameUpperCamel)
+  })
+  :AddSimpleRange('maxCooldownRemFor' .. spellNameUpperCamel,
+    'Maximum cd for ' .. string.lower(prettyName),
+    'What is the maximum cooldown remaining on ' .. string.lower(prettyName) .. ' to use ' .. string.lower(self.prettyName) .. '? (Use 0 for none)',
+    0,
+    maxCd,
+    0,
+    maxCd,
+    0.05,
+    1,
+    'enabled', checkCdName, 'haveMaxCooldownRemFor' .. spellNameUpperCamel)
+end
+
+--[[
+  Add everything you could possibly want to check as a subtlety
+  rogue. Seriously, all of it.
+]]
+function OptionBuilder:AddSubtletyStuff()
+  return self:AddEnabled()
+    :AddPriority()
+    :AddCombatCheck()
+    :AddEnergyCheck()
+    :AddPoolIfLow()
+    :AddStealthCheck()
+    :AddComboPointCheck()
+    :AddAuraDurationCheck('SymbolsofDeath', 'Symbols of Death', nil, auras.SymbolsofDeath.max_duration)
+    :AddAuraDurationCheck('Nightblade', 'Nightblade', nil, auras.Nightblade.max_duration)
+    :AddAuraDurationCheck('ShadowBlades', 'Shadow Blades', nil, auras.ShadowBlades.max_duration)
+    :AddSpellCooldownCheck('SymbolsofDeath', 'Symbols of Death', nil, subtlety_spells.SymbolsofDeath.max_cd)
+    :AddSpellCooldownCheck('ShadowBlades', 'Shadow Blades', nil, subtlety_spells.ShadowBlades.max_cd)
+    :AddSpellCooldownCheck('Vanish', 'Vanish', nil, subtlety_spells.Vanish.max_cd)
+    :AddSpellCooldownCheck('ShadowDance', 'Shadow Dance', nil, subtlety_spells.ShadowDance.max_cd)
+    :AddSpellChargesCheck('ShadowDance', 'Shadow Dance', nil, subtlety_spells.ShadowDance.max_charges)
+end
+
+function OptionBuilder:Build()
+  if self.infectionTable then 
+    error('InfectNext called without matching widget!', 2)
+  end
+  
+  local final = {
+    name = self.prettyName,
+    type = 'group',
+    order = self.order,
+    args = {}
+  }
+  
+  for i = 1, #self.result do 
+    final.args['param' .. tostring(i)] = self.result[i]
+  end
+  
+  
+  return final
+end
+
 -- validation works questionably at best, so we just use try-sets
 local options = {
   name = 'Torpedo',
@@ -1605,25 +2147,53 @@ local options = {
         }
       }
     },
-    subtlety = {
+    subtlety = { 
       name = 'Subtlety',
       type = 'group',
       order = 2,
       args = { 
         mainAbilities = {
-          name = 'Primary Abilities',
+          name = 'Primary Suggestions',
           type = 'group',
           order = 1,
           args = {
-            
+            stealth = OptionBuilder:New('subtlety', 'stealth', 'Stealth', 1, true)
+              :AddSubtletyStuff()
+              :Build(),
+            symbolsOfDeath = OptionBuilder:New('subtlety', 'symbolsOfDeath', 'Symbols of Death', 2, true)
+              :AddSubtletyStuff()
+              :Build(),
+            nightblade = OptionBuilder:New('subtlety', 'nightblade', 'Nightblade', 3, true)
+              :AddSubtletyStuff()
+              :Build(),
+            eviscerate = OptionBuilder:New('subtlety', 'eviscerate', 'Eviscerate', 4, true)
+              :AddSubtletyStuff()
+              :Build(),
+            shadowstrike = OptionBuilder:New('subtlety', 'shadowstrike', 'Shadowstrike', 5, true)
+              :AddSubtletyStuff()
+              :Build(),
+            backstab = OptionBuilder:New('subtlety', 'backstab', 'Backstab', 6, true)
+              :AddSubtletyStuff()
+              :Build()
           }
         },
         secondaryAbilities = {
-          name = 'Secondary Abilities',
+          name = 'Secondary Suggestions',
           type = 'group',
           order = 2,
           args = {
-          
+            shadowBlades = OptionBuilder:New('subtlety', 'shadowBlades', 'Shadow Blades', 1, false)
+              :AddSubtletyStuff()
+              :Build(),
+            vanish = OptionBuilder:New('subtlety', 'vanish', 'Vanish', 2, false)
+              :AddSubtletyStuff()
+              :Build(),
+            shadowDance = OptionBuilder:New('subtlety', 'shadowDance', 'Shadow Dance', 3, false)
+              :AddSubtletyStuff()
+              :Build(),
+            shadowDance2 = OptionBuilder:New('subtlety', 'shadowDance2', 'Shadow Dance (option 2)', 4, false)
+              :AddSubtletyStuff()
+              :Build()
           }
         }
       }
@@ -1631,6 +2201,53 @@ local options = {
   }
 }
 
+local function insert_spell_duration_defaults(defaults, spellNameUpperCamel)
+  defaults['check' .. spellNameUpperCamel .. 'Duration'] = false
+  defaults['haveMinDurationFor' .. spellNameUpperCamel] = false
+  defaults['minDurationFor' .. spellNameUpperCamel] = 1
+  defaults['haveMaxDurationFor' .. spellNameUpperCamel] = false
+  defaults['maxDurationFor' .. spellNameUpperCamel] = 1
+end
+
+local function insert_spell_cooldown_defaults(defaults, spellNameUpperCamel)
+  defaults['checks' .. spellNameUpperCamel .. 'Cooldown'] = false
+  defaults['haveMinCooldownRemFor' .. spellNameUpperCamel] = false
+  defaults['minCooldownRemFor' .. spellNameUpperCamel] = 1
+  defaults['haveMaxCooldownRemFor' .. spellNameUpperCamel] = false
+  defaults['maxCooldownRemFor' .. spellNameUpperCamel] = 1
+end
+
+local function insert_minmax_defaults(defaults, nameUpperCamel)
+  defaults['checks' .. nameUpperCamel] = false
+  defaults['hasMin' .. nameUpperCamel] = false
+  defaults['min' .. nameUpperCamel] = 1
+  defaults['hasMax' .. nameUpperCamel] = false
+  defaults['max' .. nameUpperCamel] = 1
+end
+
+--[[
+  Gets defaults where everything except enabled 
+  is false
+]]
+local function get_all_false_defaults()
+  local result = {
+    enabled = true,
+    poolIfNeeded = false,
+    stealthyTristate = false,
+    combatTristate = false
+  }
+  insert_minmax_defaults(result, 'Energy')
+  insert_spell_duration_defaults(result, 'SymbolsofDeath')
+  insert_spell_duration_defaults(result, 'Nightblade')
+  insert_spell_duration_defaults(result, 'ShadowBlades')
+  insert_spell_cooldown_defaults(result, 'SymbolsofDeath')
+  insert_spell_cooldown_defaults(result, 'Vanish')
+  insert_spell_cooldown_defaults(result, 'ShadowDance')
+  insert_minmax_defaults(result, 'ShadowDanceCharges')
+  return result
+end
+
+local REALLY_WANT_NIL = 'i really want nil'
 local defaults = {
   profile = {
     assassination = {
@@ -1751,9 +2368,143 @@ local defaults = {
       exsMinVanishCdLeft = 3,
       exsChecksRuptureDuration = true,
       exsMinRuptureRemaining = 24
+    },
+    subtlety = {
+      mainPriorities = {
+        stealth = 1000,
+        symbolsOfDeath = 995,
+        nightblade = 900,
+        eviscerate = 895,
+        shadowstrike = 800,
+        backstab = 795
+      },
+      cdPriorities = {
+        shadowBlades = 900,
+        vanish = 895,
+        shadowDance = 890,
+        shadowDance2 = 885
+      },
+      stealth = {
+        stealthyTristate = REALLY_WANT_NIL,
+        combatTristate = REALLY_WANT_NIL
+      },
+      symbolsOfDeath = {
+        checkEnergy = true,
+        hasMinEnergy = true,
+        minEnergy = 35,
+        poolIfNeeded = true,
+        stealthyTristate = true,
+        checkSymbolsofDeathDuration = true,
+        haveMaxDurationForSymbolsofDeath = true,
+        maxDurationForSymbolsofDeath = 11,
+        checkSymbolsofDeathCooldown = true,
+        haveMaxCooldownRemForSymbolsofDeath = true,
+        maxCooldownRemForSymbolsofDeath = 0
+      },
+      nightblade = {
+        checkEnergy = true,
+        hasMinEnergy = true,
+        minEnergy = 25,
+        poolIfNeeded = true,
+        checkComboPoints = true,
+        hasMinComboPoints = true,
+        minComboPoints = 5,
+        checkNightbladeDuration = true,
+        haveMaxDurationForNightblade = true,
+        maxDurationForNightblade = 5
+      },
+      eviscerate = {
+        checkEnergy = true,
+        hasMinEnergy = true,
+        minEnergy = 35,
+        poolIfNeeded = true,
+        checkComboPoints = true,
+        hasMinComboPoints = true,
+        minComboPoints = 5
+      },
+      shadowstrike = {
+        checkEnergy = true,
+        hasMinEnergy = true,
+        minEnergy = 40,
+        poolIfNeeded = true,
+        stealthyTristate = true,
+        checkComboPoints = true,
+        hasMaxComboPoints = true,
+        maxComboPoints = 5
+      },
+      backstab = {
+        checkEnergy = true,
+        hasMinEnergy = true,
+        minEnergy = 35,
+        poolIfNeeded = true,
+        checkComboPoints = true,
+        hasMaxComboPoints = true,
+        maxComboPoints = 5
+      },
+      shadowBlades = {
+        checkEnergy = true,
+        hasMinEnergy = true,
+        minEnergy = 100,
+        checkComboPoints = true,
+        hasMaxComboPoints = true,
+        maxComboPoints = 1,
+        checkShadowBladesCooldown = true,
+        haveMaxCooldownRemForShadowBlades = true,
+        maxCooldownRemForShadowBlades = 0
+      },
+      vanish = {
+        checkEnergy = true,
+        hasMinEnergy = true,
+        minEnergy = 25,
+        stealthyTristate = REALLY_WANT_NIL,
+        checkVanishCooldown = true,
+        haveMaxCooldownRemForVanish = true,
+        maxCooldownRemForVanish = 0,
+        checkComboPoints = true,
+        hasMaxComboPoints = true,
+        maxComboPoints = 1
+      },
+      shadowDance = {
+        checkEnergy = true,
+        hasMinEnergy = true,
+        minEnergy = 25,
+        stealthyTristate = REALLY_WANT_NIL,
+        checkShadowDanceCharges = true,
+        hasMinShadowDanceCharges = true,
+        minShadowDanceCharges = 2,
+        checkEnergy = true,
+        hasMaxEnergy = true,
+        maxEnergy = 110
+      },
+      shadowDance2 = {
+        checkEnergy = true,
+        hasMinEnergy = true,
+        minEnergy = 25,
+        stealthyTristate = REALLY_WANT_NIL,
+        checkSymbolsofDeathDuration = true,
+        haveMaxDurationForSymbolsofDeath = true,
+        maxDurationForSymbolsofDeath = 11,
+        checkSymbolsofDeathCooldown = true,
+        haveMaxCooldownRemForSymbolsofDeath = true,
+        maxCooldownRemForSymbolsofDeath = 0,
+        checkShadowDanceCooldown = true,
+        haveMaxCooldownRemForShadowDance = true,
+        maxCooldownRemForShadowDance = 0
+      }
     }
   }
 }
+
+-- Fill in blanks in defaults --
+local blanks = get_all_false_defaults()
+for key, val in pairs(defaults.profile.subtlety) do 
+  if key ~= 'mainPriorities' and key ~= 'cdPriorities' then
+    for k,v in pairs(blanks) do 
+      if not val[k] then val[k] = v
+      elseif val[k] == REALLY_WANT_NIL then val[k] = nil end 
+    end
+  end
+end
 
 local TorpedoAI = LibStub('TorpedoAI-1.0')
 
@@ -1812,13 +2563,33 @@ local function decrement_stealthy_counter()
   stealthy = stealthyCounter > 0
 end
 
-local stealthy_Auras = {1784, 11327, 115191, 115192, 51713, 185422}
-local function is_stealthy_Aura(AuraId)
+local stealthy_Auras = {
+  Aura:new(1784, 'player'), 
+  Aura:new(11327, 'player'), 
+  Aura:new(115191, 'player'),
+  Aura:new(115192, 'player'),
+  Aura:new(51713, 'player'),
+  Aura:new(185422, 'player')}
+
+local function is_stealthy_Aura(auraId)
   for i=1, #stealthy_Auras do 
-    if stealthy_Auras[i] == AuraId then return true end
+    if stealthy_Auras[i].aura_id == auraId then return true end
   end
   return false
 end
+
+local function full_stealthy_check()
+  stealthyCounter = 0
+  
+  for i=1, #stealthy_Auras do 
+    if stealthy_Auras[i]:up() then
+      stealthyCounter = stealthyCounter + 1
+    end
+  end
+  
+  stealthy = stealthyCounter > 0
+end
+
 -- End utility functions --
 
 local myGuid = -1
@@ -1974,6 +2745,138 @@ local function cleanup()
   ai_cd = nil
   showDimmer = false
   disappear()
+end
+
+local function check_combat(cfg)
+  if cfg.combatTristate == false then return true end
+  
+  local inCombat = InCombatLockdown()
+  
+  if (cfg.combatTristate == true) and (not inCombat) then return false end
+  if (cfg.combatTristate == nil) and inCombat then return false end
+  
+  return true
+end
+
+local function check_energy(cfg)
+  if not cfg.checkEnergy then return true end 
+  
+  local energy = UnitPower('player')
+  if cfg.hasMinEnergy and (energy < cfg.minEnergy) then return false end
+  if cfg.hasMaxEnergy and (energy > cfg.maxEnergy) then return false end
+  
+  return true
+end
+
+local function check_combo_points(cfg)
+  if not cfg.checkComboPoints then return true end 
+  
+  local comboPoints = GetComboPoints('player', 'target')
+  if cfg.hasMinComboPoints and (comboPoints < cfg.minComboPoints) then return false end
+  if cfg.hasMaxComboPoints and (comboPoints > cfg.maxComboPoints) then return false end
+  
+  return true
+end
+
+local function check_stealth(cfg)
+  if cfg.stealthyTristate == false then return true end
+  
+  local oocStealth = auras.Stealth:up()  
+  local combStealth = oocStealth or stealthy
+  
+  if (cfg.stealthyTristate == true) and (not combStealth) then return false end
+  if (cfg.stealthyTristate == nil) and combStealth then return false end
+  
+  return true
+end
+
+local function check_aura_duration(cfg, auraNameUpperCamel)
+  if not cfg['check' .. auraNameUpperCamel .. 'Duration'] then return true end 
+  
+  local aura = auras[auraNameUpperCamel]
+  local auraRem = aura:remaining()
+  
+  if cfg['haveMinDurationFor' .. auraNameUpperCamel] then
+    local minDuration = cfg['minDurationFor' .. auraNameUpperCamel]
+    if auraRem < minDuration then return false end
+  end
+  
+  if cfg['haveMaxDurationFor' .. auraNameUpperCamel] then
+    local maxDuration = cfg['maxDurationFor' .. auraNameUpperCamel]
+    if auraRem > maxDuration then return false end
+  end
+  
+  return true
+end
+
+local function check_auras(cfg)
+  for key, val in pairs(auras) do
+    if not check_aura_duration(cfg, key) then return false end
+  end
+  
+  return true
+end
+
+local function check_spell_cooldown(cfg, spell, maxCd, spellNameUpperCamel)
+  if not cfg['check' .. spellNameUpperCamel .. 'Cooldown'] then return true end
+  
+  local cdStart, cdDuration = GetSpellCooldown(spell.spell_id)
+  local cdRemaining = 0
+  if cdDuration == maxCd then 
+    cdRemaining = cdStart + cdDuration - GetTime()
+    if cdRemaining <= 0 then cdRemaining = 0.01 end -- It's all a lie!
+  end
+  
+  if cfg['haveMinCooldownRemFor' .. spellNameUpperCamel] then 
+    if cdRemaining < cfg['minCooldownRemFor' .. spellNameUpperCamel] then return false end
+  end
+  if cfg['haveMaxCooldownRemFor' .. spellNameUpperCamel] then 
+    if cdRemaining > cfg['maxCooldownRemFor' .. spellNameUpperCamel] then return false end
+  end
+  
+  return true
+end
+
+local function check_spell_charges(cfg, spell, spellNameUpperCamel)
+  if not cfg['check' .. spellNameUpperCamel .. 'Charges'] then return true end
+  
+  local charges, maxCharges, start, duration = GetSpellCharges(spell.spell_id)
+  
+  if cfg['hasMin' .. spellNameUpperCamel .. 'Charges'] then 
+    local minCharges = cfg['min' .. spellNameUpperCamel .. 'Charges']
+    if charges < minCharges then return false end
+  end
+  
+  if cfg['hasMax' .. spellNameUpperCamel .. 'Charges'] then 
+    local maxCharges = cfg['max' .. spellNameUpperCamel .. 'Charges']
+    if charges > maxCharges then return false end
+  end
+  
+  return true
+end
+
+local function check_spells(cfg, spells)
+  for key, val in pairs(spells) do
+    if not check_spell_cooldown(cfg, val, val.max_cd, key) then return false end
+    if val.max_charges then 
+      if not check_spell_charges(cfg, val, key) then return false end
+    end
+  end
+  
+  return true
+end
+
+local function suggestion_delegate(cfg, spells, spell)
+  if not cfg.enabled then return end
+  if not check_stealth(cfg) then return end
+  if not check_combo_points(cfg) then return end
+  if not check_auras(cfg) then return end
+  if not check_spells(cfg, spells) then return end
+  if not check_energy(cfg) then 
+    if cfg.poolIfNeeded then return pool_energy_sugg else return end
+  end
+  
+  return spell
 end
 
 local function initialize_assassination(db)
@@ -2388,7 +3291,64 @@ local function initialize_assassination(db)
 end
 
 local function initialize_subtlety(db)
-
+  ai_main = TorpedoAI:New()
+  
+  ai_main:RegisterSuggestion(db.profile.subtlety.mainPriorities.stealth, function(self, db)
+    local cfg = db.profile.subtlety.stealth
+    if not cfg.enabled then return end
+    
+    if not check_combat(cfg) then return end
+    if not check_stealth(cfg) then return end
+    
+    return subtlety_spells.Stealth
+  end)
+  
+  ai_main:RegisterSuggestion(db.profile.subtlety.mainPriorities.symbolsOfDeath, function(self, db)
+    local cfg = db.profile.subtlety.symbolsOfDeath
+    return suggestion_delegate(cfg, subtlety_spells, subtlety_spells.SymbolsofDeath)
+  end)
+  
+  ai_main:RegisterSuggestion(db.profile.subtlety.mainPriorities.nightblade, function(self, db)
+    local cfg = db.profile.subtlety.nightblade
+    return suggestion_delegate(cfg, subtlety_spells, subtlety_spells.Nightblade)
+  end)
+  
+  ai_main:RegisterSuggestion(db.profile.subtlety.mainPriorities.eviscerate, function(self, db)
+    local cfg = db.profile.subtlety.eviscerate
+    return suggestion_delegate(cfg, subtlety_spells, subtlety_spells.Eviscerate)
+  end)
+  
+  ai_main:RegisterSuggestion(db.profile.subtlety.mainPriorities.shadowstrike, function(self, db)
+    local cfg = db.profile.subtlety.shadowstrike
+    return suggestion_delegate(cfg, subtlety_spells, subtlety_spells.Shadowstrike)
+  end)
+  
+  ai_main:RegisterSuggestion(db.profile.subtlety.mainPriorities.backstab, function(self, db)
+    local cfg = db.profile.subtlety.backstab
+    return suggestion_delegate(cfg, subtlety_spells, subtlety_spells.Backstab)
+  end)
+  
+  ai_cd = TorpedoAI:New()
+  
+  ai_cd:RegisterSuggestion(db.profile.subtlety.cdPriorities.shadowBlades, function(self, db)
+    local cfg = db.profile.subtlety.shadowBlades
+    return suggestion_delegate(cfg, subtlety_spells, subtlety_spells.ShadowBlades)
+  end)
+  
+  ai_cd:RegisterSuggestion(db.profile.subtlety.cdPriorities.vanish, function(self, db)
+    local cfg = db.profile.subtlety.vanish
+    return suggestion_delegate(cfg, subtlety_spells, subtlety_spells.Vanish)
+  end)
+  
+  ai_cd:RegisterSuggestion(db.profile.subtlety.cdPriorities.shadowDance, function(self, db)
+    local cfg = db.profile.subtlety.shadowDance
+    return suggestion_delegate(cfg, subtlety_spells, subtlety_spells.ShadowDance)
+  end)
+  
+  ai_cd:RegisterSuggestion(db.profile.subtlety.cdPriorities.shadowDance2, function(self, db)
+    local cfg = db.profile.subtlety.shadowDance2
+    return suggestion_delegate(cfg, subtlety_spells, subtlety_spells.ShadowDance)
+  end)
 end
 
 local function initialize(db)
@@ -2611,6 +3571,8 @@ function Torpedo:PLAYER_SPECIALIZATION_CHANGED(unitName)
     myGuid = UnitGUID('player')
     cleanup()
     update_specialization_and_talents()
+    update_auras_for_unit('player')
+    full_stealthy_check()
     initialize(self.db)
     Torpedo:PLAYER_TARGET_CHANGED()
   end
