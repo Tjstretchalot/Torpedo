@@ -52,8 +52,8 @@ local function update_auras_for_unit(unitName)
 end
 
 local Aura = {}
-function Aura:new(id, unitName, maxDuration)
-  local res = { aura_id = id, unit_name = unitName, max_duration = maxDuration }
+function Aura:new(id, unitName, maxDuration, name)
+  local res = { aura_id = id, unit_name = unitName, max_duration = maxDuration, name = name }
   setmetatable(res, self)
   self.__index = self
   return res
@@ -85,16 +85,16 @@ function Aura:up()
 end
 
 local auras = {
-  Stealth = Aura:new(1784, 'player', 1), -- Use stealthy when checking if abilities are usable!
-  DeadlyPoison = Aura:new(2823, 'player', 3600),
-  Envenom = Aura:new(32645, 'player', 7),
-  Hemorrhage = Aura:new(16511, 'target', 20),
-  Rupture = Aura:new(1943, 'target', 28),
-  Garrote = Aura:new(703, 'target', 18),
-  SymbolsofDeath = Aura:new(212283, 'player', 35),
-  Nightblade = Aura:new(195452, 'target', 18),
-  ShadowBlades = Aura:new(121471, 'player', 15),
-  Vendetta = Aura:new(79140, 'target', 20)
+  Stealth = Aura:new(1784, 'player', 1, 'Stealth'), -- Use stealthy when checking if abilities are usable!
+  DeadlyPoison = Aura:new(2823, 'player', 3600, 'Deadly Poison'),
+  Envenom = Aura:new(32645, 'player', 7, 'Envenom'),
+  Hemorrhage = Aura:new(16511, 'target', 20, 'Hemorrhage'),
+  Rupture = Aura:new(1943, 'target', 28, 'Rupture'),
+  Garrote = Aura:new(703, 'target', 18, 'Garrote'),
+  SymbolsofDeath = Aura:new(212283, 'player', 35, 'Symbols of Death'),
+  Nightblade = Aura:new(195452, 'target', 18, 'Nightblade'),
+  ShadowBlades = Aura:new(121471, 'player', 15, 'Shadow Blades'),
+  Vendetta = Aura:new(79140, 'target', 20, 'Vendetta')
 }
 
 
@@ -2552,42 +2552,25 @@ function Torpedo:TrySetCDPriority(profileKey, subKey, val)
 end
 
 -- Utility functions -- 
-local stealthy = false
-local stealthyCounter = 0
-local function increment_stealthy_counter()
-  stealthyCounter = stealthyCounter + 1
-  stealthy = stealthyCounter > 0
-end
-local function decrement_stealthy_counter()
-  stealthyCounter = stealthyCounter - 1
-  stealthy = stealthyCounter > 0
-end
 
 local stealthy_Auras = {
-  Aura:new(1784, 'player'), 
-  Aura:new(11327, 'player'), 
-  Aura:new(115191, 'player'),
-  Aura:new(115192, 'player'),
-  Aura:new(51713, 'player'),
-  Aura:new(185422, 'player')}
+  Aura:new(1784, 'player', 1, 'Stealth'), 
+  Aura:new(11327, 'player', 3, 'Vanish'), 
+  Aura:new(115191, 'player', 1, 'Stealth'),
+  Aura:new(115192, 'player', 2, 'Subterfuge'),
+  Aura:new(51713, 'player', 5, 'Shadow Dance'),
+  Aura:new(185422, 'player', 5, 'Shadow Dance')}
 
-local function is_stealthy_Aura(auraId)
-  for i=1, #stealthy_Auras do 
-    if stealthy_Auras[i].aura_id == auraId then return true end
-  end
-  return false
-end
+local stealthy = false
 
 local function full_stealthy_check()
-  stealthyCounter = 0
-  
+  stealthy = false
   for i=1, #stealthy_Auras do 
     if stealthy_Auras[i]:up() then
-      stealthyCounter = stealthyCounter + 1
+      stealthy = true
+      break
     end
   end
-  
-  stealthy = stealthyCounter > 0
 end
 
 -- End utility functions --
@@ -2640,15 +2623,7 @@ end
 
 function Torpedo:COMBAT_LOG_EVENT_UNFILTERED(evName, the_time, eventType, _, srcGuid, srcName, _, _, dstGuid, dstName, _, _, spellId)
   if srcGuid == myGuid then 
-    if eventType == 'SPELL_AURA_APPLIED' and dstGuid == myGuid then 
-      if is_stealthy_Aura(spellId) then 
-        increment_stealthy_counter()
-      end
-    elseif eventType == 'SPELL_AURA_REMOVED' and dstGuid == myGuid then 
-      if is_stealthy_Aura(spellId) then 
-        decrement_stealthy_counter()
-      end
-    elseif eventType == 'SPELL_CAST_SUCCESS' then 
+    if eventType == 'SPELL_CAST_SUCCESS' then 
       if is_assassination then 
         if spellId == assass_spells.Rupture.spell_id then 
           auras.Rupture.multiplier = bleed_multiplier()
@@ -3472,11 +3447,25 @@ local function update_cd_ability(newCDAbility)
 	currCDAbility = newCDAbility
 end
 
+local lastUpdate = -1
 function Torpedo:TimerTick()
 	if not ai_main or not ai_cd or not ai_ready then
 		counter = 0
+    lastUpdate = -1   
 		return 
 	end
+  
+  local the_time = GetTime()
+  if lastUpdate ~= -1 then 
+    local timeSinceLast = the_time - lastUpdate
+    
+    if timeSinceLast > 0.10 then 
+      self:Print('WARNING! Long time since last update: ' .. tostring(timeSinceLast))
+    end
+  end
+  lastUpdate = the_time
+  
+  full_stealthy_check()
   
   if not Target.hostile then return end
   
@@ -3527,7 +3516,6 @@ function Torpedo:PLAYER_TARGET_CHANGED()
 	local prevHostile = Target.hostile
 	Target.hostile = UnitCanAttack('player', 'target') and not UnitIsDead('target')
 	
-  full_stealthy_check()
 	if Target.hostile then
 		Target.guid = UnitGUID('Target')
 		
