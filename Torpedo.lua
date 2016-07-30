@@ -3455,15 +3455,15 @@ function Torpedo:TimerTick()
 		return 
 	end
   
-  local the_time = GetTime()
+  --[[local the_time = GetTime()
   if lastUpdate ~= -1 then 
     local timeSinceLast = the_time - lastUpdate
     
     if timeSinceLast > 0.10 then 
       self:Print('WARNING! Long time since last update: ' .. tostring(timeSinceLast))
     end
-  end
-  lastUpdate = the_time
+  end--
+  lastUpdate = the_time]]
   
   full_stealthy_check()
   
