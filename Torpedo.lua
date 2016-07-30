@@ -3527,6 +3527,7 @@ function Torpedo:PLAYER_TARGET_CHANGED()
 	local prevHostile = Target.hostile
 	Target.hostile = UnitCanAttack('player', 'target') and not UnitIsDead('target')
 	
+  full_stealthy_check()
 	if Target.hostile then
 		Target.guid = UnitGUID('Target')
 		
