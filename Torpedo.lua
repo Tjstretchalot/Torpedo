@@ -5,29 +5,29 @@
 ]]--
 
 local assass_spells = {
-  Stealth = { spell_id = 115191, icon_id = 132320, max_cd = 1 },
-  DeadlyPoison = { spell_id = 2823, icon_id = 132290, max_cd = 1 },
-  Rupture = { spell_id = 1943, icon_id = 132302, max_cd = 1 },
-  Garrote = { spell_id = 703, icon_id = 132297, max_cd = 1 },
-  Mutilate = { spell_id = 1329, icon_id = 132304, max_cd = 1 },
-  Envenom = { spell_id = 32645, icon_id = 132287, max_cd = 1 },
-  Hemorrhage = { spell_id = 16511, icon_id = 136168, max_cd = 1 },
-  Exsanguinate = { spell_id = 200806, talent_id = 22344, icon_id = 538040, max_cd = 45 },
-  Vanish = { spell_id = 1856, icon_id = 132331, max_cd = 120 },
-  Vendetta = { spell_id = 79140, icon_id = 458726, max_cd = 120 }
+  Stealth = { name = 'Stealth', spell_id = 115191, icon_id = 132320, max_cd = 1 },
+  DeadlyPoison = { name = 'Deadly Poison', spell_id = 2823, icon_id = 132290, max_cd = 1 },
+  Rupture = { name = 'Rupture', spell_id = 1943, icon_id = 132302, max_cd = 1 },
+  Garrote = { name = 'Garrote', spell_id = 703, icon_id = 132297, max_cd = 15 },
+  Mutilate = { name = 'Mutilate', spell_id = 1329, icon_id = 132304, max_cd = 1 },
+  Envenom = { name = 'Envenom', spell_id = 32645, icon_id = 132287, max_cd = 1 },
+  Hemorrhage = { name = 'Hemorrhage', spell_id = 16511, icon_id = 136168, max_cd = 1 },
+  Exsanguinate = { name = 'Exsanguinate', spell_id = 200806, talent_id = 22344, icon_id = 538040, max_cd = 45 },
+  Vanish = { name = 'Vanish', spell_id = 1856, icon_id = 132331, max_cd = 120 },
+  Vendetta = { name = 'Vendetta', spell_id = 79140, icon_id = 458726, max_cd = 120 }
 }
 
 local subtlety_spells = {
-  Stealth = { spell_id = 115191, icon_id = 132320, max_cd = 1 },
-  Backstab = { spell_id = 53, icon_id = 132090, max_cd = 1 },
-  Gloomblade = { spell_id = 200758, icon_id = 1035040, max_cd = 1 },
-  Eviscerate = { spell_id = 196819, icon_id = 132292, max_cd = 1 },
-  Vanish = { spell_id = 1856, icon_id = 132331, max_cd = 120 },
-  ShadowDance = { spell_id = 185313, icon_id = 236279, max_cd = 60, max_charges = 3 },
-  SymbolsofDeath = { spell_id = 212283, icon_id = 252272, max_cd = 10 },
-  Nightblade = { spell_id = 195452, icon_id = 1373907, max_cd = 1 },
-  Shadowstrike = { spell_id = 185438, icon_id = 1373912, max_cd = 1 },
-  ShadowBlades = { spell_id = 121471, icon_id = 376022, max_cd = 180 }
+  Stealth = { name = 'Stealth', spell_id = 115191, icon_id = 132320, max_cd = 1 },
+  Backstab = { name = 'Backstab', spell_id = 53, icon_id = 132090, max_cd = 1 },
+  Gloomblade = { name = 'Gloomblade', spell_id = 200758, icon_id = 1035040, max_cd = 1 },
+  Eviscerate = { name = 'Eviscerate', spell_id = 196819, icon_id = 132292, max_cd = 1 },
+  Vanish = { name = 'Vanish', spell_id = 1856, icon_id = 132331, max_cd = 120 },
+  ShadowDance = { name = 'Shadow Dance', spell_id = 185313, icon_id = 236279, max_cd = 60, max_charges = 3 },
+  SymbolsofDeath = { name = 'Symbols of Death', spell_id = 212283, icon_id = 252272, max_cd = 10 },
+  Nightblade = { name = 'Nightblade', spell_id = 195452, icon_id = 1373907, max_cd = 1 },
+  Shadowstrike = { name = 'Shadowstrike', spell_id = 185438, icon_id = 1373912, max_cd = 1 },
+  ShadowBlades = { name = 'Shadow Blades', spell_id = 121471, icon_id = 376022, max_cd = 180 }
 }
 
 local auras_cache = { player = {}, target = {} }
@@ -52,8 +52,10 @@ local function update_auras_for_unit(unitName)
 end
 
 local Aura = {}
-function Aura:new(id, unitName, maxDuration, name)
-  local res = { aura_id = id, unit_name = unitName, max_duration = maxDuration, name = name }
+function Aura:new(id, unitName, maxDuration, name, hasMultiplier)
+  if hasMultiplier == nil then hasMultiplier = false end
+  
+  local res = { aura_id = id, unit_name = unitName, max_duration = maxDuration, name = name, has_multiplier = hasMultiplier }
   setmetatable(res, self)
   self.__index = self
   return res
@@ -89,14 +91,29 @@ local auras = {
   DeadlyPoison = Aura:new(2823, 'player', 3600, 'Deadly Poison'),
   Envenom = Aura:new(32645, 'player', 7, 'Envenom'),
   Hemorrhage = Aura:new(16511, 'target', 20, 'Hemorrhage'),
-  Rupture = Aura:new(1943, 'target', 28, 'Rupture'),
-  Garrote = Aura:new(703, 'target', 18, 'Garrote'),
+  Rupture = Aura:new(1943, 'target', 28, 'Rupture', true),
+  Garrote = Aura:new(703, 'target', 18, 'Garrote', true),
   SymbolsofDeath = Aura:new(212283, 'player', 35, 'Symbols of Death'),
   Nightblade = Aura:new(195452, 'target', 18, 'Nightblade'),
   ShadowBlades = Aura:new(121471, 'player', 15, 'Shadow Blades'),
   Vendetta = Aura:new(79140, 'target', 20, 'Vendetta')
 }
 
+local subtlety_auras = {
+  Stealth = auras.Stealth,
+  SymbolsofDeath = auras.SymbolsofDeath,
+  Nightblade = auras.Nightblade,
+  ShadowBlades = auras.ShadowBlades
+}
+
+local assass_auras = {
+  Stealth = auras.Stealth,
+  DeadlyPoison = auras.DeadlyPoison,
+  Envenom = auras.Envenom,
+  Hemorrhage = auras.Hemorrhage,
+  Rupture = auras.Rupture,
+  Garrote = auras.Garrote
+}
 
 local pool_energy_sugg = { icon_id = 'Interface\\ICONS\\INV_Drink_15.blp' }
 
@@ -107,28 +124,34 @@ local Torpedo = LibStub('AceAddon-3.0'):NewAddon('Torpedo', 'AceConsole-3.0', 'A
 
 local PRIORITY_DESC = 'The relative priority of choosing this ability. Abilities with a higher priority are chosen over those with lower priority, if their requirements are met.'
 
+local function pretty_type_error(errPrefix, varName, var, expectedType)
+  if type(var) ~= expectedType then 
+    error(tostring(errPrefix) .. ': ' .. tostring(varName) .. ' - ' .. tostring(expectedType) ' expected, but got ' .. type(var) .. ' (' .. tostring(var) .. ')', 3)
+  end
+end
+
 -- This works for the subtlety conventions; I was still getting the hang of 
 -- AceConfig for assassination. Assassination should be changed to use this --
 
 --[[
-  Builds an abilities options, e.g. deadly poison, with functions 
+  Builds a specific suggestion for an ability, e.g. deadly poison, with functions 
   to add different types of configuration, such as enabled/disabled,
   with an internal order counter.
-  
-  Basic usage: OptionBuilder:New('subtlety', 'stealth', 'Stealth', 1, true)
-    :AddEnabled()
-    :AddPriority()
-    :Build()
 --]]
 local OptionBuilder = {}
-function OptionBuilder:New(profileName, abbrName, prettyName, order, isMain)
+function OptionBuilder:New(profile, suggestion, prettyName, order)
+  local errPrefix = 'OptionBuilder:New(profile, suggestion, prettyName, order)'
+  pretty_type_error(errPrefix, 'profile', profile, 'table')
+  pretty_type_error(errPrefix, 'suggestion', suggestion, 'table')
+  pretty_type_error(errPrefix, 'prettyName', prettyName, 'string')
+  pretty_type_error(errPrefix, 'order', order, 'number')
+  
   local res = {
-    profileName = profileName,
-    abbrName = abbrName, 
+    profile = profile,
+    suggestion = suggestion,
     prettyName = prettyName,
     order = order,
     orderCounter = 0,
-    isMain = isMain,
     result = {}}
   setmetatable(res, self)
   self.__index = self
@@ -164,6 +187,9 @@ end
   optionBuilder:GetDisabledFunction('enabled', { name = 'ignoreXYZ', invert = false })
 ]]
 function OptionBuilder:GetDisabledFunction(...)
+  local cacheSuggestion = self.suggestion
+  local errPrefix = 'OptionBuilder:GetDisabledFunction(...)'
+  
   local things = {...}
   local asFns = {}
   
@@ -178,13 +204,13 @@ function OptionBuilder:GetDisabledFunction(...)
   for i = 1, #things do 
     if type(things[i]) == 'string' then 
       local varName = things[i]
-      table.insert(asFns, function(info) return not Torpedo.db.profile[self.profileName][self.abbrName][varName] end)
+      table.insert(asFns, function(info) return not cacheSuggestion[varName] end)
     elseif type(things[i]) == 'table' then 
       local params = things[i]
-      if not params.name then error('OptionBuilder:GetDisabledFunction(...) passed in a table, but it doesn\'t have a name key/value pair!', 2) end
-      if type(params.name) ~= 'string' then error('OptionBuilder:GetDisabledFunction(...) passed in a table, and it has a name, but that name resolves to a ' .. type(params.name) .. ' - string expected', 2) end
+      if not params.name then error(errPrefix .. ' passed in a table, but it doesn\'t have a name key/value pair!', 2) end
+      if type(params.name) ~= 'string' then error(errPrefix .. ' passed in a table, and it has a name, but that name resolves to a ' .. type(params.name) .. ' - string expected', 2) end
       table.insert(asFns, function(info)
-        local result = Torpedo.db.profile[self.profileName][self.abbrName][params.name]
+        local result = cacheSuggestion[params.name]
         
         if params.is_nil then result = (result == nil) end
         if params.strict then result = (result == true) end
@@ -195,7 +221,7 @@ function OptionBuilder:GetDisabledFunction(...)
     elseif type(things[i]) == 'function' then 
       table.insert(asFns, things[i])
     else
-      error('OptionBuilder:GetDisabledFunction(...) passed in a ' .. type(things[i]) .. ' - string or table expected', 2)
+      error(errPrefix .. ' passed in a ' .. type(things[i]) .. ' - string, function, or table expected', 2)
     end
   end
   
@@ -217,16 +243,24 @@ end
   
   Mostly used for stuff like tri-states that want to toggle visible
   on otherwise standard components depending on the tristate. 
-]]
-function OptionBuilder:InfectNext(infectionTable)
-  if self.infectionTable then 
-    error('Already have an infection table!', 2)
-  end
   
-  self.infectionTable = infectionTable
+  If optOverwrite is false (strict; nil counts as true), then the infection 
+  table should have functions as values that take in one parameter, the 
+  old value for their key, and return the new value for that key
+]]
+function OptionBuilder:InfectNext(infectionTable, optTimes, optSkips, optOverwrite)
+  if optOverwrite == nil then optOverwrite = true end
+  if self.infection == nil then self.infection = {} end
+  
+  table.insert(self.infection, {
+    skips = optSkips or 0,
+    times = optTimes or 1,
+    overwrite = optOverwrite,
+    tbl = infectionTable
+  })
+  
   return self
 end
-
 --[[
   Adds the specified option to the result
   
@@ -239,18 +273,37 @@ end
 function OptionBuilder:AddCustom(custom)
   custom.order = self:IncOrderCounter()
   custom.width = 'full'
+  
   if type(custom.disabled) == 'nil' then 
     custom.disabled = GetDisabledFunction()
   end
-  table.insert(self.result, custom)
   
-  if self.infectionTable then 
-    for key, val in pairs(self.infectionTable) do
-      custom[key] = val
+  if self.infection then
+    local newInfections = {}
+    for _, inf in ipairs(self.infection) do 
+      if inf.skips > 0 then 
+        inf.skips = inf.skips - 1
+        table.insert(newInfections, inf)
+      else 
+        for key, val in pairs(inf.tbl) do
+          if inf.overwrite then 
+            custom[key] = val
+          else 
+            custom[key] = val(custom[key])
+          end
+        end
+        
+        
+        inf.times = inf.times - 1
+        if inf.times > 0 then 
+          table.insert(newInfections, inf)
+        end
+      end
     end
-    self.infectionTable = nil
+    self.infection = newInfections
   end
   
+  table.insert(self.result, custom)
   return self
 end
 
@@ -259,16 +312,16 @@ end
   
   See GetDisabledFunction for more info on extra arguments!
   
-  Sets the get/set to retrieve varName, then calls AddCustom
+  Sets the get/set to retrieve varName from the suggestion, then calls AddCustom
 ]]
 function OptionBuilder:AddSimpleCustom(custom, varName, ...)
-  if type(custom) ~= 'table' then error('OptionBuilder:AddSimpleCustom(custom, varName, ...): custom - table expected, got ' .. tostring(varName), 2) end
-  if type(varName) ~= 'string' then error('OptionBuilder:AddSimpleCustom(custom, varName, ...): varName - string expected, got ' .. tostring(varName), 2) end
+  local errPrefix = 'OptionBuilder:AddSimpleCustom(custom, varName, ...)'
+  pretty_type_error(errPrefix, 'custom', custom, 'table')
+  pretty_type_error(errPrefix, 'varName', varName, 'string')
   
-  local cacheProfileName = self.profileName
-  local cacheAbbrName = self.abbrName
-  custom.get = function(info) return Torpedo.db.profile[cacheProfileName][cacheAbbrName][varName] end
-  custom.set = function(info, val) Torpedo.db.profile[cacheProfileName][cacheAbbrName][varName] = val end
+  local cacheSuggestion = self.suggestion
+  custom.get = function(info) return cacheSuggestion[varName] end
+  custom.set = function(info, val) cacheSuggestion[varName] = val end
   custom.disabled = self:GetDisabledFunction(...)
   return self:AddCustom(custom)
 end
@@ -278,9 +331,14 @@ end
   
   See GetDisabledFunction for more info on extra arguments!
   
-  Ex: optionBuilder:AddSimpleToggle('enabled', 'Suggest stealth', 'Should stealth be suggested?', false)
+  Ex: optionBuilder:AddSimpleToggle(db.profile.subtlety.stealth.suggestions[1], 'enabled', 'Suggest stealth', 'Should stealth be suggested?', false)
 ]]
 function OptionBuilder:AddSimpleToggle(varName, prettyName, desc, ...)
+  local errPrefix = 'OptionBuilder:AddSimpleToggle(varName, prettyName, desc, ...)'
+  pretty_type_error(errPrefix, 'varName', varName, 'string')
+  pretty_type_error(errPrefix, 'prettyName', prettyName, 'string')
+  pretty_type_error(errPrefix, 'desc', desc, 'string')
+  
   local result = {
     name = prettyName,
     type = 'toggle',
@@ -300,11 +358,17 @@ end
   Ex: optionBuilder:AddSimpleTristate('stealthyTristate', 'Check stealth', 'Require stealth', 'Require not stealthed', 'Should we check if we\'re stealthed?')
 ]]
 function OptionBuilder:AddSimpleTristate(varName, uncheckedName, option1Name, option2Name, desc, ...)
-  local cacheProfileName = self.profileName
-  local cacheAbbrName = self.abbrName
+  local errPrefix = 'OptionBuilder:AddSimpleTristate(varName, uncheckedName, option1Name, option2Name, desc, ...)'
+  pretty_type_error(errPrefix, 'varName', varName, 'string')
+  pretty_type_error(errPrefix, 'uncheckedName', uncheckedName, 'string')
+  pretty_type_error(errPrefix, 'option1Name', option1Name, 'string')
+  pretty_type_error(errPrefix, 'option2Name', option2Name, 'string')
+  pretty_type_error(errPrefix, 'desc', desc, 'string')
+  
+  local cacheSuggestion = self.suggestion
   local result = {
     name = function(info)
-      local val = Torpedo.db.profile[cacheProfileName][cacheAbbrName][varName]
+      local val = cacheSuggestion[varName]
       
       if val == nil then return option2Name 
       elseif val == true then return option1Name 
@@ -327,6 +391,17 @@ end
   Ex: optionBuilder:AddSimpleRange('refreshTimeSeconds', 'Refresh time (seconds)', 1, 3600, 1, 1800, 1, 5, 'enabled', {name = 'refreshEarly', invert = false})
 ]]
 function OptionBuilder:AddSimpleRange(varName, prettyName, desc, minim, maxim, softMin, softMax, step, bigStep, ...)
+  local errPrefix = 'OptionBuilder:AddSimpleRange(varName, prettyName, desc, minim, maxim, softMin, softMax, step, bigStep, ...)'
+  pretty_type_error(errPrefix, 'varName', varName, 'string')
+  pretty_type_error(errPrefix, 'prettyName', prettyName, 'string')
+  pretty_type_error(errPrefix, 'desc', desc, 'string')
+  pretty_type_error(errPrefix, 'minim', minim, 'number')
+  pretty_type_error(errPrefix, 'maxim', maxim, 'number')
+  pretty_type_error(errPrefix, 'softMin', softMin, 'number')
+  pretty_type_error(errPrefix, 'softMax', softMax, 'number')
+  pretty_type_error(errPrefix, 'step', step, 'number')
+  pretty_type_error(errPrefix, 'bigStep', bigStep, 'number')
+  
   local result = {
     name = prettyName,
     type = 'range',
@@ -351,26 +426,14 @@ end
 
 function OptionBuilder:AddPriority()
   -- Nothing about priority is particularly simple, so we build it from scratch --
-  local cacheIsMain = self.isMain
-  local cacheProfileName = self.profileName
-  local cacheAbbrName = self.abbrName
+  local cacheSuggestion = self.suggestion
   local result = {
     name = 'Priority',
     type = 'range',
     desc = PRIORITY_DESC,
-    get = function(info)
-      if cacheIsMain then 
-        return Torpedo.db.profile[cacheProfileName].mainPriorities[cacheAbbrName]
-      else
-        return Torpedo.db.profile[cacheProfileName].cdPriorities[cacheAbbrName]
-      end
-    end,
+    get = function(info) return cacheSuggestion.priority end,
     set = function(info, val)
-      if cacheIsMain then 
-        Torpedo:TrySetMainPriority(cacheProfileName, cacheAbbrName, val)
-      else
-        Torpedo:TrySetCDPriority(cacheProfileName, cacheAbbrName, val)
-      end
+      Torpedo:TrySetPriority(profile, cacheSuggestion, val)
     end,
     disabled = self:GetDisabledFunction(),
     width = 'full',
@@ -384,10 +447,26 @@ function OptionBuilder:AddPriority()
   return self:AddCustom(result)
 end
 
+function OptionBuilder:AddIsMain()
+  return self:AddSimpleToggle('isMain',
+    'Primary suggestion',
+    'Should ' .. string.lower(self.prettyName) .. ' be considered a primary suggestion?')
+end
+
 --[[
   Look at energy / combo points to see how this works and looks
 ]]
 function OptionBuilder:AddMinMaxCheck(thingUpperCamel, thingPretty, minim, maxim, softMin, softMax, step, bigStep)
+  local errPrefix = 'OptionBuilder:AddMinMaxCheck(thingUpperCamel, thingPretty, minim, maxim, softMin, softMax, step, bigStep)'
+  pretty_type_error(errPrefix, 'thingUpperCamel', thingUpperCamel, 'string')
+  pretty_type_error(errPrefix, 'thingPretty', thingPretty, 'string')
+  pretty_type_error(errPrefix, 'minim', minim, 'number')
+  pretty_type_error(errPrefix, 'maxim', maxim, 'number')
+  pretty_type_error(errPrefix, 'softMin', softMin, 'number')
+  pretty_type_error(errPrefix, 'softMax', softMax, 'number')
+  pretty_type_error(errPrefix, 'step', step, 'number')
+  pretty_type_error(errPrefix, 'bigStep', bigStep, 'number')
+  
   return self:AddSimpleToggle('check' .. thingUpperCamel, 
     'Check ' .. string.lower(thingPretty), 
     'Should we check our ' .. string.lower(thingPretty) .. ' before using ' .. string.lower(self.prettyName) .. '?')
@@ -444,13 +523,57 @@ end
   Adds necessary widgets for combo points check
 ]]
 function OptionBuilder:AddComboPointCheck()
-  return self:AddMinMaxCheck('ComboPoints', 'Combo Points', 0, 6, 0, 6, 1, 1)
+  local me = self
+  self:InfectNext({
+    disabled = function(oldVal)
+      return me:GetDisabledFunction(oldVal, { name = 'requireMaxComboPointsTristate', invert = false } )
+    end
+  }, 4, 1, false)
+  self:AddMinMaxCheck('ComboPoints', 'Combo Points', 0, 6, 0, 6, 1, 1)
+  :InfectNext({
+    hidden = self:GetDisabledFunction('enabled', 'checkComboPoints')
+  })
+  self:AddSimpleTristate('requireMaxComboPointsTristate', 
+    'Compare to maximum combo points',
+    'Require max combo points',
+    'Require less than max combo points',
+    'Should we compare with maximum combo points rather than use a range?', 
+    'enabled', 'checkComboPoints')
+  return self
+end
+
+function OptionBuilder:AddMultiplierCheck(auraNameUpperCamel, prettyName)
+  local cacheSuggestion = self.suggestion
+  local me = self
+  self:InfectNext({
+      disabled = function(oldVal)
+        return me:GetDisabledFunction(oldVal, function()
+          if cacheSuggestion['multiplierFor' .. auraNameUpperCamel .. 'Tristate'] ~= false then return true end
+        end)
+      end
+    }, 4, 1, false)
+    :AddMinMaxCheck(auraNameUpperCamel .. 'Multiplier', prettyName .. ' Multiplier', 0, 6, 0, 6, 0.5, 0.1)
+    :InfectNext({
+      hidden = self:GetDisabledFunction('enabled', 'check' .. auraNameUpperCamel .. 'Multiplier')
+    })
+    :AddSimpleTristate('multiplierFor' .. auraNameUpperCamel .. 'Tristate',
+    'Compare ' .. string.lower(prettyName) .. '\s multiplier to current',
+    'Can improve ' .. string.lower(prettyName) .. '\s multiplier',
+    'Won\'t worsen ' .. string.lower(prettyName) .. '\s multiplier',
+    'Not all ' .. string.lower(prettyName) .. '\s are made alike; should we compare the multiplier that is currently active to the one we would have if we used ' .. string.lower(prettyName) .. ' right now?',
+    'enabled', 'check' .. auraNameUpperCamel .. 'Multiplier')
+  return self
 end
 
 --[[
   Adds a simple way to look at charges of a spell
 ]]
 function OptionBuilder:AddSpellChargesCheck(spellNameUpperCamel, prettyName, descExt, maxCharges)
+  local errPrefix = 'OptionBuilder:AddSpellChargesCheck(spellNameUpperCamel, prettyName, descExt, maxCharges)'
+  pretty_type_error(errPrefix, 'spellNameUpperCamel', spellNameUpperCamel, 'string')
+  pretty_type_error(errPrefix, 'prettyName', prettyName, 'string')
+  pretty_type_error(errPrefix, 'maxCharges', maxCharges, 'number')
+  
   return self:AddMinMaxCheck(spellNameUpperCamel .. 'Charges', prettyName .. ' Charges', 0, maxCharges, 0, maxCharges, 1, 1)
 end
 
@@ -493,6 +616,11 @@ end
   Usage: optionBuilder:AddAuraDurationCheck('Rupture', 'Rupture', 'Otherwise, we\'re going to cut rupture off way early!')
 ]]
 function OptionBuilder:AddAuraDurationCheck(auraNameUpperCamel, prettyName, descExt, maxDuration)
+  local errPrefix = 'OptionBuilder:AddAuraDurationCheck(auraNameUpperCamel, prettyName, descExt, maxDuration)'
+  pretty_type_error(errPrefix, 'auraNameUpperCamel', auraNameUpperCamel, 'string')
+  pretty_type_error(errPrefix, 'prettyName', prettyName, 'string')
+  pretty_type_error(errPrefix, 'maxDuration', maxDuration, 'number')
+  
   if descExt then 
     descExt = ' ' .. descExt
   else
@@ -506,12 +634,12 @@ function OptionBuilder:AddAuraDurationCheck(auraNameUpperCamel, prettyName, desc
   :InfectNext({
     hidden = self:GetDisabledFunction(checkDurName)
   })
-  :AddSimpleToggle('haveMinDurationFor' .. auraNameUpperCamel,
+  :AddSimpleToggle('hasMinDurationFor' .. auraNameUpperCamel,
     'Have minimum duration for ' .. string.lower(prettyName) .. '?',
     'Should we avoid using ' .. string.lower(self.prettyName) .. ' if ' .. string.lower(prettyName) .. ' is about to wear off?',
     'enabled', checkDurName)
   :InfectNext({
-    hidden = self:GetDisabledFunction(checkDurName, 'haveMinDurationFor' .. auraNameUpperCamel)
+    hidden = self:GetDisabledFunction(checkDurName, 'hasMinDurationFor' .. auraNameUpperCamel)
   })
   :AddSimpleRange('minDurationFor' .. auraNameUpperCamel,
     'Minimum duration for ' .. string.lower(prettyName),
@@ -522,16 +650,16 @@ function OptionBuilder:AddAuraDurationCheck(auraNameUpperCamel, prettyName, desc
     maxDuration,
     0.05,
     1,
-    'enabled', checkDurName, 'haveMinDurationFor' .. auraNameUpperCamel)
+    'enabled', checkDurName, 'hasMinDurationFor' .. auraNameUpperCamel)
   :InfectNext({
     hidden = self:GetDisabledFunction(checkDurName)
   })
-  :AddSimpleToggle('haveMaxDurationFor' .. auraNameUpperCamel,
+  :AddSimpleToggle('hasMaxDurationFor' .. auraNameUpperCamel,
     'Have maximum duration for ' .. string.lower(prettyName),
     'Should we avoid using ' .. string.lower(self.prettyName) .. ' if ' .. string.lower(prettyName) .. ' has a lot of time left?',
     'enabled', checkDurName)
   :InfectNext({
-    hidden = self:GetDisabledFunction(checkDurName, 'haveMaxDurationFor' .. auraNameUpperCamel)
+    hidden = self:GetDisabledFunction(checkDurName, 'hasMaxDurationFor' .. auraNameUpperCamel)
   })
   :AddSimpleRange(
     'maxDurationFor' .. auraNameUpperCamel,
@@ -543,7 +671,7 @@ function OptionBuilder:AddAuraDurationCheck(auraNameUpperCamel, prettyName, desc
     maxDuration,
     0.05,
     1,
-    'enabled', checkDurName, 'haveMaxDurationFor' .. auraNameUpperCamel
+    'enabled', checkDurName, 'hasMaxDurationFor' .. auraNameUpperCamel
   )
 end
 
@@ -554,6 +682,11 @@ end
   Usage: optionBuilder:AddSpellCooldownCheck('ShadowofDeath', 'Shadow of Death', nil, 35)
 ]]
 function OptionBuilder:AddSpellCooldownCheck(spellNameUpperCamel, prettyName, descExt, maxCd)
+  local errPrefix = 'OptionBuilder:AddSpellCooldownCheck(spellNameUpperCamel, prettyName, descExt, maxCd)'
+  pretty_type_error(errPrefix, 'spellNameUpperCamel', spellNameUpperCamel, 'string')
+  pretty_type_error(errPrefix, 'prettyName', prettyName, 'string')
+  pretty_type_error(errPrefix, 'maxCd', maxCd, 'number')
+  
   if descExt then 
     descExt = ' ' .. descExt
   else
@@ -568,11 +701,11 @@ function OptionBuilder:AddSpellCooldownCheck(spellNameUpperCamel, prettyName, de
   :InfectNext({
     hidden = self:GetDisabledFunction(checkCdName)
   })
-  :AddSimpleToggle('haveMinCooldownRemFor' .. spellNameUpperCamel,
+  :AddSimpleToggle('hasMinCooldownRemFor' .. spellNameUpperCamel,
     'Have minimum cd for ' .. string.lower(prettyName),
     'Should we avoid using ' .. string.lower(self.prettyName) .. ' unless ' .. string.lower(prettyName) .. ' has a cooldown? (Use 0 for at least some cooldown)')
   :InfectNext({
-    hidden = self:GetDisabledFunction(checkCdName, 'haveMinCooldownRemFor' .. spellNameUpperCamel)
+    hidden = self:GetDisabledFunction(checkCdName, 'hasMinCooldownRemFor' .. spellNameUpperCamel)
   })
   :AddSimpleRange('minCooldownRemFor' .. spellNameUpperCamel,
     'Minimum cd for ' .. string.lower(prettyName),
@@ -583,16 +716,16 @@ function OptionBuilder:AddSpellCooldownCheck(spellNameUpperCamel, prettyName, de
     maxCd,
     0.05,
     1,
-    'enabled', checkCdName, 'haveMinCooldownRemFor' .. spellNameUpperCamel)
+    'enabled', checkCdName, 'hasMinCooldownRemFor' .. spellNameUpperCamel)
   :InfectNext({
     hidden = self:GetDisabledFunction(checkCdName)
   })
-  :AddSimpleToggle('haveMaxCooldownRemFor' .. spellNameUpperCamel,
+  :AddSimpleToggle('hasMaxCooldownRemFor' .. spellNameUpperCamel,
     'Have maximum cd for ' .. string.lower(prettyName),
     'Should we avoid using ' .. string.lower(self.prettyName) .. ' when there is a cooldown left on ' .. string.lower(prettyName) .. '?',
     'enabled', checkCdName)
   :InfectNext({
-    hidden = self:GetDisabledFunction(checkCdName, 'haveMaxCooldownRemFor' .. spellNameUpperCamel)
+    hidden = self:GetDisabledFunction(checkCdName, 'hasMaxCooldownRemFor' .. spellNameUpperCamel)
   })
   :AddSimpleRange('maxCooldownRemFor' .. spellNameUpperCamel,
     'Maximum cd for ' .. string.lower(prettyName),
@@ -603,29 +736,47 @@ function OptionBuilder:AddSpellCooldownCheck(spellNameUpperCamel, prettyName, de
     maxCd,
     0.05,
     1,
-    'enabled', checkCdName, 'haveMaxCooldownRemFor' .. spellNameUpperCamel)
+    'enabled', checkCdName, 'hasMaxCooldownRemFor' .. spellNameUpperCamel)
 end
 
 --[[
-  Add everything you could possibly want to check as a subtlety
-  rogue. Seriously, all of it.
+  Add priority, combat check, stealth check, energy check, pool if low, combo 
+  point check, every applicable spell cooldown and charges check, and every 
+  applicable aura duration check.
 ]]
-function OptionBuilder:AddSubtletyStuff()
-  return self:AddEnabled()
+function OptionBuilder:AddAll(spells, _auras)
+  local errPrefix = 'OptionBuilder:AddConfigForSuggestion(spells, _auras)'
+  pretty_type_error(errPrefix, 'spells', spells, 'table')
+  pretty_type_error(errPrefix, '_auras', _auras, 'table')
+
+  local result = self:AddEnabled()
     :AddPriority()
+    :AddIsMain()
     :AddCombatCheck()
+    :AddStealthCheck()
     :AddEnergyCheck()
     :AddPoolIfLow()
-    :AddStealthCheck()
     :AddComboPointCheck()
-    :AddAuraDurationCheck('SymbolsofDeath', 'Symbols of Death', nil, auras.SymbolsofDeath.max_duration)
-    :AddAuraDurationCheck('Nightblade', 'Nightblade', nil, auras.Nightblade.max_duration)
-    :AddAuraDurationCheck('ShadowBlades', 'Shadow Blades', nil, auras.ShadowBlades.max_duration)
-    :AddSpellCooldownCheck('SymbolsofDeath', 'Symbols of Death', nil, subtlety_spells.SymbolsofDeath.max_cd)
-    :AddSpellCooldownCheck('ShadowBlades', 'Shadow Blades', nil, subtlety_spells.ShadowBlades.max_cd)
-    :AddSpellCooldownCheck('Vanish', 'Vanish', nil, subtlety_spells.Vanish.max_cd)
-    :AddSpellCooldownCheck('ShadowDance', 'Shadow Dance', nil, subtlety_spells.ShadowDance.max_cd)
-    :AddSpellChargesCheck('ShadowDance', 'Shadow Dance', nil, subtlety_spells.ShadowDance.max_charges)
+    
+  for key, spell in pairs(spells) do 
+    if spell.max_cd > 1 then 
+      result:AddSpellCooldownCheck(key, spell.name, nil, spell.max_cd)
+    end
+    if spell.max_charges then 
+      result:AddSpellChargesCheck(key, spell.name, nil, spell.max_charges)
+    end
+  end
+  
+  for key, aura in pairs(_auras) do
+    if aura.max_duration > 1 then 
+      result:AddAuraDurationCheck(key, aura.name, nil, aura.max_duration)
+    end
+    if aura.has_multiplier then 
+      result:AddMultiplierCheck(key, aura.name)
+    end
+  end
+  
+  return result
 end
 
 function OptionBuilder:Build()
@@ -648,1572 +799,19 @@ function OptionBuilder:Build()
   return final
 end
 
--- validation works questionably at best, so we just use try-sets
-local options = {
-  name = 'Torpedo',
-  handler = Torpedo,
-  type = 'group',
-  args = {
-    assassination = {
-      name = 'Assassination',
-      type = 'group',
-      order = 1,
-      args = {
-        primaryAbilities = {
-          name = 'Primary Suggestions',
-          type = 'group',
-          order = 1,
-          args = {
-            deadlyPoison = {
-              name = 'Deadly Poison',
-              type = 'group',
-              order = 1,
-              args = {
-                deadlyPoisonEnabled = {
-                  type = 'toggle',
-                  name = 'Suggest deadly poison',
-                  desc = 'Toggles if deadly poison will ever be suggested.',
-                  get = function(info) return Torpedo.db.profile.assassination.deadlyPoisonEnabled end,
-                  set = function(info, val) Torpedo.db.profile.assassination.deadlyPoisonEnabled = val end,
-                  order = 1,
-                  width = 'full'
-                },
-                deadlyPoisonPriority = {
-                  type = 'range', 
-                  name = 'Priority',
-                  desc = PRIORITY_DESC,
-                  get = function(info) return Torpedo.db.profile.assassination.mainPriorities.deadlyPoison end,
-                  set = function(info, val) Torpedo:TrySetMainPriority('assassination', 'deadlyPoison', val) end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.deadlyPoisonEnabled end,
-                  order = 2,
-                  width = 'full',
-                  min = 1,
-                  max = 2000,
-                  softMin = 1,
-                  softMax = 1000,
-                  width = 'full',
-                  step = 1,
-                  bigStep = 1
-                },
-                refreshDeadlyPoisonOOCSeconds = {
-                  type = 'range',
-                  name = 'Refresh deadly poison time',
-                  desc = 'If not in combat and deadly poison has less than this amount of time, in seconds, suggest refreshing deadly poison',
-                  get = function(info) return Torpedo.db.profile.assassination.refreshDeadlyPoisonOOCSeconds end,
-                  set = function(info, val) Torpedo.db.profile.assassination.refreshDeadlyPoisonOOCSeconds = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.deadlyPoisonEnabled end,
-                  bigStep = 15,
-                  min = 1,
-                  max = 3600, 
-                  softMin = 1,
-                  softMax = 1800,
-                  order = 3,
-                  width = 'full'
-                }
-              }
-            },
-            stealth = {
-              name = 'Stealth',
-              type = 'group',
-              order = 2,
-              args = {
-                stealthEnabled = {
-                  type = 'toggle',
-                  name = 'Suggest stealth',
-                  desc = 'Toggles if stealth will ever be suggested.',
-                  get = function(info) return Torpedo.db.profile.assassination.stealthEnabled end,
-                  set = function(info, val) Torpedo.db.profile.assassination.stealthEnabled = val end,
-                  order = 1,
-                  width = 'full'
-                },
-                stealthPriority = {
-                  type = 'range',
-                  name = 'Priority',
-                  desc = PRIORITY_DESC,
-                  get = function(info) return Torpedo.db.profile.assassination.mainPriorities.stealth end,
-                  set = function(info, val) Torpedo:TrySetMainPriority('assassination', 'stealth', val) end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.stealthEnabled end,
-                  order = 2,
-                  width = 'full',
-                  min = 1,
-                  max = 2000,
-                  softMin = 1,
-                  softMax = 1000,
-                  width = 'full',
-                  step = 1,
-                  bigStep = 1
-                }
-              }
-            },
-            rupture = {
-              name = 'Rupture',
-              type = 'group',
-              order = 3,
-              args = {
-                ruptureEnabled = {
-                  type = 'toggle',
-                  name = 'Suggest rupture',
-                  desc = 'Toggles if rupture will ever be suggested.',
-                  get = function(info) return Torpedo.db.profile.assassination.ruptureEnabled end,
-                  set = function(info, val) Torpedo.db.profile.assassination.ruptureEnabled = val end,
-                  order = 1,
-                  width = 'full'
-                },
-                rupturePriority = {
-                  type = 'range',
-                  name = 'Priority',
-                  desc = PRIORITY_DESC,
-                  get = function(info) return Torpedo.db.profile.assassination.mainPriorities.rupture end,
-                  set = function(info, val) Torpedo:TrySetMainPriority('assassination', 'rupture', val) end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.ruptureEnabled end,
-                  order = 2,
-                  width = 'full',
-                  min = 1,
-                  max = 2000,
-                  softMin = 1,
-                  softMax = 1000,
-                  step = 1,
-                  bigStep = 1
-                },
-                applyRuptureEarlyWhenLowEnergy = {
-                  type = 'toggle',
-                  name = 'Apply rupture early when low energy',
-                  desc = 'When energy-starved, should we apply rupture with fewer than max usable combo points?',
-                  get = function(info) return Torpedo.db.profile.assassination.applyRuptureEarlyWhenLowEnergy end,
-                  set = function(info, val) Torpedo.db.profile.assassination.applyRuptureEarlyWhenLowEnergy = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.ruptureEnabled end,
-                  order = 3,
-                  width = 'full'
-                },
-                ruptureLowEnergy = {
-                  type = 'range',
-                  name = 'Low energy trigger',
-                  desc = 'What constitutes low energy for rupturing early?',
-                  get = function(info) return Torpedo.db.profile.assassination.ruptureLowEnergy end,
-                  set = function(info, val) Torpedo.db.profile.assassination.ruptureLowEnergy = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.ruptureEnabled) or (not Torpedo.db.profile.assassination.applyRuptureEarlyWhenLowEnergy) end,
-                  order = 4,
-                  width = 'full',
-                  min = 25,
-                  max = 156,
-                  softMin = 25,
-                  softMax = 100,
-                  bigStep = 5,
-                  step = 1
-                },
-                ruptureMinComboPoints = {
-                  type = 'range',
-                  name = 'Minimum combo points',
-                  desc = 'When rupturing early, what is the absolute minimum number of combo points we need?',
-                  get = function(info) return Torpedo.db.profile.assassination.ruptureMinComboPoints end,
-                  set = function(info, val) Torpedo.db.profile.assassination.ruptureMinComboPoints = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.ruptureEnabled) or (not Torpedo.db.profile.assassination.applyRuptureEarlyWhenLowEnergy) end,
-                  order = 5,
-                  width = 'full',
-                  min = 1,
-                  max = 6,
-                  softMin = 1,
-                  softMax = 6,
-                  bigStep = 1,
-                  step = 1
-                },
-                ruptureReapplyTime = {
-                  type = 'range',
-                  name = 'Allowed time remaining for re-applying rupture',
-                  desc = 'How much time may still be left on rupture for it to be suggested? Recall that at most 30% will not be cut-off',
-                  get = function(info) return Torpedo.db.profile.assassination.ruptureReapplyTime end,
-                  set = function(info, val) Torpedo.db.profile.assassination.ruptureReapplyTime = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.ruptureEnabled end,
-                  order = 6,
-                  width = 'full',
-                  min = 1,
-                  max = 28,
-                  softMin = 2,
-                  softMax = 12,
-                  bigStep = 1
-                },
-                poolEnergyWaitingForRupture = {
-                  type = 'toggle',
-                  name = 'Pool energy for rupture',
-                  desc = 'If we have enough combo points and want to re-apply rupture, but don\'t have enough energy, should we pool energy (as opposed to giving lower-priority actions a chance to give a suggestion)?',
-                  get = function(info) return Torpedo.db.profile.assassination.poolEnergyWaitingForRupture end,
-                  set = function(info, val) Torpedo.db.profile.assassination.poolEnergyWaitingForRupture = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.ruptureEnabled end,
-                  order = 7,
-                  width = 'full'
-                },
-                allowRuptureWorsen = {
-                  type = 'toggle',
-                  name = 'Allow re-apply worse rupture',
-                  desc = 'Not all ruptures are made alike - for example, when rupturing from stealth with the Nightstalker talent the rupture is 50% more effective. Should we allow overwriting a better rupture with a worse one?',
-                  get = function(info) return Torpedo.db.profile.assassination.allowRuptureWorsen end,
-                  set = function(info, val) Torpedo.db.profile.assassination.allowRuptureWorsen = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.ruptureEnabled end,
-                  order = 8,
-                  width = 'full'
-                },
-                cutoffRuptureWhenBetterMultiplier = {
-                  type = 'toggle',
-                  name = 'Allow cut-off if better rupture',
-                  desc = 'Should we waste some of the remaining rupture time if we can apply a better one?',
-                  get = function(info) return Torpedo.db.profile.assassination.cutoffRuptureWhenBetterMultiplier end,
-                  set = function(info, val) Torpedo.db.profile.assassination.cutoffRuptureWhenBetterMultiplier = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.ruptureEnabled end,
-                  order = 9,
-                  width = 'full'
-                },
-                poolEnergyToCutoffRupture = {
-                  type = 'toggle',
-                  name = 'Pool energy to cut-off rupture',
-                  desc = 'If we have enough combo points and we want to cut-off rupture to apply a better one, but don\'t have enough energy, should we pool energy (as opposed to giving lower-priority actions a chance to give a suggestion)?',
-                  get = function(info) return Torpedo.db.profile.assassination.poolEnergyToCutoffRupture end,
-                  set = function(info, val) Torpedo.db.profile.assassination.poolEnergyToCutoffRupture = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.ruptureEnabled) or (not Torpedo.db.profile.assassination.poolEnergyWaitingForRupture) end,
-                  order = 10,
-                  width = 'full'
-                },
-                applyRuptureEarlyWhenExsanguinateReady = {
-                  type = 'toggle',
-                  name = 'Aggressively rupture if exsanguinate ready',
-                  desc = 'Should we ignore everything but having 25 energy and max combo points if exsanguinate is ready? It\'s almost always worth it to miss an envenom rather than miss an exsanguinate',
-                  get = function(info) return Torpedo.db.profile.assassination.applyRuptureEarlyWhenExsanguinateReady end,
-                  set = function(info, val) Torpedo.db.profile.assassination.applyRuptureEarlyWhenExsanguinateReady = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.ruptureEnabled end,
-                  order = 11,
-                  width = 'full'
-                }
-              }
-            },
-            envenom = {
-              name = 'Envenom',
-              type = 'group',
-              order = 4,
-              args = {
-                envenomEnabled = {
-                  type = 'toggle',
-                  name = 'Suggest envenom',
-                  desc = 'Toggles if envenom will ever be suggested.',
-                  get = function(info) return Torpedo.db.profile.assassination.envenomEnabled end,
-                  set = function(info, val) Torpedo.db.profile.assassination.envenomEnabled = val end,
-                  order = 1,
-                  width = 'full'
-                },
-                envenomPriority = {
-                  type = 'range',
-                  name = 'Priority',
-                  desc = PRIORITY_DESC,
-                  get = function(info) return Torpedo.db.profile.assassination.mainPriorities.envenom end,
-                  set = function(info, val) Torpedo:TrySetMainPriority('assassination', 'envenom', val) end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.envenomEnabled end,
-                  order = 2,
-                  width = 'full',
-                  min = 1,
-                  max = 2000,
-                  softMin = 1,
-                  softMax = 1000,
-                  step = 1,
-                  bigStep = 1
-                },
-                avoidCuttingOffEnvenom = {
-                  type = 'toggle',
-                  name = 'Avoid cutting off envenom',
-                  desc = 'Envenom applies a fairly helpful buff, should we avoid cutting it off?',
-                  get = function(info) return Torpedo.db.profile.assassination.avoidCuttingOffEnvenom end,
-                  set = function(info, val) Torpedo.db.profile.assassination.avoidCuttingOffEnvenom = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.envenomEnabled end,
-                  order = 3,
-                  width = 'full'
-                },
-                envenomReapplyTime = {
-                  type = 'range',
-                  name = 'Allowed time remaining for re-applying envenom',
-                  desc = 'How much time may still be left on rupture for it to be suggested? Recall that at most 30% will not be cut-off',
-                  get = function(info) return Torpedo.db.profile.assassination.envenomReapplyTime end,
-                  set = function(info, val) Torpedo.db.profile.assassination.envenomReapplyTime = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.envenomEnabled) or (not Torpedo.db.profile.assassination.avoidCuttingOffEnvenom) end,
-                  order = 4,
-                  width = 'full',
-                  min = 1,
-                  max = 7,
-                  softMin = 1,
-                  softMax = 7,
-                  step = 0.01,
-                  bigStep = 1,
-                },
-                envenomAtMaxComboPoints = {
-                  type = 'toggle',
-                  name = 'Use only at max combo points',
-                  desc = 'Should envenom only be suggested at maximum combo points? Downside is we will probably need to clip some combo points.',
-                  get = function(info) return Torpedo.db.profile.assassination.envenomAtMaxComboPoints end,
-                  set = function(info, val) Torpedo.db.profile.assassination.envenomAtMaxComboPoints = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.envenomEnabled end,
-                  order = 5,
-                  width = 'full'
-                },
-                envenomMinComboPoints = {
-                  type = 'range',
-                  name = 'Minimum combo points',
-                  desc = 'What is the minimum number of combo points to use envenom?',
-                  get = function(info) return Torpedo.db.profile.assassination.envenomMinComboPoints end,
-                  set = function(info, val) Torpedo.db.profile.assassination.envenomMinComboPoints = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.envenomEnabled) or Torpedo.db.profile.assassination.envenomAtMaxComboPoints end,
-                  order = 6,
-                  width = 'full',
-                  min = 1,
-                  max = 6,
-                  softMin = 1,
-                  softMax = 7,
-                  step = 1,
-                  bigStep = 1
-                },
-                poolEnergyWaitingForEnvenom = {
-                  type = 'toggle',
-                  name = 'Pool energy for envenom',
-                  desc = 'As opposed to continuing searching for actions when we have enough combo points but not enough energy, or enough combo points and enough energy but using envenom would cutoff the buff',
-                  get = function(info) return Torpedo.db.profile.assassination.poolEnergyWaitingForEnvenom end,
-                  set = function(info, val) Torpedo.db.profile.assassination.poolEnergyWaitingForEnvenom = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.envenomEnabled end,
-                  order = 7,
-                  width = 'full'
-                },
-                maxEnvenomPoolEnergy = {
-                  type = 'range',
-                  name = 'Maximum energy to pool at',
-                  desc = 'If we have enough energy and enough combo points for envenom, what is the maximum amount of energy we will pool before we give up and cut-off any remaining envenom buff duration?',
-                  get = function(info) return Torpedo.db.profile.assassination.maxEnvenomPoolEnergy end,
-                  set = function(info, val) Torpedo.db.profile.assassination.maxEnvenomPoolEnergy = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.envenomEnabled) or (not Torpedo.db.profile.assassination.poolEnergyWaitingForEnvenom) or (not Torpedo.db.profile.assassination.avoidCuttingOffEnvenom) end,
-                  order = 8,
-                  width = 'full',
-                  min = 1,
-                  max = 156,
-                  softMin = 35,
-                  softMax = 125,
-                  step = 1,
-                  bigStep = 5
-                }
-              }
-            },
-            garrote = {
-              name = 'Garrote',
-              type = 'group',
-              order = 5,
-              args = {
-                garroteEnabled = {
-                  name = 'Suggest garrote',
-                  type = 'toggle',
-                  desc = 'Toggle if garrote will ever be suggested.',
-                  get = function(info) return Torpedo.db.profile.assassination.garroteEnabled end,
-                  set = function(info, val) Torpedo.db.profile.assassination.garroteEnabled = val end,
-                  order = 1,
-                  width = 'full'
-                },
-                garrotePriority = {
-                  name = 'Priority',
-                  type = 'range',
-                  desc = PRIORITY_DESC,
-                  get = function(info) return Torpedo.db.profile.assassination.mainPriorities.garrote end,
-                  set = function(info, val) Torpedo:TrySetMainPriority('assassination', 'garrote', val) end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.garroteEnabled end,
-                  order = 2,
-                  width = 'full',
-                  min = 1,
-                  max = 2000,
-                  softMin = 1,
-                  softMax = 1000,
-                  step = 1,
-                  bigStep = 1
-                },
-                avoidCuttingOffGarrote = {
-                  name = 'Avoid cutting-off garrote',
-                  type = 'toggle',
-                  desc = 'Usually it won\'t matter since the cooldown on garrote is almost it\'s full duration, but should we avoid cutting off garrote?',
-                  get = function(info) return Torpedo.db.profile.assassination.avoidCuttingOffGarrote end,
-                  set = function(info, val) Torpedo.db.profile.assassination.avoidCuttingOffGarrote = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.garroteEnabled end,
-                  order = 3,
-                  width = 'full'
-                },
-                garroteReapplyTime = {
-                  name = 'Allowed time remaining for re-applying garrote',
-                  type = 'range',
-                  desc = 'How much time may still be left on garrote for to to be suggested? Recall that at most 30% will not be cut-off',
-                  get = function(info) return Torpedo.db.profile.assassination.garroteReapplyTime end,
-                  set = function(info, val) Torpedo.db.profile.assassination.garroteReapplyTime = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.garroteEnabled) or (not Torpedo.db.profile.assassination.avoidCuttingOffGarrote) end,
-                  order = 4,
-                  width = 'full',
-                  min = 1,
-                  max = 18,
-                  softMin = 1,
-                  softMax = 18,
-                  step = 0.01,
-                  bigStep = 1
-                },
-                poolEnergyWaitingForGarrote = {
-                  name = 'Pool energy for garrote',
-                  type = 'toggle',
-                  desc = 'Should we pool energy if we want to apply garrote but don\'t have enough energy? (As opposed allowing lower-priority actions a chance to suggest something)',
-                  get = function(info) return Torpedo.db.profile.assassination.poolEnergyWaitingForGarrote end,
-                  set = function(info, val) Torpedo.db.profile.assassination.poolEnergyWaitingForGarrote = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.garroteEnabled end,
-                  order = 5,
-                  width = 'full'
-                },
-                allowGarroteWorsen = {
-                  name = 'Allow re-apply worse garrote',
-                  type = 'toggle',
-                  desc = 'Not all garrotes are made alike - for example, right after exsanguinate garrote is 400% stronger. Should we avoid overwriting a worse garrote with a better one?',
-                  get = function(info) return Torpedo.db.profile.assassination.allowGarroteWorsen end,
-                  set = function(info, val) Torpedo.db.profile.assassination.allowGarroteWorsen = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.garroteEnabled end,
-                  order = 6,
-                  width = 'full'
-                },
-                cutoffGarroteWhenBetterMultiplier = {
-                  name = 'Allow cut-off if better garrote',
-                  type = 'toggle',
-                  desc = 'Should we cut-off some of the remaining time on garrote if we can apply a better one?',
-                  get = function(info) return Torpedo.db.profile.assassination.cutoffGarroteWhenBetterMultiplier end,
-                  set = function(info, val) Torpedo.db.profile.assassination.cutoffGarroteWhenBetterMultiplier = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.garroteEnabled end,
-                  order = 7,
-                  width = 'full'
-                },
-                poolEnergyToCutoffGarrote = {
-                  name = 'Pool energy to cut-off garrote',
-                  type = 'toggle',
-                  desc = 'Should we pool energy when we\'re trying to cut-off garrote for a better multiplier but don\'t have enough energy?',
-                  get = function(info) return Torpedo.db.profile.assassination.poolEnergyToCutoffGarrote end,
-                  set = function(info, val) Torpedo.db.profile.assassination.poolEnergyToCutoffGarrote = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.garroteEnabled) or (not Torpedo.db.profile.assassination.poolEnergyWaitingForGarrote) end,
-                  order = 8,
-                  width = 'full'
-                }
-              }
-            },
-            hemorrhage = {
-              name = 'Hemorrhage',
-              type = 'group',
-              order = 6,
-              args = {
-                hemorrhageEnabled = {
-                  name = 'Suggest hemorrhage',
-                  type = 'toggle',
-                  desc = 'Toggle if hemorrhage will ever be suggested.',
-                  get = function(info) return Torpedo.db.profile.assassination.hemorrhageEnabled end,
-                  set = function(info, val) Torpedo.db.profile.assassination.hemorrhageEnabled = val end,
-                  order = 1,
-                  width = 'full'
-                },
-                hemorrhagePriority = {
-                  name = 'Priority',
-                  type = 'range',
-                  desc = PRIORITY_DESC,
-                  get = function(info) return Torpedo.db.profile.assassination.mainPriorities.hemorrhage end,
-                  set = function(info, val) TrySetMainPriority('assassination', 'hemorrhage', val) end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.hemorrhageEnabled end,
-                  order = 2,
-                  width = 'full',
-                  min = 1,
-                  max = 2000,
-                  softMin = 1,
-                  softMax = 1000,
-                  step = 1,
-                  bigStep = 1
-                },
-                hemorrhageReapplyTime = {
-                  name = 'Allowed time remaining for re-applying hemorrhage',
-                  type = 'range',
-                  desc = 'How much time may still be left on hemorrhage for it to be suggested? Recall that at most 30% will not be cut-off.',
-                  get = function(info) return Torpedo.db.profile.assassination.hemorrhageReapplyTime end,
-                  set = function(info, val) Torpedo.db.profile.assassination.hemorrhageReapplyTime = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.hemorrhageEnabled end,
-                  order = 3,
-                  width = 'full',
-                  min = 1,
-                  max = 20,
-                  softMin = 1,
-                  softMax = 20,
-                  step = 0.01,
-                  bigStep = 1
-                },
-                poolEnergyWaitingForHemorrhage = {
-                  name = 'Pool energy for hemorrhage',
-                  type = 'toggle',
-                  desc = 'Should we pool energy if we want to apply hemorrhage but don\'t have enough energy? (As opposed allowing lower-priority actions a chance to suggest something)',
-                  get = function(info) return Torpedo.db.profile.assassination.poolEnergyWaitingForHemorrhage end,
-                  set = function(info, val) Torpedo.db.profile.assassination.poolEnergyWaitingForHemorrhage = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.hemorrhageEnabled end,
-                  order = 4,
-                  width = 'full'
-                }
-              }
-            },
-            mutilate = {
-              name = 'Mutilate',
-              type = 'group',
-              order = 7,
-              args = {
-                mutilateEnabled = {
-                  name = 'Suggest mutilate',
-                  type = 'toggle',
-                  desc = 'Toggle if mutilate is ever suggested.',
-                  get = function(info) return Torpedo.db.profile.assassination.mutilateEnabled end,
-                  set = function(info, val) Torpedo.db.profile.assassination.mutilateEnabled = val end,
-                  order = 1,
-                  width = 'full'
-                },
-                mutilatePriority = {
-                  name = 'Priority',
-                  type = 'range',
-                  desc = PRIORITY_DESC,
-                  get = function(info) return Torpedo.db.profile.assassination.mainPriorities.mutilate end,
-                  set = function(info, val) TrySetMainPriority('assassination', 'mutilate', val) end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.mutilateEnabled end ,
-                  order = 2,
-                  width = 'full',
-                  min = 1,
-                  max = 2000,
-                  softMin = 1,
-                  softMax = 1000,
-                  step = 1,
-                  bigStep = 1
-                },
-                poolEnergyWaitingForMutilate = {
-                  name = 'Pool energy to mutilate',
-                  type = 'toggle',
-                  desc = 'Should we pool energy if we want to mutilate but don\'t have enough energy? (As opposed to having nothing show)',
-                  get = function(info) return Torpedo.db.profile.assassination.poolEnergyWaitingForMutilate end,
-                  set = function(info, val) Torpedo.db.profile.assassination.poolEnergyWaitingForMutilate = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.mutilateEnabled end,
-                  order = 3,
-                  width = 'full'
-                },
-                minEnergyToMutilate = {
-                  name = 'Energy for non-emergent mutilate',
-                  type = 'range',
-                  desc = 'How much energy should we pool before we cast a mutilate without having a particularly good way to spend the combo points?',
-                  get = function(info) return Torpedo.db.profile.assassination.minEnergyToMutilate end,
-                  set = function(info, val) Torpedo.db.profile.assassination.minEnergyToMutilate = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.mutilateEnabled end,
-                  order = 4,
-                  width = 'full',
-                  min = 1,
-                  max = 156,
-                  softMin = 55,
-                  softMax = 100,
-                  step = 1,
-                  bigStep = 5
-                },
-                mutilateLenientCPCheck = {
-                  name = 'Less than max combo points',
-                  type = 'toggle',
-                  desc = 'Should we consider mutilating as long as we are below maximum combo points? (As opposed to waiting for hemorrhage/garrote)',
-                  get = function(info) return Torpedo.db.profile.assassination.mutilateLenientCPCheck end,
-                  set = function(info, val) Torpedo.db.profile.assassination.mutilateLenientCPCheck = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.mutilateEnabled end,
-                  order = 5,
-                  width = 'full'
-                },
-                maxCPToMutilate = {
-                  name = 'Maximum combo points to mutilate',
-                  type = 'range',
-                  desc = 'Maximum number of combo points where we should consider mutilating',
-                  get = function(info) return Torpedo.db.profile.assassination.maxCPToMutilate end,
-                  set = function(info, val) Torpedo.db.profile.assassination.maxCPToMutilate = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.mutilateEnabled) or  Torpedo.db.profile.assassination.mutilateLenientCPCheck end,
-                  order = 6,
-                  width = 'full',
-                  min = 1,
-                  max = 6,
-                  softMin = 1,
-                  softMax = 6,
-                  step = 1,
-                  bigStep = 1
-                },
-                ignoreCPForMutilateEnergy = {
-                  name = 'Minimum energy to override CP check',
-                  type = 'range',
-                  desc = 'To avoid wasting energy, if we have this amount of energy we will ignore combo points when deciding whether to mutilate - this won\'t override our finishers if they are higher priority',
-                  get = function(info) return Torpedo.db.profile.assassination.ignoreCPForMutilateEnergy end,
-                  set = function(info, val) Torpedo.db.profile.assassination.ignoreCPForMutilateEnergy = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.mutilateEnabled) or (not Torpedo.db.profile.assassination.mutilateLenientCPCheck) end,
-                  order = 7,
-                  width = 'full',
-                  min = 1,
-                  max = 156,
-                  softMin = 55,
-                  softMax = 125,
-                  step = 1,
-                  bigStep = 5
-                },
-                dontPoolMutilateWhenRuptureRemainingLessThan = {
-                  name = 'Low rupture time',
-                  type = 'range',
-                  desc = 'What constitutes low remaining rupture time that we should reduce our minimum energy requirements to rupture to minimum?',
-                  get = function(info) return Torpedo.db.profile.assassination.dontPoolMutilateWhenRuptureRemainingLessThan end,
-                  set = function(info, val) Torpedo.db.profile.assassination.dontPoolMutilateWhenRuptureRemainingLessThan = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.mutilateEnabled end,
-                  order = 8,
-                  width = 'full',
-                  min = 1,
-                  max = 28,
-                  softMin = 1,
-                  softMax = 28,
-                  step = 1,
-                  bigStep = 1
-                },
-                mutilateLenientCPCheckIfRuptureLow = {
-                  name = 'Less than max combo points if rupture low',
-                  type = 'toggle',
-                  desc = 'Should we consider mutilating as long as we are below maximum combo points and rupture is about to wear off? (As opposed to waiting for hemorrhage/garrote)',
-                  get = function(info) return Torpedo.db.profile.assassination.mutilateLenientCPCheckIfRuptureLow end,
-                  set = function(info, val) Torpedo.db.profile.assassination.mutilateLenientCPCheckIfRuptureLow = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.mutilateEnabled end,
-                  order = 9,
-                  width = 'full'
-                },
-                maxCPToMutilateIfRuptureLow = {
-                  name = 'Maximum combo points to mutilate if rupture low',
-                  type = 'range',
-                  desc = 'Maximum number of combo points where we should consider mutilating if rupture duration is low',
-                  get = function(info) return Torpedo.db.profile.assassination.maxCPToMutilateIfRuptureLow end,
-                  set = function(info, val) Torpedo.db.profile.assassination.maxCPToMutilateIfRuptureLow = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.mutilateEnabled) or Torpedo.db.profile.assassination.mutilateLenientCPCheckIfRuptureLow end,
-                  order = 10,
-                  width = 'full',
-                  min = 1,
-                  max = 6,
-                  softMin = 1,
-                  softMax = 6,
-                  step = 1,
-                  bigStep = 1
-                },
-                poolEnergyWaitingForMutilateRuptureLow = {
-                  name = 'Pool energy for mutilate when rupture low',
-                  type = 'toggle',
-                  desc = 'Should we pool energy if we don\'t have enough energy but want to mutilate to refresh rupture? (As opposed to showing nothing)',
-                  get = function(info) return Torpedo.db.profile.assassination.poolEnergyWaitingForMutilateRuptureLow end,
-                  set = function(info, val) Torpedo.db.profile.assassination.poolEnergyWaitingForMutilateRuptureLow = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.mutilateEnabled) or Torpedo.db.profile.assassination.poolEnergyWaitingForMutilate end,
-                  order = 11,
-                  width = 'full'
-                }
-              }
-            }
-          }
-        },
-        secondaryAbilities = {
-          name = 'Secondary Suggestions',
-          type = 'group',
-          order = 2,
-          args = {
-            vendetta = {
-              name = 'Vendetta',
-              type = 'group',
-              order = 1,
-              args = {
-                vendettaEnabled = {
-                  type = 'toggle',
-                  name = 'Suggest vendetta',
-                  desc = 'Toggles if vendetta will ever be suggested.',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaEnabled end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaEnabled = val end,
-                  order = 1,
-                  width = 'full'
-                },
-                vendettaPriority = {
-                  type = 'range', 
-                  name = 'Priority',
-                  desc = PRIORITY_DESC,
-                  get = function(info) return Torpedo.db.profile.assassination.cdPriorities.vendetta end,
-                  set = function(info, val) Torpedo:TrySetCDPriority('assassination', 'vendetta', val) end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.vendettaEnabled end,
-                  order = 2,
-                  width = 'full',
-                  min = 1,
-                  max = 2000,
-                  softMin = 1,
-                  softMax = 1000,
-                  order = 2, 
-                  width = 'full',
-                  step = 1,
-                  bigStep = 1
-                },
-                vendettaWaitsForVanish = {
-                  type = 'toggle',
-                  name = 'Vendetta waits for vanish',
-                  desc = 'Should vendetta try to combo with vanish? This allows the improved rupture damage to coincide with the 50% stronger rupture that is applied when rupturing from stealth, if Nightstalker is selected',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaWaitsForVanish end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaWaitsForVanish = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.vendettaEnabled end,
-                  order = 3,
-                  width = 'full'
-                },
-                vendettaLetsVanishHaveSomeCD = {
-                  type = 'toggle',
-                  name = 'Vendetta allows vanish some cooldown',
-                  desc = 'Is there any wiggle room in the vanish cooldown?',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaLetsVanishHaveSomeCD end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaLetsVanishHaveSomeCD = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaWaitsForVanish) end,
-                  order = 4,
-                  width = 'full'
-                },
-                vendettaMaxAllowedVanishCDRemaining = {
-                  type = 'range',
-                  name = 'Vanish remaining cooldown allowed',
-                  desc = 'What is the maximum remaining cooldown on vanish to suggest vendetta?',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaMaxAllowedVanishCDRemaining end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaMaxAllowedVanishCDRemaining = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaWaitsForVanish) or (not Torpedo.db.profile.assassination.vendettaLetsVanishHaveSomeCD) end,
-                  order = 5,
-                  width = 'full',
-                  min = 1,
-                  max = 120,
-                  softMin = 1,
-                  softMax = 120,
-                  step = 0.01,
-                  bigStep = 1
-                },
-                vendettaIgnoresVanishCDIfLongWayOff = {
-                  type = 'toggle',
-                  name = 'Ignore vanish cooldown if long way off',
-                  desc = 'If vanish has a long time left on its cooldown and we\'re ready to vanish, should we not wait for it?',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaIgnoresVanishCDIfLongWayOff end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaIgnoresVanishCDIfLongWayOff = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaWaitsForVanish) end,
-                  order = 6,
-                  width = 'full'
-                },
-                vendettaVanishMinCdToIgnore = {
-                  type = 'range',
-                  name = 'Vanish long way off cooldown',
-                  desc = 'How many seconds left on vanishs cooldown constitutes a \'long way off\'?',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaVanishMinCdToIgnore end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaVanishMinCdToIgnore = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaWaitsForVanish) or (not Torpedo.db.profile.assassination.vendettaIgnoresVanishCDIfLongWayOff) end,
-                  order = 7,
-                  width = 'full',
-                  min = 1,
-                  max = 120,
-                  softMin = 1,
-                  softMax = 120,
-                  step = 0.01,
-                  bigStep = 1
-                },
-                vendettaWaitsForExsanguinate = {
-                  type = 'toggle',
-                  name = 'Vendetta waits for exsanguinate',
-                  desc = 'Should vendetta try to combo with exsanguinate? This allows the improved rupture from vanish to combo with exsanguinate for incredible burst damage.',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaWaitsForExsanguinate end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaWaitsForExsanguinate = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.vendettaEnabled end,
-                  order = 8,
-                  width = 'full'
-                },
-                vendettaLetsExsanguinateHaveSomeCD = {
-                  type = 'toggle',
-                  name = 'Vendetta allows exsanguinate some cooldown',
-                  desc = 'Is there any wiggle room in the remaining exsanguinate cooldown?',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaLetsExsanguinateHaveSomeCD end,
-                  set = function(info, val) Torpedo.db.profile.vendettaLetsExsanguinateHaveSomeCD = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaWaitsForExsanguinate) end,
-                  order = 9,
-                  width = 'full'
-                },
-                vendettaMaxAllowedExsanguinateCDRemaining = {
-                  type = 'range',
-                  name = 'Exsanguinate max cooldown allowed',
-                  desc = 'What is the maximum remaining cooldown on exsanguinate to suggest vendetta?',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaMaxAllowedExsanguinateCDRemaining end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaMaxAllowedExsanguinateCDRemaining = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaWaitsForExsanguinate) or (not Torpedo.db.profile.assassination.vendettaLetsExsanguinateHaveSomeCD) end,
-                  order = 10,
-                  width = 'full',
-                  min = 1,
-                  max = 45,
-                  softMin = 1,
-                  softMax = 45,
-                  step = 0.01,
-                  bigStep = 1
-                },
-                vendettaIgnoresExsanguinateCDIfLongWayOff = {
-                  type = 'toggle',
-                  name = 'Ignore exsanguinate cooldown if long way off',
-                  desc = 'If exsanguinate has a long time left on its cooldown and we\'re ready to vendetta, should we not wait for it?',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaIgnoresExsanguinateCDIfLongWayOff end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaIgnoresExsanguinateCDIfLongWayOff = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaWaitsForExsanguinate) end,
-                  order = 11,
-                  width = 'full'
-                },
-                vendettaExsanguinateMinCdToIgnore = {
-                  type = 'range',
-                  name = 'Exsanguinate long way off cooldown',
-                  desc = 'How many seconds left on exsanguinate constitutes a \'long way off\'?',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaExsanguinateMinCdToIgnore end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaExsanguinateMinCdToIgnore = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaWaitsForExsanguinate) or (not Torpedo.db.profile.assassination.vendettaIgnoresExsanguinateCDIfLongWayOff) end,
-                  order = 12,
-                  width = 'full',
-                  min = 1,
-                  max = 45,
-                  softMin = 1,
-                  softMax = 45,
-                  step = 0.01,
-                  bigStep = 1
-                },
-                vendettaChecksComboPoints = {
-                  type = 'toggle',
-                  name = 'Check combo points',
-                  desc = 'Should we look at our combo points before suggesting vendetta? Recall it\'s very good to rupture from stealth with the Nightstalker talent',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaChecksComboPoints end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaChecksComboPoints = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.vendettaEnabled end,
-                  order = 13,
-                  width = 'full'
-                },
-                vendettaRequiresMaxComboPoints = {
-                  type = 'toggle',
-                  name = 'Use only at max combo points',
-                  desc = 'Should we only vendetta at max combo points? (6 if deeper stratagem is selected, 5 otherwise)',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaRequiresMaxComboPoints end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaRequiresMaxComboPoints = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaChecksComboPoints) end,
-                  order = 14,
-                  width = 'full'
-                },
-                vendettaHasMinCP = {
-                  type = 'toggle',
-                  name = 'Have minimum combo points',
-                  desc = 'Do we have a minimum number of combo points to suggest vendetta?',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaHasMinCP end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaHasMinCP = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaChecksComboPoints) or (Torpedo.db.profile.assassination.vendettaRequiresMaxComboPoints) end,
-                  order = 15,
-                  width = 'full'
-                },
-                vendettaMinCP = {
-                  type = 'range',
-                  name = 'Minimum combo points',
-                  desc = 'What is the minimum combo points to suggest vendetta?',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaMinCP end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaMinCP = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaChecksComboPoints) or (Torpedo.db.profile.assassination.vendettaRequiresMaxComboPoints) or (not Torpedo.db.profile.assassination.vendettaHasMinCP) end,
-                  order = 16,
-                  width = 'full',
-                  min = 1,
-                  max = 6,
-                  softMin = 1,
-                  softMax = 6,
-                  step = 1,
-                  bigStep = 1
-                },
-                vendettaHasMaxCP = {
-                  type = 'toggle',
-                  name = 'Have maximum combo points',
-                  desc = 'Do we have a maximum number of combo points to suggest vendetta?',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaHasMaxCP end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaHasMaxCP = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaChecksComboPoints) or (Torpedo.db.profile.assassination.vendettaRequiresMaxComboPoints) end,
-                  order = 17,
-                  width = 'full'
-                },
-                vendettaMaxCP = {
-                  type = 'range',
-                  name = 'Maximum combo points',
-                  desc = 'What is the maximum number of combo points to suggest vendetta?',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaMaxCP end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaMaxCP = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaChecksComboPoints) or (Torpedo.db.profile.assassination.vendettaRequiresMaxComboPoints) or (not Torpedo.db.profile.assassination.vendettaHasMaxCP) end,
-                  order = 18,
-                  width = 'full',
-                  min = 1,
-                  max = 6,
-                  softMin = 1,
-                  softMax = 6,
-                  step = 1,
-                  bigStep = 1
-                },
-                vendettaChecksStealthyTristate = {
-                  type = 'toggle',
-                  tristate = true,
-                  name = function(info)
-                    local curVal = Torpedo.db.profile.assassination.vendettaChecksStealthyTristate 
-                    if curVal == nil then 
-                      return 'Ensure we are not already stealthy'
-                    elseif curVal == true then 
-                      return 'Ensure we are stealthy already'
-                    else
-                      return 'Check stealthiness'
-                    end
-                  end,
-                  desc = 'Should we ignore/ensure/avoid stealthiness, where stealthiness is the ability to use stealth abilities?',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaChecksStealthyTristate end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaChecksStealthyTristate = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.vendettaEnabled end,
-                  order = 19,
-                  width = 'full'
-                },
-                vendettaChecksRuptureDuration = {
-                  type = 'toggle',
-                  name = 'Check rupture duration',
-                  desc = 'Should we check how much time is left on rupture before using vendetta?',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaChecksRuptureDuration end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaChecksRuptureDuration = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.vendettaEnabled end,
-                  order = 20,
-                  width = 'full'
-                },
-                vendettaMaxRuptureRemaining = {
-                  type = 'range',
-                  name = 'Maximum rupture duration remaining',
-                  desc = 'What is the maximum time left on rupture to use vendetta?',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaMaxRuptureRemaining end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaMaxRuptureRemaining = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaChecksRuptureDuration) end,
-                  order = 21,
-                  width = 'full',
-                  min = 1,
-                  max = 28,
-                  softMin = 1,
-                  softMax = 28,
-                  step = 1,
-                  bigStep = 1
-                },
-                vendettaChecksRuptureMultiplier = {
-                  type = 'toggle',
-                  name = 'Check rupture multiplier',
-                  desc = 'Should we check the multiplier on the current rupture if it\'s up? The multiplier would be 1 if we applied out of stealth and didn\'t exsanguinate, 1.5 if we applied from stealth and didn\'t exsanguinate, 5 if applied out of stealth and exsanguinated, and 5.5 if applied from stealth and exsanguinated.',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaChecksRuptureMultiplier end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaChecksRuptureMultiplier = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.vendettaEnabled end,
-                  order = 22,
-                  width = 'full'
-                },
-                vendettaMaxRuptureMultiplier = {
-                  type = 'range',
-                  name = 'Maximum rupture multiplier',
-                  desc = 'What is the maximum rupture multiplier to suggest vendetta? 1 would mean suggest vendetta if and only if the old rupture wasn\'t buffed at all, 1.5 would mean suggest vendetta if and only if the current rupture isn\'t improved by exsanguinate, 5 would mean suggest vendetta if and only if the current rupture isn\'t a rupture from stealth that was exsanguinated, and 5.5 would effectively mean ignore rupture multiplier',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaMaxRuptureMultiplier end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaMaxRuptureMultiplier = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaChecksRuptureMultiplier) end,
-                  order = 23,
-                  width = 'full',
-                  min = 1,
-                  max = 5.5,
-                  softMin = 1,
-                  softMax = 5.5,
-                  step = 0.01,
-                  bigStep = 0.5
-                },
-                vendettaChecksEnergy = {
-                  type = 'toggle',
-                  name = 'Check energy',
-                  desc = 'Should we check our energy levels before using vendetta?',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaChecksEnergy end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaChecksEnergy = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.vendettaEnabled end,
-                  order = 24,
-                  width = 'full'
-                },
-                vendettaHasMinEnergy = {
-                  type = 'toggle',
-                  name = 'Have minimum energy',
-                  desc = 'Is there a minimum energy amount for using vendetta?',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaHasMinEnergy end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaHasMinEnergy = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaChecksEnergy) end,
-                  order = 25,
-                  width = 'full'
-                },
-                vendettaMinEnergy = {
-                  type = 'range',
-                  name = 'Minimum energy',
-                  desc = 'What is the minimum energy amount for using vendetta?',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaMinEnergy end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaMinEnergy = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaChecksEnergy) or (not Torpedo.db.profile.assassination.vendettaHasMinEnergy) end,
-                  order = 26,
-                  width = 'full',
-                  min = 1,
-                  max = 156,
-                  softMin = 1,
-                  softMax = 125,
-                  step = 1,
-                  bigStep = 5
-                },
-                vendettaHasMaxEnergy = {
-                  type = 'toggle',
-                  name = 'Have maximum energy',
-                  desc = 'Is there a maximum energy amount for using vendetta?',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaHasMaxEnergy end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaHasMaxEnergy = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaChecksEnergy) end,
-                  order = 27,
-                  width = 'full'
-                },
-                vendettaMaxEnergy = {
-                  type = 'range',
-                  name = 'Maximum energy',
-                  desc = 'What is the maximum energy amount for using vendetta?',
-                  get = function(info) return Torpedo.db.profile.assassination.vendettaMaxEnergy end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vendettaMaxEnergy = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vendettaEnabled) or (not Torpedo.db.profile.assassination.vendettaChecksEnergy) or (not Torpedo.db.profile.assassination.vendettaHasMaxEnergy) end,
-                  order = 28,
-                  width = 'full',
-                  min = 1,
-                  max = 156,
-                  softMin = 1,
-                  softMax = 125,
-                  step = 1,
-                  bigStep = 5
-                }
-              }
-            },
-            vanish = {
-              type = 'group',
-              name = 'Vanish',
-              order = 2,
-              args = {
-                vanishEnabled = {
-                  name = 'Suggest vanish',
-                  type = 'toggle',
-                  desc = 'Toggle if vanish should ever be suggested.',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishEnabled end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vanishEnabled = val end,
-                  order = 1,
-                  width = 'full'
-                },
-                vanishPriority = {
-                  type = 'range',
-                  name = 'Priority',
-                  desc = PRIORITY_DESC,
-                  get = function(info) return Torpedo.db.profile.assassination.cdPriorities.vanish end,
-                  set = function(info, val) TrySetCDPriority('assassination', 'vanish', val) end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.vanishEnabled end,
-                  order = 2,
-                  width = 'full',
-                  min = 1,
-                  max = 2000,
-                  softMin = 1,
-                  softMax = 1000,
-                  step = 1,
-                  bigStep = 1
-                },
-                vanishRequiresVendettaBuff = {
-                  type = 'toggle',
-                  name = 'Require vendetta buff',
-                  desc = 'Should we only use vanish if vendetta is active?',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishRequiresVendettaBuff end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vanishRequiresVendettaBuff = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.vanishEnabled end,
-                  order = 3,
-                  width = 'full'
-                },
-                vanishRequiresVendettaBuffMinDuration = {
-                  type = 'toggle',
-                  name = 'Require vendetta minimum duration',
-                  desc = 'Is there some minimum duration remaining on vendetta to use vanish?',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishRequiresVendettaBuffMinDuration end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vanishRequiredVendettaBuffMinDuration = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishRequiresVendettaBuff) end,
-                  order = 4,
-                  width = 'full'
-                },
-                vanishRequiredVendettaBuffMinDuration = {
-                  type = 'range',
-                  name = 'Vendetta minimum duration',
-                  desc = 'What is the minimum duration remaining on vendetta to use vanish?',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishRequiredVendettaBuffMinDuration end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vanishRequiredVendettaBuffMinDuration = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishRequiresVendettaBuff) or (not Torpedo.db.profile.assassination.vanishRequiresVendettaBuffMinDuration) end,
-                  order = 5,
-                  width = 'full',
-                  min = 1,
-                  max = 20,
-                  softMin = 1,
-                  softMax = 20,
-                  step = 0.01,
-                  bigStep = 1
-                },
-                vanishWaitsForExsanguinate = {
-                  type = 'toggle',
-                  name = 'Vanish waits for exsanguinate',
-                  desc = 'Should vanish wait for exsanguinate? This is especially important if vendetta is waiting on vanish - exsanguinate will get the much-needed energy to burst during vendetta.',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishWaitsForExsanguinate end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vanishWaitsForExsanguinate = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.vanishEnabled end,
-                  order = 6,
-                  width = 'full'
-                },
-                vanishLetsExsanguinateHaveSomeCD = {
-                  type = 'toggle',
-                  name = 'Vanish allows exsanguinate some cooldown',
-                  desc = 'Is there any wiggle room in the cooldown for exsanguinate to use vanish?',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishLetsExsanguinateHaveSomeCD end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vanishLetsExsanguinateHaveSomeCD = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishWaitsForExsanguinate) end,
-                  order = 7,
-                  width = 'full'
-                },
-                vanishMaxAllowedExsanguinateCDRemaining = {
-                  type = 'range',
-                  name = 'Max allowed exsanguinate cooldown',
-                  desc = 'What is the maximum exsanguinate cooldown remaining to use vanish?',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishMaxAllowedExsanguinateCDRemaining end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vanishMaxAllowedExsanguinateCDRemaining = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishWaitsForExsanguinate) or (not Torpedo.db.profile.assassination.vanishLetsExsanguinateHaveSomeCD) end,
-                  order = 8,
-                  width = 'full'
-                },
-                vanishWaitsForVendetta = {
-                  type = 'toggle',
-                  name = 'Vanish waits for vendetta',
-                  desc = 'Should vanish wait for vendetta? Be careful to avoid circular logic with vendetta waiting on vanish if they are intended to overlap.',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishWaitsForVendetta end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vanishWaitsForVendetta = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.vanishEnabled end,
-                  order = 9,
-                  width = 'full'
-                },
-                vanishLetsVendettaHaveSomeCD = {
-                  type = 'toggle',
-                  name = 'Vanish allows vendetta some cooldown',
-                  desc = 'Is there any wiggle room in the cooldown for vendetta to use vanish?',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishLetsVendettaHaveSomeCD end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vanishLetsVendettaHaveSomeCD = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishWaitsForVendetta) end,
-                  order = 10,
-                  width = 'full'
-                },
-                vanishMaxAllowedVendettaCDRemaining = {
-                  type = 'range',
-                  name = 'Max allowed vendetta cooldown',
-                  desc = 'What is the maximum vendetta cooldown remaining to use vanish?',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishMaxAllowedVendettaCDRemaining end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vanishMaxAllowedVendettaCDRemaining = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishWaitsForVendetta) or (not Torpedo.db.profile.assassination.vanishLetsVendettaHaveSomeCD) end,
-                  order = 11,
-                  width = 'full',
-                  min = 1,
-                  max = 120,
-                  softMin = 1,
-                  softMax = 120,
-                  step = 0.01,
-                  bigStep = 1
-                },
-                vanishChecksComboPoints = {
-                  type = 'toggle',
-                  name = 'Check combo points',
-                  desc = 'Should we check our combo points before using vanish?',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishChecksComboPoints end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vanishChecksComboPoints = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.vanishEnabled end,
-                  order = 12,
-                  width = 'full'
-                },
-                vanishRequiresMaxComboPoints = {
-                  type = 'toggle',
-                  name = 'Require max combo points',
-                  desc = 'Should we require that we have the maximum usable combo points (6 with deeper stratagem, 5 otherwise) to use vanish?',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishRequiresMaxComboPoints end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vanishRequiresMaxComboPoints = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishChecksComboPoints) end,
-                  order = 13,
-                  width = 'full'
-                },
-                vanishHasMinCP = {
-                  type = 'toggle',
-                  name = 'Have minimum combo points',
-                  desc = 'Is there some minimum number of combo points to use vanish?',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishHasMinCP end,
-                  set = function(info) Torpedo.db.profile.assassination.vanishHasMinCP = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishChecksComboPoints) or Torpedo.db.profile.assassination.vanishRequiresMaxComboPoints end,
-                  order = 14,
-                  width = 'full'
-                },
-                vanishMinCP = {
-                  type = 'range',
-                  name = 'Minimum combo points',
-                  desc = 'What is the minimum number of combo points we should have to use vanish?',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishMinCP end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vanishMinCP = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishChecksComboPoints) or Torpedo.db.profile.assassination.vanishRequiresMaxComboPoints or (not Torpedo.db.profile.assassination.vanishHasMinCP) end,
-                  order = 15,
-                  width = 'full',
-                  min = 1,
-                  max = 6,
-                  softMin = 1,
-                  softMax = 6,
-                  step = 1,
-                  bigStep = 1
-                },
-                vanishHasMaxCP = {
-                  type = 'toggle',
-                  name = 'Have maximum combo points',
-                  desc = 'Is there some maximum number of combo points to use vanish?',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishHasMaxCP end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vanishHasMaxCP = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishChecksComboPoints) or Torpedo.db.profile.assassination.vanishRequiresMaxComboPoints end,
-                  order = 16,
-                  width = 'full'
-                },
-                vanishMaxCP = {
-                  type = 'range',
-                  name = 'Maximum combo points',
-                  desc = 'What is the maximum number of combo points we should have to use vanish?',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishMaxCP end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vanishMaxCP = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishChecksComboPoints) or Torpedo.db.profile.assassination.vanishRequiresMaxComboPoints or (not Torpedo.db.profile.assassination.vanishHasMaxCP) end,
-                  order = 17,
-                  width = 'full',
-                  min = 1,
-                  max = 6,
-                  softMin = 1,
-                  softMax = 6,
-                  step = 1,
-                  bigStep = 1
-                },
-                vanishChecksStealthyTristate = {
-                  type = 'toggle',
-                  tristate = true,
-                  name = function(info)
-                    local curVal = Torpedo.db.profile.assassination.vanishChecksStealthyTristate 
-                    if curVal == nil then 
-                      return 'Ensure we are not already stealthy'
-                    elseif curVal == true then 
-                      return 'Ensure we are stealthy already'
-                    else
-                      return 'Check stealthiness'
-                    end
-                  end,
-                  desc = 'Should we ignore/ensure/avoid stealthiness, where stealthiness is the ability to use stealth abilities?',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishChecksStealthyTristate end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vanishChecksStealthyTristate = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.vanishEnabled end,
-                  order = 18,
-                  width = 'full'
-                },
-                vanishChecksRuptureDuration = {
-                  type = 'toggle',
-                  name = 'Check rupture duration',
-                  desc = 'Should we check how much time is left on rupture before using vanish?',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishChecksRuptureDuration end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vanishChecksRuptureDuration = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.vanishEnabled end,
-                  order = 20,
-                  width = 'full'
-                },
-                vanishMaxRuptureRemaining = {
-                  type = 'range',
-                  name = 'Maximum rupture duration remaining',
-                  desc = 'What is the maximum time left on rupture to use vanish?',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishMaxRuptureRemaining end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vanishMaxRuptureRemaining = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishChecksRuptureDuration) end,
-                  order = 21,
-                  width = 'full',
-                  min = 1,
-                  max = 28,
-                  softMin = 1,
-                  softMax = 28,
-                  step = 1,
-                  bigStep = 1
-                },
-                vanishChecksRuptureMultiplier = {
-                  type = 'toggle',
-                  name = 'Check rupture multiplier',
-                  desc = 'Should we check the multiplier on the current rupture if it\'s up? The multiplier would be 1 if we applied out of stealth and didn\'t exsanguinate, 1.5 if we applied from stealth and didn\'t exsanguinate, 5 if applied out of stealth and exsanguinated, and 5.5 if applied from stealth and exsanguinated.',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishChecksRuptureMultiplier end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vanishChecksRuptureMultiplier = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.vanishEnabled end,
-                  order = 22,
-                  width = 'full'
-                },
-                vanishMaxRuptureMultiplier = {
-                  type = 'range',
-                  name = 'Maximum rupture multiplier',
-                  desc = 'What is the maximum rupture multiplier to suggest vanish? 1 would mean suggest vanish if and only if the old rupture wasn\'t buffed at all, 1.5 would mean suggest vanish if and only if the current rupture isn\'t improved by exsanguinate, 5 would mean suggest vanish if and only if the current rupture isn\'t a rupture from stealth that was exsanguinated, and 5.5 would effectively mean ignore rupture multiplier',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishMaxRuptureMultiplier end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vanishMaxRuptureMultiplier = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishChecksRuptureMultiplier) end,
-                  order = 23,
-                  width = 'full',
-                  min = 1,
-                  max = 5.5,
-                  softMin = 1,
-                  softMax = 5.5,
-                  step = 0.01,
-                  bigStep = 0.5
-                },
-                vanishChecksEnergy = {
-                  type = 'toggle',
-                  name = 'Check energy',
-                  desc = 'Should we check our energy levels before using vanish?',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishChecksEnergy end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vanishChecksEnergy = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.vanishEnabled end,
-                  order = 24,
-                  width = 'full'
-                },
-                vanishHasMinEnergy = {
-                  type = 'toggle',
-                  name = 'Have minimum energy',
-                  desc = 'Is there a minimum energy amount for using vanish?',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishHasMinEnergy end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vanishHasMinEnergy = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishChecksEnergy) end,
-                  order = 25,
-                  width = 'full'
-                },
-                vanishMinEnergy = {
-                  type = 'range',
-                  name = 'Minimum energy',
-                  desc = 'What is the minimum energy amount for using vanish?',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishMinEnergy end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vanishMinEnergy = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishChecksEnergy) or (not Torpedo.db.profile.assassination.vanishHasMinEnergy) end,
-                  order = 26,
-                  width = 'full',
-                  min = 1,
-                  max = 156,
-                  softMin = 1,
-                  softMax = 125,
-                  step = 1,
-                  bigStep = 5
-                },
-                vanishHasMaxEnergy = {
-                  type = 'toggle',
-                  name = 'Have maximum energy',
-                  desc = 'Is there a maximum energy amount for using vanish?',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishHasMaxEnergy end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vanishHasMaxEnergy = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishChecksEnergy) end,
-                  order = 27,
-                  width = 'full'
-                },
-                vanishMaxEnergy = {
-                  type = 'range',
-                  name = 'Maximum energy',
-                  desc = 'What is the maximum energy amount for using vanish?',
-                  get = function(info) return Torpedo.db.profile.assassination.vanishMaxEnergy end,
-                  set = function(info, val) Torpedo.db.profile.assassination.vanishMaxEnergy = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.vanishEnabled) or (not Torpedo.db.profile.assassination.vanishChecksEnergy) or (not Torpedo.db.profile.assassination.vanishHasMaxEnergy) end,
-                  order = 28,
-                  width = 'full',
-                  min = 1,
-                  max = 156,
-                  softMin = 1,
-                  softMax = 125,
-                  step = 1,
-                  bigStep = 5
-                }
-              }
-            },
-            exsanguinate = {
-              type = 'group',
-              name = 'Exsanguinate',
-              order = 3,
-              args = {
-                exsanguinateEnabled = {
-                  type = 'toggle',
-                  name = 'Suggest exsanguinate',
-                  desc = 'Toggle if exsanguinate should ever be suggested.',
-                  get = function(info) return Torpedo.db.profile.assassination.exsanguinateEnabled end,
-                  set = function(info, val) Torpedo.db.profile.assassination.exsanguinateEnabled = val end,
-                  order = 1,
-                  width = 'full'
-                },
-                exsanguinatePriority = {
-                  type = 'range',
-                  name = 'Priority',
-                  desc = PRIORITY_DESC,
-                  get = function(info) return Torpedo.db.profile.assassination.cdPriorities.exsanguinate end,
-                  set = function(info, val) TrySetCDPriority('assassination', 'exsanguinate', val) end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.exsanguinateEnabled end,
-                  order = 2,
-                  width = 'full',
-                  min = 1,
-                  max = 2000,
-                  softMin = 1,
-                  softMax = 1000,
-                  step = 1,
-                  bigStep = 1
-                },
-                exsChecksVendettaCD = {
-                  type = 'toggle',
-                  name = 'Check vendetta cooldown',
-                  desc = 'Should we check the cooldown on vendetta before using exsanguinate? Exsanguinate is very strong by itself, but if vendetta is almost ready it might be worth waiting a few seconds',
-                  get = function(info) return Torpedo.db.profile.assassination.exsChecksVendettaCD end,
-                  set = function(info, val) Torpedo.db.profile.assassination.exsChecksVendettaCD = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.exsanguinateEnabled end,
-                  order = 3,
-                  width = 'full'
-                },
-                exsHasMinVendettaCdLeft = {
-                  type = 'toggle',
-                  name = 'Have minimum vendetta cooldown',
-                  desc = 'Do we have a minimum time remaining on vendettas cooldown to use exsanguinate?',
-                  get = function(info) return Torpedo.db.profile.assassination.exsHasMinVendettaCdLeft end,
-                  set = function(info, val) Torpedo.db.profile.assassination.exsHasMinVendettaCdLeft = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.exsanguinateEnabled) or (not Torpedo.db.profile.assassination.exsChecksVendettaCD) end,
-                  order = 4,
-                  width = 'full'
-                },
-                exsMinVendettaCdLeft = {
-                  type = 'range',
-                  name = 'Minimum vendetta cooldown',
-                  desc = 'What is the minimum time remaining on vendettas cooldown to use exsanguinate?',
-                  get = function(info) return Torpedo.db.profile.assassination.exsMinVendettaCdLeft end,
-                  set = function(info, val) Torpedo.db.profile.assassination.exsMinVendettaCdLeft = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.exsanguinateEnabled) or (not Torpedo.db.profile.assassination.exsChecksVendettaCD) or (not Torpedo.db.profile.assassination.exsHasMinVendettaCdLeft) end,
-                  order = 5,
-                  width = 'full',
-                  min = 1,
-                  max = 120,
-                  softMin = 1,
-                  softMax = 120,
-                  step = 0.01,
-                  bigStep = 1
-                },
-                exsChecksVanishCD = {
-                  type = 'toggle',
-                  name = 'Check vanish cooldown',
-                  desc = 'Should we check the cooldown on vanish before using exsanguinate? Exsanguinate is very strong by itself, but if vanish is almost ready it might be worth waiting a few seconds',
-                  get = function(info) return Torpedo.db.profile.assassination.exsChecksVanishCD end,
-                  set = function(info, val) Torpedo.db.profile.assassination.exsChecksVanishCD = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.exsanguinateEnabled end,
-                  order = 6,
-                  width = 'full'
-                },
-                exsHasMinVanishCdLeft = {
-                  type = 'toggle',
-                  name = 'Have minimum vanish cooldown',
-                  desc = 'Do we have a minimum time remaining on vanishs cooldown to use exsanguinate?',
-                  get = function(info) return Torpedo.db.profile.assassination.exsHasMinVanishCdLeft end,
-                  set = function(info, val) Torpedo.db.profile.assassination.exsHasMinVanishCdLeft = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.exsanguinateEnabled) or (not Torpedo.db.profile.assassination.exsChecksVanishCD) end,
-                  order = 7,
-                  width = 'full'
-                },
-                exsMinVanishCdLeft = {
-                  type = 'range',
-                  name = 'Minimum vanish cooldown',
-                  desc = 'What is the minimum time remaining on vendettas cooldown to use exsanguinate?',
-                  get = function(info) return Torpedo.db.profile.assassination.exsMinVanishCdLeft end,
-                  set = function(info, val) Torpedo.db.profile.assassination.exsMinVanishCdLeft = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.exsanguinateEnabled) or (not Torpedo.db.profile.assassination.exsChecksVanishCD) or (not Torpedo.db.profile.assassination.exsHasMinVanishCdLeft) end,
-                  order = 8,
-                  width = 'full',
-                  min = 1,
-                  max = 120,
-                  softMin = 1,
-                  softMax = 120,
-                  step = 0.01,
-                  bigStep = 1
-                },
-                exsChecksRuptureDuration = {
-                  type = 'toggle',
-                  name = 'Check rupture duration',
-                  desc = 'Should we check how much time is left on rupture before using exsanguinate?',
-                  get = function(info) return Torpedo.db.profile.assassination.exsChecksRuptureDuration end,
-                  set = function(info, val) Torpedo.db.profile.assassination.exsChecksRuptureDuration = val end,
-                  disabled = function(info) return not Torpedo.db.profile.assassination.exsanguinateEnabled end,
-                  order = 9,
-                  width = 'full'
-                },
-                exsMinRuptureRemaining = {
-                  type = 'range',
-                  name = 'Minimum rupture duration remaining',
-                  desc = 'What is the minimum time left on rupture to use exsanguinate?',
-                  get = function(info) return Torpedo.db.profile.assassination.exsMinRuptureRemaining end,
-                  set = function(info, val) Torpedo.db.profile.assassination.exsMinRuptureRemaining = val end,
-                  disabled = function(info) return (not Torpedo.db.profile.assassination.exsanguinateEnabled) or (not Torpedo.db.profile.assassination.exsChecksRuptureDuration) end,
-                  order = 10,
-                  width = 'full',
-                  min = 1,
-                  max = 28,
-                  softMin = 1,
-                  softMax = 28,
-                  step = 1,
-                  bigStep = 1
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    subtlety = { 
-      name = 'Subtlety',
-      type = 'group',
-      order = 2,
-      args = { 
-        mainAbilities = {
-          name = 'Primary Suggestions',
-          type = 'group',
-          order = 1,
-          args = {
-            stealth = OptionBuilder:New('subtlety', 'stealth', 'Stealth', 1, true)
-              :AddSubtletyStuff()
-              :Build(),
-            symbolsOfDeath = OptionBuilder:New('subtlety', 'symbolsOfDeath', 'Symbols of Death', 2, true)
-              :AddSubtletyStuff()
-              :Build(),
-            nightblade = OptionBuilder:New('subtlety', 'nightblade', 'Nightblade', 3, true)
-              :AddSubtletyStuff()
-              :Build(),
-            eviscerate = OptionBuilder:New('subtlety', 'eviscerate', 'Eviscerate', 4, true)
-              :AddSubtletyStuff()
-              :Build(),
-            shadowstrike = OptionBuilder:New('subtlety', 'shadowstrike', 'Shadowstrike', 5, true)
-              :AddSubtletyStuff()
-              :Build(),
-            backstab = OptionBuilder:New('subtlety', 'backstab', 'Backstab', 6, true)
-              :AddSubtletyStuff()
-              :Build()
-          }
-        },
-        secondaryAbilities = {
-          name = 'Secondary Suggestions',
-          type = 'group',
-          order = 2,
-          args = {
-            shadowBlades = OptionBuilder:New('subtlety', 'shadowBlades', 'Shadow Blades', 1, false)
-              :AddSubtletyStuff()
-              :Build(),
-            vanish = OptionBuilder:New('subtlety', 'vanish', 'Vanish', 2, false)
-              :AddSubtletyStuff()
-              :Build(),
-            shadowDance = OptionBuilder:New('subtlety', 'shadowDance', 'Shadow Dance', 3, false)
-              :AddSubtletyStuff()
-              :Build(),
-            shadowDance2 = OptionBuilder:New('subtlety', 'shadowDance2', 'Shadow Dance (option 2)', 4, false)
-              :AddSubtletyStuff()
-              :Build()
-          }
-        }
-      }
-    }
-  }
-}
-
-local function insert_spell_duration_defaults(defaults, spellNameUpperCamel)
-  defaults['check' .. spellNameUpperCamel .. 'Duration'] = false
-  defaults['haveMinDurationFor' .. spellNameUpperCamel] = false
-  defaults['minDurationFor' .. spellNameUpperCamel] = 1
-  defaults['haveMaxDurationFor' .. spellNameUpperCamel] = false
-  defaults['maxDurationFor' .. spellNameUpperCamel] = 1
+local function insert_aura_duration_defaults(defaults, auraNameUpperCamel)
+  defaults['check' .. auraNameUpperCamel .. 'Duration'] = false
+  defaults['hasMinDurationFor' .. auraNameUpperCamel] = false
+  defaults['minDurationFor' .. auraNameUpperCamel] = 1
+  defaults['hasMaxDurationFor' .. auraNameUpperCamel] = false
+  defaults['maxDurationFor' .. auraNameUpperCamel] = 1
 end
 
 local function insert_spell_cooldown_defaults(defaults, spellNameUpperCamel)
   defaults['checks' .. spellNameUpperCamel .. 'Cooldown'] = false
-  defaults['haveMinCooldownRemFor' .. spellNameUpperCamel] = false
+  defaults['hasMinCooldownRemFor' .. spellNameUpperCamel] = false
   defaults['minCooldownRemFor' .. spellNameUpperCamel] = 1
-  defaults['haveMaxCooldownRemFor' .. spellNameUpperCamel] = false
+  defaults['hasMaxCooldownRemFor' .. spellNameUpperCamel] = false
   defaults['maxCooldownRemFor' .. spellNameUpperCamel] = 1
 end
 
@@ -2229,282 +827,623 @@ end
   Gets defaults where everything except enabled 
   is false
 ]]
-local function get_all_false_defaults()
+local function get_all_false_defaults(spells, _auras)
+  -- _auras to avoid confusion with the global auras 
   local result = {
     enabled = true,
     poolIfNeeded = false,
     stealthyTristate = false,
-    combatTristate = false
+    combatTristate = false,
+    isMain = true,
+    requireMaxComboPointsTristate = false
   }
+  
   insert_minmax_defaults(result, 'Energy')
-  insert_spell_duration_defaults(result, 'SymbolsofDeath')
-  insert_spell_duration_defaults(result, 'Nightblade')
-  insert_spell_duration_defaults(result, 'ShadowBlades')
-  insert_spell_cooldown_defaults(result, 'SymbolsofDeath')
-  insert_spell_cooldown_defaults(result, 'Vanish')
-  insert_spell_cooldown_defaults(result, 'ShadowDance')
-  insert_minmax_defaults(result, 'ShadowDanceCharges')
+  insert_minmax_defaults(result, 'ComboPoints')
+  
+  for key, spell in pairs(spells) do
+    if spell.max_cd > 1 then 
+      insert_spell_cooldown_defaults(result, key)
+    end
+    if spell.max_charges then 
+      insert_minmax_defaults(result, key .. 'Charges')
+    end
+  end
+  
+  for key, aura in pairs(_auras) do
+    if aura.max_duration > 1 then 
+      insert_aura_duration_defaults(result, key)
+    end
+    if aura.has_multiplier then 
+      insert_minmax_defaults(result, key .. 'Multiplier')
+      result['multiplierFor' .. key .. 'Tristate'] = false
+    end
+  end
+  
   return result
+end
+
+local function insert_general_spell_options(args, spellCfg, profile, spells, _auras)
+  args['deleteLastOption'] = {
+    type = 'execute',
+    name = 'Delete last option',
+    desc = 'Delete the last option. REQUIRES RELOAD',
+    order = 1,
+    disabled = function()
+      return (#spellCfg.suggestions < 1)
+    end,
+    func = function()
+      table.remove(spellCfg.suggestions)
+      ReloadUI()
+    end
+  }
+  args['addNewOption'] = {
+    type = 'execute',
+    name = 'Add new option',
+    desc = 'Add a new option. REQUIRES RELOAD',
+    order = 2,
+    func = function() 
+      local defaults = get_all_false_defaults(spells, _auras)
+      
+      defaults.priority = 2001
+      table.insert(spellCfg.suggestions, defaults)
+      
+      for i=1, 2000 do 
+        if Torpedo:TrySetPriority(profile, defaults, i, true) then break end
+      end
+      
+      ReloadUI()
+    end
+  }
+end
+
+local function build_profile_options(profile, order, spells, _auras)
+  local result = {
+    type = 'group',
+    order = order,
+    name = profile.name,
+    args = {}
+  }
+  
+  for debugName, spellCfg in pairs(profile.spells) do 
+    local tmp = {
+      name = spellCfg.name,
+      type = 'group',
+      order = spellCfg.order,
+      args = {}
+    }
+    insert_general_spell_options(tmp.args, spellCfg, profile, spells, _auras)
+    for suggNum, suggCfg in ipairs(spellCfg.suggestions) do 
+      tmp.args['sugg' .. tostring(suggNum)] = OptionBuilder:New(profile, suggCfg, spellCfg.name, suggNum):AddAll(spells, _auras):Build()
+      tmp.args['sugg' .. tostring(suggNum)].name = 'Option ' .. tostring(suggNum)
+    end
+    
+    result.args[debugName] = tmp
+  end
+  
+  return result
+end
+
+local function build_options_table(cfg)
+  return {
+    name = 'Torpedo',
+    handler = Torpedo,
+    type = 'group',
+    args = {
+      assassination = build_profile_options(cfg.profile.assassination, 1, assass_spells, assass_auras),
+      subtlety = build_profile_options(cfg.profile.subtlety, 2, subtlety_spells, subtlety_auras)
+    }
+  }
 end
 
 local REALLY_WANT_NIL = 'i really want nil'
 local defaults = {
   profile = {
     assassination = {
-      mainPriorities = {
-        deadlyPoison = 1000,
-        stealth = 995,
-        rupture = 900,
-        envenom = 895,
-        garrote = 800,
-        hemorrhage = 795,
-        mutilate = 790
-      },
-      cdPriorities = {
-        vendetta = 1000,
-        vanish = 995,
-        exsanguinate = 990
-      },
-      frequency = 0.05,
-      deadlyPoisonEnabled = true,
-      refreshDeadlyPoisonOOCSeconds = 600,
-      stealthEnabled = true,
-      ruptureEnabled = true,
-      applyRuptureEarlyWhenLowEnergy = true,
-      ruptureLowEnergy = 55,
-      ruptureMinComboPoints = 2,
-      ruptureReapplyTime = 7,
-      allowRuptureWorsen = false,
-      cutoffRuptureWhenBetterMultiplier = true,
-      poolEnergyWaitingForRupture = true,
-      poolEnergyToCutoffRupture = true,
-      applyRuptureEarlyWhenExsanguinateReady = true,
-      envenomEnabled = true,
-      avoidCuttingOffEnvenom = true,
-      envenomReapplyTime = 2,
-      envenomAtMaxComboPoints = true,
-      envenomMinComboPoints = 5,
-      poolEnergyWaitingForEnvenom = true,
-      maxEnvenomPoolEnergy = 90,
-      garroteEnabled = true,
-      avoidCuttingOffGarrote = true,
-      garroteReapplyTime = 6,
-      allowGarroteWorsen = false,
-      cutoffGarroteWhenBetterMultiplier = true,
-      poolEnergyWaitingForGarrote = true,
-      poolEnergyToCutoffGarrote = false,
-      hemorrhageEnabled = true,
-      hemorrhageReapplyTime = 6,
-      poolEnergyWaitingForHemorrhage = true,
-      mutilateEnabled = true,
-      dontPoolMutilateWhenRuptureRemainingLessThan = 9,
-      mutilateLenientCPCheckIfRuptureLow = true,
-      maxCPToMutilateIfRuptureLow = 5,
-      poolEnergyWaitingForMutilate = true,
-      poolEnergyWaitingForMutilateRuptureLow = true,
-      mutilateLenientCPCheck = true,
-      maxCPToMutilate = 5,
-      minEnergyToMutilate = 75,
-      ignoreCPForMutilateEnergy = 100,
-      vendettaEnabled = true,
-      vendettaWaitsForVanish = true,
-      vendettaLetsVanishHaveSomeCD = false,
-      vendettaMaxAllowedVanishCDRemaining = 2,
-      vendettaIgnoresVanishCDIfLongWayOff = false,
-      vendettaVanishMinCdToIgnore = 90,
-      vendettaWaitsForExsanguinate = true,
-      vendettaLetsExsanguinateHaveSomeCD = false,
-      vendettaMaxAllowedExsanguinateCDRemaining = 2,
-      vendettaIgnoresExsanguinateCDIfLongWayOff = false,
-      vendettaExsanguinateMinCdToIgnore = 30,
-      vendettaChecksComboPoints = true,
-      vendettaRequiresMaxComboPoints = true,
-      vendettaHasMinCP = false,
-      vendettaMinCP = 5,
-      vendettaHasMaxCP = false,
-      vendettaMaxCP = 6,
-      vendettaChecksStealthyTristate = nil,
-      vendettaChecksRuptureDuration = false,
-      vendettaMaxRuptureRemaining = 7,
-      vendettaChecksRuptureMultiplier = true,
-      vendettaMaxRuptureMultiplier = 1,
-      vendettaChecksEnergy = true,
-      vendettaHasMinEnergy = true,
-      vendettaMinEnergy = 25,
-      vendettaHasMaxEnergy = false,
-      vendettaMaxEnergy = 100,
-      vanishEnabled = true,
-      vanishRequiresVendettaBuff = true,
-      vanishRequiresVendettaBuffMinDuration = true,
-      vanishRequiredVendettaBuffMinDuration = 10,
-      vanishWaitsForExsanguinate = true,
-      vanishLetsExsanguinateHaveSomeCD = false,
-      vanishMaxAllowedExsanguinateCDRemaining = 2,
-      vanishWaitsForVendetta = false,
-      vanishLetsVendettaHaveSomeCD = false,
-      vanishMaxAllowedVendettaCDRemaining = 2,
-      vanishChecksComboPoints = true,
-      vanishRequiresMaxComboPoints = true,
-      vanishHasMinCP = false,
-      vanishMinCP = 5,
-      vanishHasMaxCP = false,
-      vanishMaxCP = 6,
-      vanishChecksStealthyTristate = nil,
-      vanishChecksRuptureDuration = false,
-      vanishMaxRuptureRemaining = 7,
-      vanishChecksRuptureMultiplier = true,
-      vanishMaxRuptureMultiplier = 1,
-      vanishChecksEnergy = true,
-      vanishHasMinEnergy = true,
-      vanishMinEnergy = 25,
-      vanishHasMaxEnergy = false,
-      vanishMaxEnergy = 100,
-      exsanguinateEnabled = true,
-      exsChecksVendettaCD = true,
-      exsHasMinVendettaCdLeft = true,
-      exsMinVendettaCdLeft = 3,
-      exsChecksVanishCD = true,
-      exsHasMinVanishCdLeft = true,
-      exsMinVanishCdLeft = 3,
-      exsChecksRuptureDuration = true,
-      exsMinRuptureRemaining = 24
+      name = 'Assassination',
+      spells = {
+        stealth = {
+          name = 'Stealth',
+          spellDebugName = 'Stealth',
+          order = 1,
+          suggestions = {
+            {
+              priority = 1000,
+              isMain = true,
+              stealthyTristate = REALLY_WANT_NIL,
+              combatTristate = REALLY_WANT_NIL
+            }
+          }
+        },
+        deadlyPoison = {
+          name = 'Deadly Poison',
+          spellDebugName = 'DeadlyPoison',
+          order = 2,
+          suggestions = {
+            {
+              priority = 995,
+              isMain = true,
+              combatTristate = REALLY_WANT_NIL,
+              checkDeadlyPoisonDuration = true,
+              hasMaxDurationForDeadlyPoison = true,
+              maxDurationForDeadlyPoison = 600
+            },
+            {
+              priority = 994,
+              isMain = true,
+              checkDeadlyPoisonDuration = true,
+              hasMaxDurationForDeadlyPoison = true,
+              maxDurationForDeadlyPoison = 0
+            }
+          }
+        },
+        rupture = {
+          name = 'Rupture',
+          spellDebugName = 'Rupture',
+          order = 3,
+          suggestions = {
+            {
+              priority = 900,
+              isMain = true,
+              checkRuptureDuration = true,
+              hasMaxDurationForRupture = true,
+              maxDurationForRupture = 7,
+              checkComboPoints = true,
+              requireMaxComboPointsTristate = true,
+              checkEnergy = true,
+              hasMinEnergy = true,
+              minEnergy = 25,
+              poolIfNeeded = true,
+              checkRuptureMultiplier = true,
+              multiplierForRuptureTristate = REALLY_WANT_NIL
+            },
+            {
+              priority = 899,
+              isMain = true,
+              checkRuptureDuration = true,
+              hasMaxDurationForRupture = true,
+              maxDurationForRupture = 0,
+              checkEnergy = true,
+              hasMaxEnergy = true,
+              maxEnergy = 60,
+              hasMinEnergy = true,
+              minEnergy = 25,
+              poolIfNeeded = true,
+              checkComboPoints = true,
+              hasMinComboPoints = true,
+              minComboPoints = 2
+            },
+            {
+              priority = 898,
+              isMain = true,
+              checkRuptureMultiplier = true,
+              multiplierForRuptureTristate = true,
+              checkComboPoints = true,
+              requireMaxComboPointsTristate = true,
+              checkEnergy = true,
+              hasMinEnergy = true,
+              minEnergy = 25,
+              poolIfNeeded = true
+            },
+            {
+              priority = 897,
+              isMain = true,
+              checkComboPoints = true,
+              requireMaxComboPointsTristate = true,
+              checkEnergy = true,
+              hasMinEnergy = true,
+              minEnergy = 25,
+              poolIfNeeded = true,
+              checkExsanguinateCooldown = true,
+              hasMaxCooldownRemForExsanguinate = true,
+              maxCooldownRemForExsanguinate = 0
+            }
+          }
+        },
+        envenom = {
+          name = 'Envenom',
+          spellDebugName = 'Envenom',
+          order = 4,
+          suggestions = {
+            {
+              priority = 895,
+              isMain = true,
+              checkComboPoints = true,
+              requireMaxComboPointsTristate = true,
+              checkEnergy = true,
+              hasMinEnergy = true,
+              minEnergy = 55,
+              poolIfNeeded = true,
+              checkEnvenomDuration = true,
+              hasMaxDurationForEnvenom = true,
+              maxDurationForEnvenom = 2
+            },
+            {
+              priority = 894,
+              isMain = true,
+              checkComboPoints = true,
+              requireMaxComboPointsTristate = true,
+              checkEnergy = true,
+              hasMinEnergy = true,
+              minEnergy = 100,
+              poolIfNeeded = false
+            }
+          }
+        },
+        garrote = {
+          name = 'Garrote',
+          spellDebugName = 'Garrote',
+          order = 5,
+          suggestions = {
+            {
+              priority = 800,
+              isMain = true,
+              checkComboPoints = true,
+              requireMaxComboPointsTristate = REALLY_WANT_NIL,
+              checkGarroteDuration = true,
+              hasMaxDurationForGarrote = true,
+              maxDurationForGarrote = 6,
+              checkEnergy = true,
+              hasMinEnergy = true,
+              minEnergy = 45,
+              poolIfNeeded = true,
+              checkGarroteCooldown = true,
+              hasMaxCooldownRemForGarrote = true,
+              maxCooldownRemForGarrote = 0,
+              checkGarroteMultiplier = true,
+              multiplierForGarroteTristate = REALLY_WANT_NIL
+            }
+          }
+        },
+        hemorrhage = {
+          name = 'Hemorrhage',
+          spellDebugName = 'Hemorrhage',
+          order = 6,
+          suggestions = {
+            {
+              priority = 795,
+              isMain = true,
+              checkComboPoints = true,
+              requireMaxComboPointsTristate = REALLY_WANT_NIL,
+              checkHemorrhageDuration = true,
+              hasMaxDurationForHemorrhage = true,
+              maxDurationForHemorrhage = 6,
+              checkEnergy = true,
+              hasMinEnergy = true,
+              minEnergy = 30,
+              poolIfNeeded = true
+            }
+          }
+        },
+        mutilate = {
+          name = 'Mutilate',
+          spellDebugName = 'Mutilate',
+          order = 7,
+          suggestions = {
+            {
+              priority = 790,
+              isMain = true,
+              checkEnergy = true,
+              hasMinEnergy = true,
+              minEnergy = 55,
+              poolIfNeeded = true,
+              checkComboPoints = true,
+              requireMaxComboPointsTristate = REALLY_WANT_NIL,
+              checkRuptureDuration = true,
+              hasMaxDurationForRupture = true,
+              maxDurationForRupture = 6
+            },
+            {
+              priority = 750,
+              isMain = true,
+              checkEnergy = true,
+              hasMinEnergy = true,
+              minEnergy = 75,
+              poolIfNeeded = true,
+              checkComboPoints = true,
+              requireMaxComboPointsTristate = REALLY_WANT_NIL
+            }
+          }
+        },
+        vendetta = {
+          name = 'Vendetta',
+          spellDebugName = 'Vendetta',
+          order = 8,
+          suggestions = {
+            {
+              priority = 1000,
+              isMain = false,
+              checkVendettaCooldown = true,
+              hasMaxCooldownRemForVendetta = true,
+              maxCooldownRemForVendetta = 0,
+              checkVanishCooldown = true,
+              hasMaxCooldownRemForVanish = true,
+              maxCooldownRemForVanish = 0,
+              checkExsanguinateCooldown = true,
+              hasMaxCooldownRemForExsanguinate = true,
+              maxCooldownRemForExsanguinate = 0,
+              stealthyTristate = REALLY_WANT_NIL,
+              checkEnergy = true,
+              hasMinEnergy = true,
+              minEnergy = 25,
+              checkRuptureMultiplier = true,
+              hasMaxRuptureMultiplier = true,
+              maxRuptureMultiplier = 1,
+              checkComboPoints = true,
+              requireMaxComboPointsTristate = true
+            }
+          }
+        },
+        vanish = {
+          name = 'Vanish',
+          spellDebugName = 'Vanish',
+          order = 9,
+          suggestions = {
+            {
+              priority = 900,
+              isMain = false,
+              checkVanishCooldown = true,
+              hasMaxCooldownRemForVanish = true,
+              maxCooldownRemForVanish = 0,
+              checkExsanguinateCooldown = true,
+              hasMaxCooldownRemForExsanguinate = true,
+              maxCooldownRemForExsanguinate = 0,
+              stealthyTristate = REALLY_WANT_NIL,
+              checkVendettaDuration = true,
+              hasMinDurationForVendetta = true,
+              minDurationForVendetta = 0,
+              checkEnergy = true,
+              hasMinEnergy = true,
+              minEnergy = 25,
+              checkComboPoints = true,
+              requireMaxComboPointsTristate = true
+            }
+          }
+        },
+        exsanguinate = {
+          name = 'Exsanguinate',
+          spellDebugName = 'Exsanguinate',
+          order = 10,
+          suggestions = {
+            {
+              priority = 800,
+              isMain = false,
+              checkExsanguinateCooldown = true,
+              hasMaxCooldownRemForExsanguinate = true,
+              maxCooldownRemForExsanguinate = 0,
+              checkVanishCooldown = true,
+              hasMinCooldownRemForVanish = true,
+              minCooldownRemFor = 3,
+              checkVendettaCooldown = true,
+              hasMinCooldownRemForVendetta = true,
+              minCooldownRemForVendetta = 3,
+              checkEnergy = true,
+              hasMinEnergy = true,
+              minEnergy = 25,
+              checkRuptureDuration = true,
+              hasMinDurationForRupture = true,
+              minDurationForRupture = 24
+            }
+          }
+        }
+      }
     },
     subtlety = {
-      mainPriorities = {
-        stealth = 1000,
-        symbolsOfDeath = 995,
-        nightblade = 900,
-        eviscerate = 895,
-        shadowstrike = 800,
-        backstab = 795
-      },
-      cdPriorities = {
-        shadowBlades = 900,
-        vanish = 895,
-        shadowDance = 890,
-        shadowDance2 = 885
-      },
-      stealth = {
-        stealthyTristate = REALLY_WANT_NIL,
-        combatTristate = REALLY_WANT_NIL
-      },
-      symbolsOfDeath = {
-        checkEnergy = true,
-        hasMinEnergy = true,
-        minEnergy = 35,
-        poolIfNeeded = true,
-        stealthyTristate = true,
-        checkSymbolsofDeathDuration = true,
-        haveMaxDurationForSymbolsofDeath = true,
-        maxDurationForSymbolsofDeath = 11,
-        checkSymbolsofDeathCooldown = true,
-        haveMaxCooldownRemForSymbolsofDeath = true,
-        maxCooldownRemForSymbolsofDeath = 0
-      },
-      nightblade = {
-        checkEnergy = true,
-        hasMinEnergy = true,
-        minEnergy = 25,
-        poolIfNeeded = true,
-        checkComboPoints = true,
-        hasMinComboPoints = true,
-        minComboPoints = 5,
-        checkNightbladeDuration = true,
-        haveMaxDurationForNightblade = true,
-        maxDurationForNightblade = 5
-      },
-      eviscerate = {
-        checkEnergy = true,
-        hasMinEnergy = true,
-        minEnergy = 35,
-        poolIfNeeded = true,
-        checkComboPoints = true,
-        hasMinComboPoints = true,
-        minComboPoints = 5
-      },
-      shadowstrike = {
-        checkEnergy = true,
-        hasMinEnergy = true,
-        minEnergy = 40,
-        poolIfNeeded = true,
-        stealthyTristate = true,
-        checkComboPoints = true,
-        hasMaxComboPoints = true,
-        maxComboPoints = 5
-      },
-      backstab = {
-        checkEnergy = true,
-        hasMinEnergy = true,
-        minEnergy = 35,
-        poolIfNeeded = true,
-        checkComboPoints = true,
-        hasMaxComboPoints = true,
-        maxComboPoints = 5
-      },
-      shadowBlades = {
-        checkEnergy = true,
-        hasMinEnergy = true,
-        minEnergy = 100,
-        checkComboPoints = true,
-        hasMaxComboPoints = true,
-        maxComboPoints = 1,
-        checkShadowBladesCooldown = true,
-        haveMaxCooldownRemForShadowBlades = true,
-        maxCooldownRemForShadowBlades = 0
-      },
-      vanish = {
-        checkEnergy = true,
-        hasMinEnergy = true,
-        minEnergy = 25,
-        stealthyTristate = REALLY_WANT_NIL,
-        checkVanishCooldown = true,
-        haveMaxCooldownRemForVanish = true,
-        maxCooldownRemForVanish = 0,
-        checkComboPoints = true,
-        hasMaxComboPoints = true,
-        maxComboPoints = 1
-      },
-      shadowDance = {
-        checkEnergy = true,
-        hasMinEnergy = true,
-        minEnergy = 25,
-        stealthyTristate = REALLY_WANT_NIL,
-        checkShadowDanceCharges = true,
-        hasMinShadowDanceCharges = true,
-        minShadowDanceCharges = 2,
-        checkEnergy = true,
-        hasMaxEnergy = true,
-        maxEnergy = 110
-      },
-      shadowDance2 = {
-        checkEnergy = true,
-        hasMinEnergy = true,
-        minEnergy = 25,
-        stealthyTristate = REALLY_WANT_NIL,
-        checkSymbolsofDeathDuration = true,
-        haveMaxDurationForSymbolsofDeath = true,
-        maxDurationForSymbolsofDeath = 11,
-        checkSymbolsofDeathCooldown = true,
-        haveMaxCooldownRemForSymbolsofDeath = true,
-        maxCooldownRemForSymbolsofDeath = 0,
-        checkShadowDanceCooldown = true,
-        haveMaxCooldownRemForShadowDance = true,
-        maxCooldownRemForShadowDance = 0
+      name = 'Subtlety',
+      spells = {
+        stealth = {
+          name = 'Stealth',
+          spellDebugName = 'Stealth',
+          order = 1,
+          suggestions = {
+            {
+              priority = 1000,
+              isMain = true,
+              stealthyTristate = REALLY_WANT_NIL,
+              combatTristate = REALLY_WANT_NIL
+            }
+          }
+        },
+        symbolsOfDeath = {
+          name = 'Symbols of Death',
+          spellDebugName = 'SymbolsofDeath',
+          order = 2,
+          suggestions = {
+            {
+              priority = 995,
+              isMain = true,
+              checkEnergy = true,
+              hasMinEnergy = true,
+              minEnergy = 35,
+              poolIfNeeded = true,
+              stealthyTristate = true,
+              checkSymbolsofDeathDuration = true,
+              hasMaxDurationForSymbolsofDeath = true,
+              maxDurationForSymbolsofDeath = 5,
+              checkSymbolsofDeathCooldown = true,
+              hasMaxCooldownRemForSymbolsofDeath = true,
+              maxCooldownRemForSymbolsofDeath = 0
+            }
+          }
+        },
+        nightblade = {
+          name = 'Nightblade',
+          spellDebugName = 'Nightblade',
+          order = 3,
+          suggestions = {
+            {
+              priority = 900,
+              isMain = true,
+              checkEnergy = true,
+              hasMinEnergy = true,
+              minEnergy = 25,
+              poolIfNeeded = true,
+              checkComboPoints = true,
+              hasMinComboPoints = true,
+              minComboPoints = 5,
+              checkNightbladeDuration = true,
+              hasMaxDurationForNightblade = true,
+              maxDurationForNightblade = 5
+            }
+          }
+        },
+        eviscerate = {
+          name = 'Eviscerate',
+          spellDebugName = 'Eviscerate',
+          order = 4,
+          suggestions = {
+            {
+              priority = 895,
+              isMain = true,
+              checkEnergy = true,
+              hasMinEnergy = true,
+              minEnergy = 35,
+              poolIfNeeded = true,
+              checkComboPoints = true,
+              requireMaxComboPointsTristate = true
+            }
+          }
+        },
+        shadowstrike = {
+          name = 'Shadowstrike',
+          spellDebugName = 'Shadowstrike',
+          order = 5,
+          suggestions = {
+            {
+              priority = 800,
+              isMain = true,
+              checkEnergy = true,
+              hasMinEnergy = true,
+              minEnergy = 40,
+              poolIfNeeded = true,
+              stealthyTristate = true,
+              checkComboPoints = true,
+              requireMaxComboPointsTristate = REALLY_WANT_NIL
+            }
+          }
+        },
+        backstab = {
+          name = 'Backstab',
+          spellDebugName = 'Backstab',
+          order = 6,
+          suggestions = {
+            {
+              priority = 795,
+              isMain = true,
+              checkEnergy = true,
+              hasMinEnergy = true,
+              minEnergy = 35,
+              poolIfNeeded = true,
+              checkComboPoints = true,
+              requireMaxComboPointsTristate = REALLY_WANT_NIL
+            }
+          }
+        },
+        shadowBlades = {
+          name = 'Shadow Blades',
+          spellDebugName = 'ShadowBlades',
+          order = 7,
+          suggestions = {
+            {
+              priority = 1000,
+              isMain = false,
+              checkEnergy = true,
+              hasMinEnergy = true,
+              minEnergy = 50,
+              checkComboPoints = true,
+              hasMaxComboPoints = true,
+              maxComboPoints = 1,
+              checkShadowBladesCooldown = true,
+              hasMaxCooldownRemForShadowBlades = true,
+              maxCooldownRemForShadowBlades = 0
+            }
+          }
+        },
+        vanish = {
+          name = 'Vanish',
+          spellDebugName = 'Vanish',
+          order = 8,
+          suggestions = {
+            {
+              priority = 900,
+              isMain = false,
+              checkEnergy = true,
+              hasMinEnergy = true,
+              minEnergy = 25,
+              stealthyTristate = REALLY_WANT_NIL,
+              checkVanishCooldown = true,
+              hasMaxCooldownRemForVanish = true,
+              maxCooldownRemForVanish = 0,
+              checkComboPoints = true,
+              hasMaxComboPoints = true,
+              maxComboPoints = 1
+            }
+          }
+        },
+        shadowDance = {
+          name = 'Shadow Dance',
+          spellDebugName = 'ShadowDance',
+          order = 9,
+          suggestions = {
+            {
+              priority = 800,
+              isMain = false,
+              checkEnergy = true,
+              hasMinEnergy = true,
+              minEnergy = 25,
+              stealthyTristate = REALLY_WANT_NIL,
+              checkShadowDanceCharges = true,
+              hasMinShadowDanceCharges = true,
+              minShadowDanceCharges = 2,
+              checkEnergy = true,
+              hasMaxEnergy = true,
+              maxEnergy = 110
+            },
+            {
+              priority = 795,
+              isMain = false,
+              checkEnergy = true,
+              hasMinEnergy = true,
+              minEnergy = 25,
+              stealthyTristate = REALLY_WANT_NIL,
+              checkSymbolsofDeathDuration = true,
+              hasMaxDurationForSymbolsofDeath = true,
+              maxDurationForSymbolsofDeath = 11,
+              checkSymbolsofDeathCooldown = true,
+              hasMaxCooldownRemForSymbolsofDeath = true,
+              maxCooldownRemForSymbolsofDeath = 0,
+              checkShadowDanceCooldown = true,
+              hasMaxCooldownRemForShadowDance = true,
+              maxCooldownRemForShadowDance = 0
+            }
+          }
+        }
       }
     }
   }
 }
 
 -- Fill in blanks in defaults --
-local blanks = get_all_false_defaults()
-for key, val in pairs(defaults.profile.subtlety) do 
-  if key ~= 'mainPriorities' and key ~= 'cdPriorities' then
+local blanks = get_all_false_defaults(subtlety_spells, subtlety_auras)
+for _, spell in pairs(defaults.profile.subtlety.spells) do 
+  for _, sugg in pairs(spell.suggestions) do 
     for k,v in pairs(blanks) do 
-      if not val[k] then val[k] = v
-      elseif val[k] == REALLY_WANT_NIL then val[k] = nil end 
+      if sugg[k] == nil then sugg[k] = v
+      elseif sugg[k] == REALLY_WANT_NIL then sugg[k] = nil end 
     end
   end
 end
+
+blanks = get_all_false_defaults(assass_spells, assass_auras)
+for key, spell in pairs(defaults.profile.assassination.spells) do 
+  for _, sugg in pairs(spell.suggestions) do 
+    for k,v in pairs(blanks) do 
+      if sugg[k] == nil then sugg[k] = v
+      elseif sugg[k] == REALLY_WANT_NIL then sugg[k] = nil end 
+    end
+  end
+end
+
 
 local TorpedoAI = LibStub('TorpedoAI-1.0')
 
@@ -2525,30 +1464,26 @@ local Target = {
 }
 local counter = 0
 
-function Torpedo:TrySetMainPriority(profileKey, subKey, val)
-  local profile = self.db.profile[profileKey]
-  if profile.mainPriorities[subKey] == val then return end
-  for key, existingPriority in pairs(profile.mainPriorities) do 
-    if existingPriority == val then
-      message('Priority conflict: ' .. tostring(key) .. ' already has that priority (' .. val .. ') - abilities that show up in the same spot need to have different priorities')
-      return
+function Torpedo:TrySetPriority(profile, suggestion, val, optSuppressMessage)
+  local errPrefix = 'Torpedo:TrySetPriority(profile, suggestion, val)'
+  pretty_type_error(errPrefix, 'profile', profile, 'table')
+  pretty_type_error(errPrefix, 'suggestion', suggestion, 'table')
+  pretty_type_error(errPrefix, 'val', val, 'number')
+  
+  for _, spellCfg in pairs(profile.spells) do 
+    for suggNum, sugg in ipairs(spellCfg.suggestions) do 
+      if sugg.isMain == suggestion.isMain and sugg.priority == val then 
+        if not optSuppressMessage then 
+          message('Priority conflict: ' .. tostring(spellCfg.name) .. ' suggestion ' .. tostring(sugNum) .. ' already has that priority (' .. val .. ') - all suggestions for the same location must have different priorities')
+        end
+        return false
+      end
     end
   end
-  profile.mainPriorities[subKey] = val
-  Torpedo:PLAYER_SPECIALIZATION_CHANGED('player')
-end
-
-function Torpedo:TrySetCDPriority(profileKey, subKey, val)
-  local profile = self.db.profile[profileKey]
-  if profile.cdPriorities[subKey] == val then return end
-  for key, existingPriority in pairs(profile.cdPriorities) do 
-    if existingPriority == val then
-      message('Priority conflict: ' .. tostring(key) .. ' already has that priority (' .. val .. ') - abilities that show up in the same spot need to have different priorities')
-      return
-    end
-  end
-  profile.cdPriorities[subKey] = val
-  Torpedo:PLAYER_SPECIALIZATION_CHANGED('player')
+  
+  suggestion.priority = val
+  self:PLAYER_SPECIALIZATION_CHANGED('player')
+  return true
 end
 
 -- Utility functions -- 
@@ -2737,8 +1672,8 @@ local function check_energy(cfg)
   if not cfg.checkEnergy then return true end 
   
   local energy = UnitPower('player')
-  if cfg.hasMinEnergy and (energy < cfg.minEnergy) then return false end
-  if cfg.hasMaxEnergy and (energy > cfg.maxEnergy) then return false end
+  if cfg.hasMinEnergy and (energy < cfg.minEnergy) then return false, true end
+  if cfg.hasMaxEnergy and (energy > cfg.maxEnergy) then return false, false end
   
   return true
 end
@@ -2746,9 +1681,16 @@ end
 local function check_combo_points(cfg)
   if not cfg.checkComboPoints then return true end 
   
+  local maxCPTri = cfg.requireMaxComboPointsTristate
+  
   local comboPoints = GetComboPoints('player', 'target')
-  if cfg.hasMinComboPoints and (comboPoints < cfg.minComboPoints) then return false end
-  if cfg.hasMaxComboPoints and (comboPoints > cfg.maxComboPoints) then return false end
+  if maxCPTri ~= false then 
+    if (maxCPTri == true) and (comboPoints < max_usable_combo_points()) then return false end
+    if (maxCPTri == nil) and (comboPoints >= max_usable_combo_points()) then return false end
+  else 
+    if cfg.hasMinComboPoints and (comboPoints < cfg.minComboPoints) then return false end
+    if cfg.hasMaxComboPoints and (comboPoints > cfg.maxComboPoints) then return false end
+  end
   
   return true
 end
@@ -2771,12 +1713,12 @@ local function check_aura_duration(cfg, auraNameUpperCamel)
   local aura = auras[auraNameUpperCamel]
   local auraRem = aura:remaining()
   
-  if cfg['haveMinDurationFor' .. auraNameUpperCamel] then
+  if cfg['hasMinDurationFor' .. auraNameUpperCamel] then
     local minDuration = cfg['minDurationFor' .. auraNameUpperCamel]
     if auraRem < minDuration then return false end
   end
   
-  if cfg['haveMaxDurationFor' .. auraNameUpperCamel] then
+  if cfg['hasMaxDurationFor' .. auraNameUpperCamel] then
     local maxDuration = cfg['maxDurationFor' .. auraNameUpperCamel]
     if auraRem > maxDuration then return false end
   end
@@ -2784,9 +1726,36 @@ local function check_aura_duration(cfg, auraNameUpperCamel)
   return true
 end
 
-local function check_auras(cfg)
-  for key, val in pairs(auras) do
-    if not check_aura_duration(cfg, key) then return false end
+local function check_aura_multiplier(cfg, auraNameUpperCamel)
+  local extension = auraNameUpperCamel .. 'Multiplier'
+  if not cfg['check' .. extension] then return true end
+  
+  local aura = auras[auraNameUpperCamel]
+  local multiplier = 0
+  if aura:up() then
+    multiplier = aura.multiplier or 1
+  end
+  
+  local tristate = cfg['multiplierFor' .. auraNameUpperCamel .. 'Tristate']
+  if tristate ~= false then 
+    local newMultiplier = bleed_multiplier()
+    if (tristate == true) and (newMultiplier <= multiplier) then return false
+    elseif (tristate == nil) and (newMultiplier < multiplier) then return false end
+  else
+    if (cfg['hasMin' .. extension]) and (multiplier < cfg['min' .. extension]) then return false end
+    if (cfg['hasMax' .. extension]) and (multiplier > cfg['max' .. extension]) then return false end
+  end
+  return true
+end
+
+local function check_auras(cfg, _auras)
+  for key, aura in pairs(_auras) do
+    if aura.max_duration > 1 then 
+      if not check_aura_duration(cfg, key) then return false end
+    end
+    if aura.has_multiplier then 
+      if not check_aura_multiplier(cfg, key) then return false end
+    end
   end
   
   return true
@@ -2802,10 +1771,10 @@ local function check_spell_cooldown(cfg, spell, maxCd, spellNameUpperCamel)
     if cdRemaining <= 0 then cdRemaining = 0.01 end -- It's all a lie!
   end
   
-  if cfg['haveMinCooldownRemFor' .. spellNameUpperCamel] then 
+  if cfg['hasMinCooldownRemFor' .. spellNameUpperCamel] then 
     if cdRemaining < cfg['minCooldownRemFor' .. spellNameUpperCamel] then return false end
   end
-  if cfg['haveMaxCooldownRemFor' .. spellNameUpperCamel] then 
+  if cfg['hasMaxCooldownRemFor' .. spellNameUpperCamel] then 
     if cdRemaining > cfg['maxCooldownRemFor' .. spellNameUpperCamel] then return false end
   end
   
@@ -2841,489 +1810,42 @@ local function check_spells(cfg, spells)
   return true
 end
 
-local function suggestion_delegate(cfg, spells, spell)
+local function suggestion_delegate(cfg, spells, _auras, spell)
   if not cfg.enabled then return end
+  if not check_combat(cfg) then return end
   if not check_stealth(cfg) then return end
   if not check_combo_points(cfg) then return end
-  if not check_auras(cfg) then return end
+  if not check_auras(cfg, _auras) then return end
   if not check_spells(cfg, spells) then return end
-  if not check_energy(cfg) then 
+  local madeEnergyReq, energyTooLow = check_energy(cfg)
+  if (not madeEnergyReq) and (not energyTooLow) then return end
+  if not madeEnergyReq then
     if cfg.poolIfNeeded then return pool_energy_sugg else return end
   end
   
   return spell
 end
 
-local function initialize_assassination(db)
-  ai_main = TorpedoAI:New()
-  
-  ai_main:RegisterSuggestion(db.profile.assassination.mainPriorities.deadlyPoison, function(self, db)
-    -- If deadly poison is not active, or we're not in combat and it's about to wear off, 
-    -- then apply deadly poison --
-    if not db.profile.assassination.deadlyPoisonEnabled then return end
+local function create_ais(controller, profile, main, spells, _auras)
+  for _, spellCfg in pairs(profile.spells) do
+    local spell = spells[spellCfg.spellDebugName]
     
-    if auras.DeadlyPoison:up() then
-      if InCombatLockdown() then return end 
-      if auras.DeadlyPoison:remaining() < db.profile.assassination.refreshDeadlyPoisonOOCSeconds then 
-        return assass_spells.DeadlyPoison
-      end
-    else 
-      return assass_spells.DeadlyPoison
-    end
-  end)
-  ai_main:RegisterSuggestion(db.profile.assassination.mainPriorities.stealth, function(self, db)
-    -- If we are not in combat and not stealthed, apply stealth --
-    if not db.profile.assassination.stealthEnabled then return end
-    
-    if InCombatLockdown() then return end
-    if not auras.Stealth:up() then 
-      return assass_spells.Stealth
-    end
-  end)
-  ai_main:RegisterSuggestion(db.profile.assassination.mainPriorities.rupture, function(self, db)
-    -- If rupture is off apply rupture if we have at least 2 combo points and 70 energy --
-    -- If exsanguinate is ready apply rupture if we have max combo points and 25 energy --
-    -- If we have max combo points and rupture is about to wear off and reapplying rupture 
-    -- won't worsen it, reapply rupture --
-    -- If ruptures multiplier is worse than our current multiplier and we have max combo 
-    -- points, apply rupture --
-    if not db.profile.assassination.ruptureEnabled then return end
-    
-    local energy = UnitPower('player')
-    local comboPoints = GetComboPoints('player', 'target')
-    local haveEnoughEnergy = energy >= 25
-    if db.profile.assassination.applyRuptureEarlyWhenLowEnergy then 
-      local ruptureOff = not auras.Rupture:up()
-      local lowEnergy = energy <= db.profile.assassination.ruptureLowEnergy
-      local enoughComboPoints = comboPoints >= db.profile.assassination.ruptureMinComboPoints
-      
-      if ruptureOff and lowEnergy and enoughComboPoints then 
-        if not haveEnoughEnergy then 
-          return pool_energy_sugg
-        end
-        return assass_spells.Rupture
+    for suggNum, suggCfg in ipairs(spellCfg.suggestions) do 
+      if suggCfg.isMain == main then 
+        controller:RegisterSuggestion(suggCfg.priority, function(self, db)
+          return suggestion_delegate(suggCfg, spells, _auras, spell)
+        end)
       end
     end
-    
-    local haveMaxComboPoints = comboPoints == max_usable_combo_points()
-    
-    if db.profile.assassination.applyRuptureEarlyWhenExsanguinateReady then
-      local exsanguinateCdStart, exsanguinateCdDuration = GetSpellCooldown(assass_spells.Exsanguinate.spell_id)
-      
-      local exsReady = exsanguinateCdDuration ~= 45
-      if exsReady and haveEnoughEnergy and haveMaxComboPoints then 
-        return assass_spells.Rupture
-      end
-    end
-    
-    local oldMultiplier = (not auras.Rupture:up()) and 0 or auras.Rupture.multiplier
-    local newMultiplier = bleed_multiplier()
-    local haveWorseMultiplier = newMultiplier < oldMultiplier
-    local haveBetterMultiplier = newMultiplier > oldMultiplier
-    local withinReapplyTime = (not auras.Rupture:up()) or (auras.Rupture:remaining() < db.profile.assassination.ruptureReapplyTime)
-    local multiplierOK = db.profile.assassination.allowRuptureWorsen or (not haveWorseMultiplier)
-    if haveMaxComboPoints and withinReapplyTime and multiplierOK then 
-      if haveEnoughEnergy then 
-        return assass_spells.Rupture
-      elseif db.profile.assassination.poolEnergyWaitingForRupture then 
-        return pool_energy_sugg
-      end
-    end
-    
-    if db.profile.assassination.cutoffRuptureWhenBetterMultiplier and haveMaxComboPoints then 
-      if haveBetterMultiplier then 
-        if haveEnoughEnergy then 
-          return assass_spells.Rupture
-        elseif db.profile.assassination.poolEnergyWaitingForRupture and db.profile.assassination.poolEnergyToCutoffRupture then
-          return pool_energy_sugg
-        end
-      end
-    end
-  end)
-  ai_main:RegisterSuggestion(db.profile.assassination.mainPriorities.envenom, function(self, db)
-    -- If we have max combo points and envenom is either off or about to wear off, then use 
-    -- Envenom or pool -- 
-    if not db.profile.assassination.envenomEnabled then return end
-    
-    local energy = UnitPower('player')
-    local comboPoints = GetComboPoints('player', 'target')
-    local haveMaxComboPoints = comboPoints == max_usable_combo_points()
-    
-    local dontHaveTooMuchEnvenomLeft = (not db.profile.assassination.avoidCuttingOffEnvenom) or (not auras.Envenom:up()) or (auras.Envenom:remaining() < db.profile.assassination.envenomReapplyTime)
-    local haveEnoughComboPoints = (db.profile.assassination.envenomAtMaxComboPoints and haveMaxComboPoints) or ((not db.profile.assassination.envenomAtMaxComboPoints) and (comboPoints >= db.profile.assassination.envenomMinComboPoints))
-    local haveEnoughEnergy = energy >= 35
-    
-    if haveEnoughComboPoints then 
-      if haveEnoughEnergy then 
-        if dontHaveTooMuchEnvenomLeft then 
-          return assass_spells.Envenom
-        else 
-          -- We have enough energy & enough combo points, but envenom buff is still up --
-          local willingToPool = db.profile.assassination.poolEnergyWaitingForEnvenom
-          local haveTooMuchEnergyToPool = energy > db.profile.assassination.maxEnvenomPoolEnergy
-          if (not willingToPool) or haveTooMuchEnergyToPool then 
-            return assass_spells.Envenom
-          elseif willingToPool then
-            return pool_energy_sugg
-          end
-        end
-      else
-        -- We have enough combo points but not enough energy
-        if db.profile.assassination.poolEnergyWaitingForEnvenom then 
-          return pool_energy_sugg
-        end
-      end
-    end
-  end)
-  ai_main:RegisterSuggestion(db.profile.assassination.mainPriorities.garrote, function(self, db)
-    -- If garrote is available and a new garrote is better than the old one, apply garrote or pool --
-    -- If garrote is available, either off or about to wear off, and a new garrote 
-    -- isn't worse than the old garrote, apply garrote or pool --
-    if not db.profile.assassination.garroteEnabled then return end
-    
-    local energy = UnitPower('player')
-    local cdStart, cdDuration, _ = GetSpellCooldown(assass_spells.Garrote.spell_id)
-    
-    local oldMultiplier = (not auras.Garrote:up()) and 0 or auras.Garrote.multiplier
-    local newMultiplier = bleed_multiplier()
-    local haveWorseMultiplier = newMultiplier < oldMultiplier
-    local haveBetterMultiplier = newMultiplier > oldMultiplier
-    local garroteReady = cdDuration ~= 15
-    local dontHaveTooMuchGarroteLeft = (not db.profile.assassination.avoidCuttingOffGarrote) or (not auras.Garrote:up()) or (auras.Garrote:remaining() < db.profile.assassination.garroteReapplyTime)
-    local haveEnoughEnergy = energy >= 45
-    
-    if not garroteReady then return end
-    
-    if haveWorseMultiplier and (not db.profile.assassination.allowGarroteWorsen) then return end
-    
-    if haveBetterMultiplier and db.profile.assassination.cutoffGarroteWhenBetterMultiplier then 
-      if haveEnoughEnergy then 
-        return assass_spells.Garrote
-      else
-        if db.profile.assassination.poolEnergyWaitingForGarrote and db.profile.assassination.poolEnergyToCutoffGarrote then 
-          return pool_energy_sugg
-        end
-      end
-    end
-    
-    if dontHaveTooMuchGarroteLeft then 
-      if haveEnoughEnergy then 
-        return assass_spells.Garrote
-      else
-        if db.profile.assassination.poolEnergyWaitingForGarrote then 
-          return pool_energy_sugg
-        end
-      end
-    end
-  end)
-  ai_main:RegisterSuggestion(db.profile.assassination.mainPriorities.hemorrhage, function(self, db)
-    -- If hemorrhage is either off or about to wear off, apply hemorrhage or pool --
-    if not db.profile.assassination.hemorrhageEnabled then return end
-    
-    local energy = UnitPower('player')
-    
-    local haveEnoughEnergy = energy >= 30
-    local dontHaveTooMuchHemorrhageLeft = (not auras.Hemorrhage:up()) or (auras.Hemorrhage:remaining() < db.profile.assassination.hemorrhageReapplyTime)
-    
-    if dontHaveTooMuchHemorrhageLeft then
-      if haveEnoughEnergy then 
-        return assass_spells.Hemorrhage
-      elseif db.profile.assassination.poolEnergyWaitingForHemorrhage then 
-        return pool_energy_sugg
-      end
-    end
-  end)
-  ai_main:RegisterSuggestion(db.profile.assassination.mainPriorities.mutilate, function(self, db)
-    -- If rupture is off or about to wear off and we have less than the maximum usable combo points,
-    -- use mutilate or pool --
-    -- If we have less than the maximum usable combo points and we have at least 75 energy, use 
-    -- mutilate --
-    if not db.profile.assassination.mutilateEnabled then return end
-    
-    local energy = UnitPower('player')
-    local comboPoints = GetComboPoints('player', 'target')
-    
-    local ruptureAlmostOff = (not auras.Rupture:up()) or (auras.Rupture:remaining() < db.profile.assassination.dontPoolMutilateWhenRuptureRemainingLessThan)
-    
-    if ruptureAlmostOff then 
-      local dontHaveTooManyCP = false
-      if db.profile.assassination.mutilateLenientCPCheckIfRuptureLow then 
-        dontHaveTooManyCP = comboPoints < max_usable_combo_points()
-      else
-        local maxCPToMutilate = db.profile.assassination.maxCPToMutilateIfRuptureLow 
-        dontHaveTooManyCP = comboPoints <= maxCPToMutilate
-      end
-      
-      if not dontHaveTooManyCP then 
-        local haveEnoughEnergy = energy >= 55
-        
-        if haveEnoughEnergy then 
-          return assass_spells.Mutilate
-        elseif db.profile.assassination.poolEnergyWaitingForMutilate or db.profile.assassination.poolEnergyWaitingForMutilateRuptureLow then 
-          return pool_energy_sugg
-        end
-      end
-    end
-    
-    local dontHaveTooManyCP = false
-    if db.profile.assassination.mutilateLenientCPCheck then 
-      dontHaveTooManyCP = comboPoints < max_usable_combo_points()
-    else 
-      local maxCPToMutilate = db.profile.assassination.maxCPToMutilate
-      dontHaveTooManyCP = comboPoints <= maxCPToMutilate
-    end
-    local ignoreCPDueToEnergy = energy >= db.profile.assassination.ignoreCPForMutilateEnergy
-    
-    local haveEnoughEnergy = energy >= db.profile.assassination.minEnergyToMutilate
-    
-    if dontHaveTooManyCP or ignoreCPDueToEnergy then 
-      if haveEnoughEnergy then 
-        return assass_spells.Mutilate
-      else
-        if db.profile.assassination.poolEnergyWaitingForMutilate then 
-          return pool_energy_sugg
-        end
-      end
-    end
-  end)
-  
-  
-  ai_cd = TorpedoAI:New()
-  
-  ai_cd:RegisterSuggestion(db.profile.assassination.cdPriorities.vendetta, function(self, db)
-    -- If vendetta is not on cooldown, vanish is not on cooldown, exsanguinate is not on cooldown, 
-    -- we have the max usable combo points, we're not stealthed, and rupture is either off, about
-    -- to wear off, or weak and we have at least 25 energy, suggest vendetta --
-    local cfg = db.profile.assassination -- make lines less long
-    if not cfg.vendettaEnabled then return end
-    
-    local vendettaCdStart, vendettaCdDuration = GetSpellCooldown(assass_spells.Vendetta.spell_id)
-    local vanishCdStart, vanishCdDuration = GetSpellCooldown(assass_spells.Vanish.spell_id)
-    local exsanguinateCdStart, exsanguinateCdDuration = GetSpellCooldown(assass_spells.Exsanguinate.spell_id)
-    
-    local the_time = GetTime()
-    local vendettaCdRemaining = (vendettaCdStart ~= 0) and (vendettaCdStart + vendettaCdDuration - the_time) or 0
-    local vanishCdRemaining = (vanishCdStart ~= 0) and (vanishCdStart + vanishCdDuration - the_time) or 0
-    local exsanguinateCdRemaining = (exsanguinateCdStart ~= 0) and (exsanguinateCdStart + exsanguinateCdDuration - the_time) or 0
-    
-    local comboPoints = GetComboPoints('player', 'target')
-    local haveMaxComboPoints = comboPoints == max_usable_combo_points()
-    local energy = UnitPower('player')
-    local oldRuptureMultiplier = auras.Rupture:up() and auras.Rupture.multiplier or 0
-    
-    local vendettaCdOK = (vendettaCdDuration ~= 120)
-    if not vendettaCdOK then return end
-    
-    local vanishCdOK = (not cfg.vendettaWaitsForVanish) 
-      or (vanishCdDuration ~= 120) 
-      or (cfg.vendettaLetsVanishHaveSomeCD and vanishCdRemaining <= cfg.vendettaMaxAllowedVanishCDRemaining) 
-      or (cfg.vendettaIgnoresVanishCDIfLongWayOff and vanishCdRemaining >= cfg.vendettaVanishMinCdToIgnore)
-    if not vanishCdOK then return end
-    
-    local exsanguinateCdOK = (not cfg.vendettaWaitsForExsanguinate)
-      or (exsanguinateCdDuration ~= 45)
-      or (cfg.vendettaLetsExsanguinateHaveSomeCD and exsanguinateCdRemaining <= cfg.vendettaMaxAllowedExsanguinateCDRemaining)
-      or (cfg.vendettaIgnoresExsanguinateCDIfLongWayOff and exsanguinateCdRemaining >= cfg.vendettaExsanguinateMinCdToIgnore)
-      
-    if not exsanguinateCdOK then return end
-    
-    local comboPointsOK = (not cfg.vendettaChecksComboPoints)
-      or (cfg.vendettaRequiresMaxComboPoints and haveMaxComboPoints)
-      or (not cfg.vendettaRequiresMaxComboPoints
-        and ((not cfg.vendettaHasMinCP) or (comboPoints >= cfg.vendettaMinCP))
-        and ((not cfg.vendettaHasMaxCP) or (comboPoints <= cfg.vendettaMaxCP)))
-    if not comboPointsOK then return end
-    
-    local stealthOK = (cfg.vendettaChecksStealthyTristate == false)
-      or ((cfg.vendettaChecksStealthyTristate == nil) and (not stealthy))
-      or ((cfg.vendettaChecksStealthyTristate == true) and stealthy)
-    if not stealthOK then return end
-    
-    local ruptureDurationOK = (not cfg.vendettaChecksRuptureDuration)
-      or (not auras.Rupture:up())
-      or (auras.Rupture:remaining() <= cfg.vendettaMaxRuptureRemaining)
-    if not ruptureDurationOK then return end
-    
-    local ruptureMultiplierOK = (not cfg.vendettaChecksRuptureMultiplier)
-      or (not auras.Rupture:up())
-      or (oldRuptureMultiplier <= cfg.vendettaMaxRuptureMultiplier)
-    if not ruptureMultiplierOK then return end
-    
-    local energyOK = (not cfg.vendettaChecksEnergy)
-      or (  ((not cfg.vendettaHasMinEnergy) or energy >= cfg.vendettaMinEnergy)
-        and ((not cfg.vendettaHasMaxEnergy) or energy <= cfg.vendettaMaxEnergy))
-    if not energyOK then return end
-    
-    return assass_spells.Vendetta
-  end)
-  
-  ai_cd:RegisterSuggestion(db.profile.assassination.cdPriorities.vanish, function(self, db)
-    -- If vendetta is active, vanish is not on cooldown, exsanguinate is not on cooldown, 
-    -- we have the max usable combo points, we're not stealthed, and rupture is either off, about
-    -- to wear off, or weak and we have at least 25 energy, suggest vanish --
-    local cfg = db.profile.assassination 
-    if not cfg.vanishEnabled then return end
-    
-    local vendettaCdStart, vendettaCdDuration = GetSpellCooldown(assass_spells.Vendetta.spell_id)
-    local vanishCdStart, vanishCdDuration = GetSpellCooldown(assass_spells.Vanish.spell_id)
-    local exsanguinateCdStart, exsanguinateCdDuration = GetSpellCooldown(assass_spells.Exsanguinate.spell_id)
-    
-    local the_time = GetTime()
-    local vendettaCdRemaining = (vendettaCdStart ~= 0) and (vendettaCdStart + vendettaCdDuration - the_time) or 0
-    local vanishCdRemaining = (vanishCdStart ~= 0) and (vanishCdStart + vanishCdDuration - the_time) or 0
-    local exsanguinateCdRemaining = (exsanguinateCdStart ~= 0) and (exsanguinateCdStart + exsanguinateCdDuration - the_time) or 0
-    
-    local comboPoints = GetComboPoints('player', 'target')
-    local haveMaxComboPoints = comboPoints == max_usable_combo_points()
-    local energy = UnitPower('player')
-    local oldRuptureMultiplier = auras.Rupture:up() and auras.Rupture.multiplier or 0
-    
-    local vendettaAuraOK = (not cfg.vanishRequiresVendettaBuff)
-      or ((not cfg.vanishRequiresVendettaBuffMinDuration) and auras.Vendetta:up())
-      or (auras.Vendetta:remaining() >= cfg.vanishRequiredVendettaBuffMinDuration)
-    if not vendettaAuraOK then return end
-    
-    local vanishCdOK = vanishCdDuration ~= 120
-    if not vanishCdOK then return end
-    
-    local exsanguinateCdOK = (not cfg.vanishWaitsForExsanguinate)
-      or (exsanguinateCdDuration ~= 45)
-      or (cfg.vanishLetsExsanguinateHaveSomeCD and exsanguinateCdRemaining <= cfg.vanishMaxAllowedExsanguinateCDRemaining)
-    if not exsanguinateCdOK then return end
-    
-    local vendettaCdOK = (not cfg.vanishWaitsForVendetta)
-      or (vendettaCdDuration ~= 120)
-      or (cfg.vanishLetsVendettaHaveSomeCD and vendettaCdRemaining <= cfg.vanishMaxAllowedVendettaCDRemaining)
-    if not vendettaCdOK then return end
-    
-    local comboPointsOK = (not cfg.vanishChecksComboPoints)
-      or (cfg.vanishRequiresMaxComboPoints and haveMaxComboPoints) 
-      or (not cfg.vanishRequiresMaxComboPoints
-        and ((not cfg.vanishHasMinCP) or (comboPoints >= cfg.vanishMinCP))
-        and ((not cfg.vanishHasMaxCP) or (comboPoints <= cfg.vanishMaxCP)))
-    if not comboPointsOK then return end
-    
-    local stealthOK = (cfg.vanishChecksStealthyTristate == false)
-      or ((cfg.vanishChecksStealthyTristate == nil) and (not stealthy))
-      or ((cfg.vanishChecksStealthyTristate == true) and stealthy)
-    if not stealthOK then return end
-    
-    local ruptureDurationOK = (not cfg.vanishChecksRuptureDuration)
-      or (not auras.Rupture:up())
-      or (auras.Rupture:remaining() <= cfg.vanishChecksRuptureDuration)
-    if not ruptureDurationOK then return end
-    
-    local ruptureMultiplierOK = (not cfg.vanishChecksRuptureDuration)
-      or (not auras.Rupture:up())
-      or (oldRuptureMultiplier <= cfg.vanishChecksRuptureDuration)
-    if not ruptureMultiplierOK then return end
-    
-    local energyOK = (not cfg.vanishChecksEnergy)
-      or (  ((not cfg.vanishHasMinEnergy) or energy >= cfg.vanishMinEnergy)
-        and ((not cfg.vanishHasMaxEnergy) or energy <= cfg.vanishMaxEnergy))
-    if not energyOK then return end
-    
-    return assass_spells.Vanish
-  end)
-  
-  ai_cd:RegisterSuggestion(db.profile.assassination.cdPriorities.exsanguinate, function(self, db)
-    -- If exsanguinate is available and the target has rupture for at least another 24 seconds,
-    -- and vanish/vendetta is not almost ready, suggest exsanguinate --
-    local cfg = db.profile.assassination
-    if not cfg.exsanguinateEnabled then return end
-    
-    local vendettaCdStart, vendettaCdDuration = GetSpellCooldown(assass_spells.Vendetta.spell_id)
-    local vanishCdStart, vanishCdDuration = GetSpellCooldown(assass_spells.Vanish.spell_id)
-    local exsanguinateCdStart, exsanguinateCdDuration = GetSpellCooldown(assass_spells.Exsanguinate.spell_id)
-    
-    local the_time = GetTime()
-    local vendettaCdRemaining = (vendettaCdStart ~= 0) and (vendettaCdStart + vendettaCdDuration - the_time) or 0
-    local vanishCdRemaining = (vanishCdStart ~= 0) and (vanishCdStart + vanishCdDuration - the_time) or 0
-    local exsanguinateCdRemaining = (exsanguinateCdStart ~= 0) and (exsanguinateCdStart + exsanguinateCdDuration - the_time) or 0
-    
-    local comboPoints = GetComboPoints('player', 'target')
-    local haveMaxComboPoints = comboPoints == max_usable_combo_points()
-    local energy = UnitPower('player')
-    
-    local exsanguinateCdOK = exsanguinateCdDuration ~= 45
-    if not exsanguinateCdOK then return end
-    
-    local vendettaCdOK = (not cfg.exsChecksVendettaCD)
-      or ((not cfg.exsHasMinVendettaCdLeft) or (vendettaCdDuration ~= 120) or (vendettaCdRemaining >= cfg.exsMinVendettaCdLeft))
-    if not vendettaCdOK then return end
-    
-    local vanishCdOK = (not cfg.exsChecksVanishCD)
-      or ((not cfg.exsHasMinVanishCdLeft) or (vanishCdDuration ~= 120) or (vanishCdRemaining >= cfg.exsMinVanishCdLeft))
-    if not vanishCdOK then return end
-    
-    local ruptureDurationOK = (not cfg.exsChecksRuptureDuration)
-      or (auras.Rupture:remaining() >= cfg.exsMinRuptureRemaining)
-    if not ruptureDurationOK then return end
-    
-    return assass_spells.Exsanguinate
-  end)
-  
+  end
 end
 
-local function initialize_subtlety(db)
+local function initialize_profile(profile, spells, _auras)
   ai_main = TorpedoAI:New()
-  
-  ai_main:RegisterSuggestion(db.profile.subtlety.mainPriorities.stealth, function(self, db)
-    local cfg = db.profile.subtlety.stealth
-    if not cfg.enabled then return end
-    
-    if not check_combat(cfg) then return end
-    if not check_stealth(cfg) then return end
-    
-    return subtlety_spells.Stealth
-  end)
-  
-  ai_main:RegisterSuggestion(db.profile.subtlety.mainPriorities.symbolsOfDeath, function(self, db)
-    local cfg = db.profile.subtlety.symbolsOfDeath
-    return suggestion_delegate(cfg, subtlety_spells, subtlety_spells.SymbolsofDeath)
-  end)
-  
-  ai_main:RegisterSuggestion(db.profile.subtlety.mainPriorities.nightblade, function(self, db)
-    local cfg = db.profile.subtlety.nightblade
-    return suggestion_delegate(cfg, subtlety_spells, subtlety_spells.Nightblade)
-  end)
-  
-  ai_main:RegisterSuggestion(db.profile.subtlety.mainPriorities.eviscerate, function(self, db)
-    local cfg = db.profile.subtlety.eviscerate
-    return suggestion_delegate(cfg, subtlety_spells, subtlety_spells.Eviscerate)
-  end)
-  
-  ai_main:RegisterSuggestion(db.profile.subtlety.mainPriorities.shadowstrike, function(self, db)
-    local cfg = db.profile.subtlety.shadowstrike
-    return suggestion_delegate(cfg, subtlety_spells, subtlety_spells.Shadowstrike)
-  end)
-  
-  ai_main:RegisterSuggestion(db.profile.subtlety.mainPriorities.backstab, function(self, db)
-    local cfg = db.profile.subtlety.backstab
-    return suggestion_delegate(cfg, subtlety_spells, subtlety_spells.Backstab)
-  end)
+  create_ais(ai_main, profile, true, spells, _auras)
   
   ai_cd = TorpedoAI:New()
-  
-  ai_cd:RegisterSuggestion(db.profile.subtlety.cdPriorities.shadowBlades, function(self, db)
-    local cfg = db.profile.subtlety.shadowBlades
-    return suggestion_delegate(cfg, subtlety_spells, subtlety_spells.ShadowBlades)
-  end)
-  
-  ai_cd:RegisterSuggestion(db.profile.subtlety.cdPriorities.vanish, function(self, db)
-    local cfg = db.profile.subtlety.vanish
-    return suggestion_delegate(cfg, subtlety_spells, subtlety_spells.Vanish)
-  end)
-  
-  ai_cd:RegisterSuggestion(db.profile.subtlety.cdPriorities.shadowDance, function(self, db)
-    local cfg = db.profile.subtlety.shadowDance
-    return suggestion_delegate(cfg, subtlety_spells, subtlety_spells.ShadowDance)
-  end)
-  
-  ai_cd:RegisterSuggestion(db.profile.subtlety.cdPriorities.shadowDance2, function(self, db)
-    local cfg = db.profile.subtlety.shadowDance2
-    return suggestion_delegate(cfg, subtlety_spells, subtlety_spells.ShadowDance)
-  end)
+  create_ais(ai_cd, profile, false, spells, _auras)
 end
 
 local function initialize(db)
@@ -3334,10 +1856,10 @@ local function initialize(db)
   end
   
   if is_assassination then
-    initialize_assassination(db)
+    initialize_profile(db.profile.assassination, assass_spells, assass_auras)
     ai_ready = true
   elseif is_subtlety then
-    initialize_subtlety(db)
+    initialize_profile(db.profile.subtlety, subtlety_spells, subtlety_auras)
     ai_ready = true
   end
 end
@@ -3487,7 +2009,7 @@ end
 function Torpedo:OnInitialize()
   self.db = LibStub('AceDB-3.0'):New('TorpedoDB', defaults)
   
-  LibStub('AceConfig-3.0'):RegisterOptionsTable('Torpedo', options)
+  LibStub('AceConfig-3.0'):RegisterOptionsTable('Torpedo', build_options_table(self.db))
   self.optionsFrame = LibStub('AceConfigDialog-3.0'):AddToBlizOptions('Torpedo', 'Torpedo')
   
   init_gui()
@@ -3503,7 +2025,7 @@ function Torpedo:OnEnable()
   self:RegisterEvent('COMBAT_LOG_EVENT_UNFILTERED')
   self:RegisterEvent('ACTIONBAR_SLOT_CHANGED')
   self:RegisterEvent('PLAYER_TALENT_UPDATE')
-  self:ScheduleRepeatingTimer('TimerTick', self.db.profile.assassination.frequency, self)
+  self:ScheduleRepeatingTimer('TimerTick', 0.05, self)
   create_overlay_glows()
 end
 
