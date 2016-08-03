@@ -14,7 +14,8 @@ local assass_spells = {
   Hemorrhage = { name = 'Hemorrhage', spell_id = 16511, icon_id = 136168, max_cd = 1 },
   Exsanguinate = { name = 'Exsanguinate', spell_id = 200806, talent_id = 22344, icon_id = 538040, max_cd = 45 },
   Vanish = { name = 'Vanish', spell_id = 1856, icon_id = 132331, max_cd = 120 },
-  Vendetta = { name = 'Vendetta', spell_id = 79140, icon_id = 458726, max_cd = 120 }
+  Vendetta = { name = 'Vendetta', spell_id = 79140, icon_id = 458726, max_cd = 120 },
+  CrimsonVial = { name = 'Crimson Vial', spell_id = 185311, icon_id = 1373904, max_cd = 30 }
 }
 
 local subtlety_spells = {
@@ -27,7 +28,8 @@ local subtlety_spells = {
   SymbolsofDeath = { name = 'Symbols of Death', spell_id = 212283, icon_id = 252272, max_cd = 10 },
   Nightblade = { name = 'Nightblade', spell_id = 195452, icon_id = 1373907, max_cd = 1 },
   Shadowstrike = { name = 'Shadowstrike', spell_id = 185438, icon_id = 1373912, max_cd = 1 },
-  ShadowBlades = { name = 'Shadow Blades', spell_id = 121471, icon_id = 376022, max_cd = 180 }
+  ShadowBlades = { name = 'Shadow Blades', spell_id = 121471, icon_id = 376022, max_cd = 180 },
+  CrimsonVial = { name = 'Crimson Vial', spell_id = 185311, icon_id = 1373904, max_cd = 30 }
 }
 
 local auras_cache = { player = {}, target = {} }
@@ -520,6 +522,13 @@ function OptionBuilder:AddEnergyCheck()
 end
 
 --[[
+  Adds necessary widgets for health percentage check
+]]
+function OptionBuilder:AddHealthCheck()
+  return self:AddMinMaxCheck('HealthPerc', 'Health Percentage', 0, 100, 0, 100, 0.1, 1)
+end
+
+--[[
   Adds necessary widgets for combo points check
 ]]
 function OptionBuilder:AddComboPointCheck()
@@ -757,6 +766,7 @@ function OptionBuilder:AddAll(spells, _auras)
     :AddEnergyCheck()
     :AddPoolIfLow()
     :AddComboPointCheck()
+    :AddHealthCheck()
     
   for key, spell in pairs(spells) do 
     if spell.max_cd > 1 then 
@@ -840,6 +850,7 @@ local function get_all_false_defaults(spells, _auras)
   
   insert_minmax_defaults(result, 'Energy')
   insert_minmax_defaults(result, 'ComboPoints')
+  insert_minmax_defaults(result, 'HealthPerc')
   
   for key, spell in pairs(spells) do
     if spell.max_cd > 1 then 
@@ -1225,6 +1236,28 @@ local defaults = {
               minDurationForRupture = 24
             }
           }
+        },
+        crimsonVial = {
+          name = 'Crimson Vial',
+          spellDebugName = 'CrimsonVial',
+          order = 11,
+          suggestions = {
+            {
+              enabled = false,
+              priority = 1005,
+              isMain = false,
+              checkHealthPerc = true,
+              hasMaxHealthPerc = true,
+              maxHealthPerc = 70,
+              checkCrimsonVialCooldown = true,
+              hasMaxCooldownRemForCrimsonVial = true,
+              maxCooldownRemForCrimsonVial = 0,
+              checkEnergy = true,
+              hasMinEnergy = true,
+              minEnergy = 30,
+              poolIfNeeded = true
+            }
+          }
         }
       }
     },
@@ -1416,6 +1449,28 @@ local defaults = {
               checkShadowDanceCooldown = true,
               hasMaxCooldownRemForShadowDance = true,
               maxCooldownRemForShadowDance = 0
+            }
+          }
+        },
+        crimsonVial = {
+          name = 'Crimson Vial',
+          spellDebugName = 'CrimsonVial',
+          order = 10,
+          suggestions = {
+            {
+              enabled = false,
+              priority = 1005,
+              isMain = false,
+              checkHealthPerc = true,
+              hasMaxHealthPerc = true,
+              maxHealthPerc = 70,
+              checkCrimsonVialCooldown = true,
+              hasMaxCooldownRemForCrimsonVial = true,
+              maxCooldownRemForCrimsonVial = 0,
+              checkEnergy = true,
+              hasMinEnergy = true,
+              minEnergy = 30,
+              poolIfNeeded = true
             }
           }
         }
@@ -1708,6 +1763,19 @@ local function check_stealth(cfg)
   return true
 end
 
+local function check_health_perc(cfg)
+  if not cfg.checkHealthPerc then return true end
+  
+  local health = UnitHealth('player')
+  local maxHealth = UnitHealthMax('player')
+  local healthPerc = (health / maxHealth) * 100
+  
+  if cfg.hasMinHealthPerc and (healthPerc < cfg.minHealthPerc) then return false end
+  if cfg.hasMaxHealthPerc and (healthPerc > cfg.maxHealthPerc) then return false end
+  
+  return true
+end
+
 local function check_aura_duration(cfg, auraNameUpperCamel)
   if not cfg['check' .. auraNameUpperCamel .. 'Duration'] then return true end 
   
@@ -1818,6 +1886,7 @@ local function suggestion_delegate(cfg, spells, _auras, spell)
   if not check_combo_points(cfg) then return end
   if not check_auras(cfg, _auras) then return end
   if not check_spells(cfg, spells) then return end
+  if not check_health_perc(cfg) then return end
   local madeEnergyReq, energyTooLow = check_energy(cfg)
   if (not madeEnergyReq) and (not energyTooLow) then return end
   if not madeEnergyReq then
