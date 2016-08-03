@@ -1335,7 +1335,8 @@ local defaults = {
               minEnergy = 35,
               poolIfNeeded = true,
               checkComboPoints = true,
-              requireMaxComboPointsTristate = REALLY_WANT_NIL
+              requireMaxComboPointsTristate = REALLY_WANT_NIL,
+              stealthyTristate = REALLY_WANT_NIL
             }
           }
         },
