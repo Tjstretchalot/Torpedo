@@ -1513,7 +1513,8 @@ local lastMainAbility = nil
 local currMainAbility = nil
 local lastCDAbility = nil
 local currCDAbility = nil
-local showDimmer = false
+local showMainDimmer = false
+local showCDDimmer = false
 local Target = {
 	guid = 0,
 	hostile = false
@@ -1699,8 +1700,10 @@ local function disappear()
 	update_glows()
 	torpedoPanel:Hide()
 	torpedoPanel.border:Hide()
+  torpedoPanel.dimmer:Hide()
 	torpedoCooldownPanel:Hide()
 	torpedoCooldownPanel.border:Hide()
+  torpedoCooldownPanel.dimmer:Hide()
 end
 
 
@@ -1709,7 +1712,8 @@ local function cleanup()
   ai_ready = false
   ai_main = nil
   ai_cd = nil
-  showDimmer = false
+  showMainDimmer = false
+  showCDDimmer = false
   disappear()
 end
 
@@ -1890,9 +1894,23 @@ local function suggestion_delegate(cfg, spells, _auras, spell)
   local madeEnergyReq, energyTooLow = check_energy(cfg)
   if (not madeEnergyReq) and (not energyTooLow) then return end
   if not madeEnergyReq then
-    if cfg.poolIfNeeded then return pool_energy_sugg else return end
+    if cfg.poolIfNeeded then 
+      if cfg.isMain then 
+        showMainDimmer = true
+      else
+        showCDDimmer = true
+      end
+      return spell 
+    else
+      return
+    end
   end
   
+  if cfg.isMain then 
+    showMainDimmer = false
+  else
+    showCDDimmer = false
+  end
   return spell
 end
 
@@ -1961,7 +1979,7 @@ local function init_gui()
   torpedoPanel.border:Hide()
   torpedoPanel.dimmer = torpedoPanel:CreateTexture(nil, 'OVERLAY')
   torpedoPanel.dimmer:SetAllPoints(torpedoPanel)
-  torpedoPanel.dimmer:SetTexture(0, 0, 0, 0.6)
+  torpedoPanel.dimmer:SetTexture('Interface\\AddOns\\Torpedo\\pool.tga')
   torpedoPanel.dimmer:Hide()
   local torpedoCooldownPanel = CreateFrame('Frame', 'torpedoCooldownPanel', UIParent)
   torpedoCooldownPanel:SetPoint('BOTTOMLEFT', torpedoPanel, 'BOTTOMRIGHT', 10, -5)
@@ -1978,7 +1996,7 @@ local function init_gui()
   torpedoCooldownPanel.border:Hide()
   torpedoCooldownPanel.dimmer = torpedoCooldownPanel:CreateTexture(nil, 'OVERLAY')
   torpedoCooldownPanel.dimmer:SetAllPoints(torpedoCooldownPanel)
-  torpedoCooldownPanel.dimmer:SetTexture(0, 0, 0, 0.6)
+  torpedoCooldownPanel.dimmer:SetTexture('Interface\\AddOns\\Torpedo\\pool.tga')
   torpedoCooldownPanel.dimmer:Hide()
   
   torpedoPanel:SetScale(1)
@@ -2006,7 +2024,7 @@ local function update_main_ability(newMainAbility)
 		torpedoPanel.icon:Hide()
 	end
 	
-	if not newMainAbility or (not showDimmer) then
+	if (not newMainAbility) or (not showMainDimmer) then
 		torpedoPanel.dimmer:Hide()
 	else
 		torpedoPanel.dimmer:Show()
@@ -2031,7 +2049,7 @@ local function update_cd_ability(newCDAbility)
 		torpedoCooldownPanel.icon:Hide()
 	end
 	
-	if not newCDAbility or (not showDimmer) then
+	if (not newCDAbility) or (not showCDDimmer) then
 		torpedoCooldownPanel.dimmer:Hide()
 	else
 		torpedoCooldownPanel.dimmer:Show()
