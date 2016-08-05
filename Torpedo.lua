@@ -1548,8 +1548,10 @@ end
 local stealthy_Auras = {
   Aura:new(1784, 'player', 1, 'Stealth'), 
   Aura:new(11327, 'player', 3, 'Vanish'), 
+  Aura:new(11329, 'player', 3, 'Vanish'), 
   Aura:new(115191, 'player', 1, 'Stealth'),
   Aura:new(115192, 'player', 2, 'Subterfuge'),
+  Aura:new(115193, 'player', 2, 'Vanish'),
   Aura:new(51713, 'player', 5, 'Shadow Dance'),
   Aura:new(185422, 'player', 5, 'Shadow Dance')}
 
