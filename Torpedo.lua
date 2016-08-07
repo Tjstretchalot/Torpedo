@@ -1016,7 +1016,7 @@ local defaults = {
               maxDurationForRupture = 0,
               checkEnergy = true,
               hasMaxEnergy = true,
-              maxEnergy = 60,
+              maxEnergy = 80,
               hasMinEnergy = true,
               minEnergy = 25,
               poolIfNeeded = true,
@@ -1040,7 +1040,8 @@ local defaults = {
               priority = 897,
               isMain = true,
               checkComboPoints = true,
-              requireMaxComboPointsTristate = true,
+              hasMinComboPoints = true,
+              minComboPoints = 5,
               checkEnergy = true,
               hasMinEnergy = true,
               minEnergy = 25,
@@ -1123,6 +1124,27 @@ local defaults = {
               hasMinEnergy = true,
               minEnergy = 30,
               poolIfNeeded = true
+            },
+            {
+              priority = 794,
+              isMain = true,
+              checkComboPoints = true,
+              requireMaxComboPointsTristate = REALLY_WANT_NIL,
+              checkEnergy = true,
+              hasMinEnergy = true,
+              minEnergy = 30,
+              hasMaxEnergy = true,
+              maxEnergy = 65,
+              poolIfNeeded = true,
+              checkVendettaDuration = true,
+              hasMinDurationForVendetta = true,
+              minDurationForVendetta = 0,
+              checkVanishCooldown = true,
+              hasMaxCooldownRemForVanish = true,
+              maxCooldownRemForVanish = 1,
+              checkRuptureDuration = true,
+              hasMaxDurationForRupture = true,
+              maxDurationForRupture = 6
             }
           }
         },
@@ -1169,19 +1191,14 @@ local defaults = {
               maxCooldownRemForVendetta = 0,
               checkVanishCooldown = true,
               hasMaxCooldownRemForVanish = true,
-              maxCooldownRemForVanish = 0,
+              maxCooldownRemForVanish = 6,
               checkExsanguinateCooldown = true,
               hasMaxCooldownRemForExsanguinate = true,
-              maxCooldownRemForExsanguinate = 0,
+              maxCooldownRemForExsanguinate = 6,
               stealthyTristate = REALLY_WANT_NIL,
               checkEnergy = true,
               hasMinEnergy = true,
-              minEnergy = 25,
-              checkRuptureMultiplier = true,
-              hasMaxRuptureMultiplier = true,
-              maxRuptureMultiplier = 1,
-              checkComboPoints = true,
-              requireMaxComboPointsTristate = true
+              minEnergy = 25
             }
           }
         },
@@ -1207,7 +1224,8 @@ local defaults = {
               hasMinEnergy = true,
               minEnergy = 25,
               checkComboPoints = true,
-              requireMaxComboPointsTristate = true
+              hasMinComboPoints = true,
+              minComboPoints = 5
             }
           }
         },
