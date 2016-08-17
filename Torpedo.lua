@@ -117,8 +117,6 @@ local assass_auras = {
   Garrote = auras.Garrote
 }
 
-local pool_energy_sugg = { icon_id = 'Interface\\ICONS\\INV_Drink_15.blp' }
-
 local NIGHTSTALKER_TALENT_ID = 22331
 local DEEPER_STRATAGEM_TALENT_ID = 19239
 
@@ -1982,8 +1980,10 @@ local function init_gui()
   torpedoPanel:SetMovable(true)
   torpedoPanel:RegisterForDrag('LeftButton')
   torpedoPanel:SetScript('OnDragStart', function() 
-    torpedoPanel:StartMoving()
-    torpedoCooldownPanel:StartMoving()
+    if IsShiftKeyDown() then 
+      torpedoPanel:StartMoving()
+      torpedoCooldownPanel:StartMoving()
+    end
   end)
   torpedoPanel:SetScript('OnDragStop', function()
     torpedoPanel:StopMovingOrSizing()
