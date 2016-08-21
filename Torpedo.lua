@@ -126,7 +126,7 @@ local PRIORITY_DESC = 'The relative priority of choosing this ability. Abilities
 
 local function pretty_type_error(errPrefix, varName, var, expectedType)
   if type(var) ~= expectedType then 
-    error(tostring(errPrefix) .. ': ' .. tostring(varName) .. ' - ' .. tostring(expectedType) ' expected, but got ' .. type(var) .. ' (' .. tostring(var) .. ')', 3)
+    error(tostring(errPrefix) .. ': ' .. tostring(varName) .. ' - ' .. tostring(expectedType) .. ' expected, but got ' .. type(var) .. ' (' .. tostring(var) .. ')', 3)
   end
 end
 
@@ -427,13 +427,14 @@ end
 function OptionBuilder:AddPriority()
   -- Nothing about priority is particularly simple, so we build it from scratch --
   local cacheSuggestion = self.suggestion
+  local cacheProfile = self.profile
   local result = {
     name = 'Priority',
     type = 'range',
     desc = PRIORITY_DESC,
     get = function(info) return cacheSuggestion.priority end,
     set = function(info, val)
-      Torpedo:TrySetPriority(profile, cacheSuggestion, val)
+      Torpedo:TrySetPriority(cacheProfile, cacheSuggestion, val)
     end,
     disabled = self:GetDisabledFunction(),
     width = 'full',
@@ -448,9 +449,21 @@ function OptionBuilder:AddPriority()
 end
 
 function OptionBuilder:AddIsMain()
-  return self:AddSimpleToggle('isMain',
-    'Primary suggestion',
-    'Should ' .. string.lower(self.prettyName) .. ' be considered a primary suggestion?')
+  local cacheSuggestion = self.suggestion
+  local cacheProfile = self.profile
+  local result = {
+    name = 'Primary suggestion',
+    desc = 'Should ' .. string.lower(self.prettyName) .. ' be considered a primary suggestion?',
+    type = 'toggle',
+    desc = desc,
+    get = function() return cacheSuggestion.isMain end,
+    set = function(info, val)
+      Torpedo:TrySetPrimary(cacheProfile, cacheSuggestion, val)
+    end,
+    disabled = self:GetDisabledFunction(),
+    width = 'full'
+  }
+  return self:AddCustom(result)
 end
 
 --[[
@@ -1538,6 +1551,7 @@ local Target = {
 local counter = 0
 
 function Torpedo:TrySetPriority(profile, suggestion, val, optSuppressMessage)
+  if suggestion.priority == val then return true end
   local errPrefix = 'Torpedo:TrySetPriority(profile, suggestion, val)'
   pretty_type_error(errPrefix, 'profile', profile, 'table')
   pretty_type_error(errPrefix, 'suggestion', suggestion, 'table')
@@ -1547,7 +1561,7 @@ function Torpedo:TrySetPriority(profile, suggestion, val, optSuppressMessage)
     for suggNum, sugg in ipairs(spellCfg.suggestions) do 
       if sugg.isMain == suggestion.isMain and sugg.priority == val then 
         if not optSuppressMessage then 
-          message('Priority conflict: ' .. tostring(spellCfg.name) .. ' suggestion ' .. tostring(sugNum) .. ' already has that priority (' .. val .. ') - all suggestions for the same location must have different priorities')
+          message('Priority conflict: ' .. tostring(spellCfg.name) .. ' suggestion ' .. tostring(suggNum) .. ' already has that priority (' .. val .. ') - all suggestions for the same location must have different priorities')
         end
         return false
       end
@@ -1555,6 +1569,31 @@ function Torpedo:TrySetPriority(profile, suggestion, val, optSuppressMessage)
   end
   
   suggestion.priority = val
+  self:PLAYER_SPECIALIZATION_CHANGED('player')
+  return true
+end
+
+function Torpedo:TrySetPrimary(profile, suggestion, val, optSuppressMessage)
+  if suggestion.isMain == val then return true end
+  local errPrefix = 'Torpedo:TrySetPrimary(profile, suggestion, val)'
+  pretty_type_error(errPrefix, 'profile', profile, 'table')
+  pretty_type_error(errPrefix, 'suggestion', suggestion, 'table')
+  pretty_type_error(errPrefix, 'val', val, 'boolean')
+  
+  for _, spellCfg in pairs(profile.spells) do 
+    for suggNum, sugg in ipairs(spellCfg.suggestions) do 
+      if sugg.isMain == val and sugg.priority == suggestion.priority then 
+        if not optSuppressMessage then
+          local primStr = 'primary'
+          if not val then primStr = 'secondary' end
+          message('Priority conflict: ' .. tostring(spellCfg.name) .. ' suggestion ' .. tostring(suggNum) .. ' already has that priority (' .. tostring(suggestion.priority) .. ') for ' .. tostring(primStr) .. ' suggestions')
+        end
+        return false
+      end
+    end
+  end
+  
+  suggestion.isMain = val
   self:PLAYER_SPECIALIZATION_CHANGED('player')
   return true
 end
@@ -2192,7 +2231,11 @@ function Torpedo:PLAYER_SPECIALIZATION_CHANGED(unitName)
     update_specialization_and_talents()
     update_auras_for_unit('player')
     full_stealthy_check()
-    initialize(self.db)
+    local status, err = xpcall(function()
+      initialize(self.db)
+    end, function(err)
+      Torpedo:Print('Failed to initialize (database corrupted) Error: ' .. tostring(err))
+    end)
     Torpedo:PLAYER_TARGET_CHANGED()
   end
 end
