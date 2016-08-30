@@ -15,7 +15,8 @@ local assass_spells = {
   Exsanguinate = { name = 'Exsanguinate', spell_id = 200806, talent_id = 22344, icon_id = 538040, max_cd = 45 },
   Vanish = { name = 'Vanish', spell_id = 1856, icon_id = 132331, max_cd = 120 },
   Vendetta = { name = 'Vendetta', spell_id = 79140, icon_id = 458726, max_cd = 120 },
-  CrimsonVial = { name = 'Crimson Vial', spell_id = 185311, icon_id = 1373904, max_cd = 30 }
+  CrimsonVial = { name = 'Crimson Vial', spell_id = 185311, icon_id = 1373904, max_cd = 30 },
+  Kingsbane = { name = 'Kingsbane', spell_id = 222062, icon_id = 1259291, max_cd = 45 }
 }
 
 local subtlety_spells = {
@@ -29,7 +30,8 @@ local subtlety_spells = {
   Nightblade = { name = 'Nightblade', spell_id = 195452, icon_id = 1373907, max_cd = 1 },
   Shadowstrike = { name = 'Shadowstrike', spell_id = 185438, icon_id = 1373912, max_cd = 1 },
   ShadowBlades = { name = 'Shadow Blades', spell_id = 121471, icon_id = 376022, max_cd = 180 },
-  CrimsonVial = { name = 'Crimson Vial', spell_id = 185311, icon_id = 1373904, max_cd = 30 }
+  CrimsonVial = { name = 'Crimson Vial', spell_id = 185311, icon_id = 1373904, max_cd = 30 },
+  GoremawsBite = { name = 'Goremaw\'s Bite', spell_id = 209783, icon_id = 1120123, max_cd = 60 }
 }
 
 local auras_cache = { player = {}, target = {} }
@@ -98,14 +100,17 @@ local auras = {
   SymbolsofDeath = Aura:new(212283, 'player', 35, 'Symbols of Death'),
   Nightblade = Aura:new(195452, 'target', 18, 'Nightblade'),
   ShadowBlades = Aura:new(121471, 'player', 15, 'Shadow Blades'),
-  Vendetta = Aura:new(79140, 'target', 20, 'Vendetta')
+  Vendetta = Aura:new(79140, 'target', 20, 'Vendetta'),
+  GoremawsBite = Aura:new(220901, 'player', 6, 'Goremaw\'s Bite'),
+  Kingsbane = Aura:new(192759, 'target', 14, 'Kingsbane')
 }
 
 local subtlety_auras = {
   Stealth = auras.Stealth,
   SymbolsofDeath = auras.SymbolsofDeath,
   Nightblade = auras.Nightblade,
-  ShadowBlades = auras.ShadowBlades
+  ShadowBlades = auras.ShadowBlades,
+  GoremawsBite = auras.GoremawsBite
 }
 
 local assass_auras = {
@@ -331,7 +336,7 @@ end
   
   See GetDisabledFunction for more info on extra arguments!
   
-  Ex: optionBuilder:AddSimpleToggle(db.profile.subtlety.stealth.suggestions[1], 'enabled', 'Suggest stealth', 'Should stealth be suggested?', false)
+  Ex: optionBuilder:AddSimpleToggle('enabled', 'Suggest stealth', 'Should stealth be suggested?', false)
 ]]
 function OptionBuilder:AddSimpleToggle(varName, prettyName, desc, ...)
   local errPrefix = 'OptionBuilder:AddSimpleToggle(varName, prettyName, desc, ...)'
@@ -1063,10 +1068,25 @@ local defaults = {
             }
           }
         },
+        kingsbane = {
+          name = 'Kingsbane',
+          spellDebugName = 'Kingsbane',
+          order = 4,
+          suggestions = {
+            {
+              enabled = false,
+              priority = 897,
+              isMain = true,
+              checkKingsbaneCooldown = true,
+              hasMaxCooldownRemForKingsbane = true,
+              maxCooldownRemForKingsbane = 0
+            }
+          }
+        },
         envenom = {
           name = 'Envenom',
           spellDebugName = 'Envenom',
-          order = 4,
+          order = 5,
           suggestions = {
             {
               priority = 895,
@@ -1096,7 +1116,7 @@ local defaults = {
         garrote = {
           name = 'Garrote',
           spellDebugName = 'Garrote',
-          order = 5,
+          order = 6,
           suggestions = {
             {
               priority = 800,
@@ -1121,7 +1141,7 @@ local defaults = {
         hemorrhage = {
           name = 'Hemorrhage',
           spellDebugName = 'Hemorrhage',
-          order = 6,
+          order = 7,
           suggestions = {
             {
               priority = 795,
@@ -1162,7 +1182,7 @@ local defaults = {
         mutilate = {
           name = 'Mutilate',
           spellDebugName = 'Mutilate',
-          order = 7,
+          order = 8,
           suggestions = {
             {
               priority = 790,
@@ -1192,7 +1212,7 @@ local defaults = {
         vendetta = {
           name = 'Vendetta',
           spellDebugName = 'Vendetta',
-          order = 8,
+          order = 9,
           suggestions = {
             {
               priority = 1000,
@@ -1216,7 +1236,7 @@ local defaults = {
         vanish = {
           name = 'Vanish',
           spellDebugName = 'Vanish',
-          order = 9,
+          order = 10,
           suggestions = {
             {
               priority = 900,
@@ -1243,7 +1263,7 @@ local defaults = {
         exsanguinate = {
           name = 'Exsanguinate',
           spellDebugName = 'Exsanguinate',
-          order = 10,
+          order = 11,
           suggestions = {
             {
               priority = 800,
@@ -1269,7 +1289,7 @@ local defaults = {
         crimsonVial = {
           name = 'Crimson Vial',
           spellDebugName = 'CrimsonVial',
-          order = 11,
+          order = 12,
           suggestions = {
             {
               enabled = false,
@@ -1384,10 +1404,32 @@ local defaults = {
             }
           }
         },
+        goremawsBite = {
+          name = 'Goremaw\'s Bite',
+          spellDebugName = 'GoremawsBite',
+          order = 6,
+          suggestions = {
+            {
+              enabled = false,
+              priority = 799,
+              isMain = true,
+              checkEnergy = true,
+              hasMaxEnergy = true,
+              maxEnergy = 100,
+              stealthyTristate = REALLY_WANT_NIL,
+              checkComboPoints = true,
+              hasMaxComboPoints = true,
+              maxComboPoints = 3,
+              checkGoremawsBiteCooldown = true,
+              hasMaxCooldownRemForGoremawsBite = true,
+              maxCooldownRemForGoremawsBite = 0
+            }
+          }
+        },
         backstab = {
           name = 'Backstab',
           spellDebugName = 'Backstab',
-          order = 6,
+          order = 7,
           suggestions = {
             {
               priority = 795,
@@ -1405,7 +1447,7 @@ local defaults = {
         shadowBlades = {
           name = 'Shadow Blades',
           spellDebugName = 'ShadowBlades',
-          order = 7,
+          order = 8,
           suggestions = {
             {
               priority = 1000,
@@ -1425,7 +1467,7 @@ local defaults = {
         vanish = {
           name = 'Vanish',
           spellDebugName = 'Vanish',
-          order = 8,
+          order = 9,
           suggestions = {
             {
               priority = 900,
@@ -1446,7 +1488,7 @@ local defaults = {
         shadowDance = {
           name = 'Shadow Dance',
           spellDebugName = 'ShadowDance',
-          order = 9,
+          order = 10,
           suggestions = {
             {
               priority = 800,
@@ -1484,7 +1526,7 @@ local defaults = {
         crimsonVial = {
           name = 'Crimson Vial',
           spellDebugName = 'CrimsonVial',
-          order = 10,
+          order = 11,
           suggestions = {
             {
               enabled = false,
