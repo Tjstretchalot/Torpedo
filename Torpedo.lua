@@ -31,7 +31,7 @@ local subtlety_spells = {
   Shadowstrike = { name = 'Shadowstrike', spell_id = 185438, icon_id = 1373912, max_cd = 1 },
   ShadowBlades = { name = 'Shadow Blades', spell_id = 121471, icon_id = 376022, max_cd = 180 },
   CrimsonVial = { name = 'Crimson Vial', spell_id = 185311, icon_id = 1373904, max_cd = 30 },
-  GoremawsBite = { name = 'Goremaw\'s Bite', spell_id = 209783, icon_id = 1120123, max_cd = 60 }
+  GoremawsBite = { name = 'Goremaw\'s Bite', spell_id = 209782, icon_id = 1120132, max_cd = 60 }
 }
 
 local auras_cache = { player = {}, target = {} }
