@@ -1075,7 +1075,7 @@ local defaults = {
           suggestions = {
             {
               enabled = false,
-              priority = 897,
+              priority = 896,
               isMain = true,
               checkKingsbaneCooldown = true,
               hasMaxCooldownRemForKingsbane = true,

@@ -3,6 +3,7 @@
 ## Notes: Helps rogues rotation
 ## Author: Tjstretchalot
 ## SavedVariablesPerCharacter: TorpedoDB
+## Version: 1.4.44b
 embed.xml
 
 Torpedo.lua
