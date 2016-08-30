@@ -16,7 +16,7 @@ local assass_spells = {
   Vanish = { name = 'Vanish', spell_id = 1856, icon_id = 132331, max_cd = 120 },
   Vendetta = { name = 'Vendetta', spell_id = 79140, icon_id = 458726, max_cd = 120 },
   CrimsonVial = { name = 'Crimson Vial', spell_id = 185311, icon_id = 1373904, max_cd = 30 },
-  Kingsbane = { name = 'Kingsbane', spell_id = 222062, icon_id = 1259291, max_cd = 45 }
+  Kingsbane = { name = 'Kingsbane', spell_id = 192759, icon_id = 1259291, max_cd = 45 }
 }
 
 local subtlety_spells = {
