@@ -44,12 +44,14 @@ local function update_auras_for_unit(unitName)
 			auraName, _, _, count, _, duration, expirationTime, unitCaster, _, _, spellId = UnitDebuff(unitName, i)
 		end
 		if not spellId then break end
-		if not auras_cache[unitName][i] then auras_cache[unitName][i] = {} end
-		auras_cache[unitName][i].name = auraName
-		auras_cache[unitName][i].count = count
-		auras_cache[unitName][i].duration = duration
-		auras_cache[unitName][i].expirationTime = expirationTime
-		auras_cache[unitName][i].spellId = spellId
+    if unitCaster == 'player' then 
+      if not auras_cache[unitName][i] then auras_cache[unitName][i] = {} end
+      auras_cache[unitName][i].name = auraName
+      auras_cache[unitName][i].count = count
+      auras_cache[unitName][i].duration = duration
+      auras_cache[unitName][i].expirationTime = expirationTime
+      auras_cache[unitName][i].spellId = spellId
+    end
 		i = i+1
 	end
 	auras_cache[unitName].len = i-1
