@@ -36,6 +36,7 @@ local subtlety_spells = {
 
 local auras_cache = { player = {}, target = {} }
 local function update_auras_for_unit(unitName) 
+  auras_cache[unitName] = {}
 	local i=1, auraName, count, duration, expirationTime, unitCaster, spellId
 	while true do
 		if unitName == 'player' then
@@ -45,16 +46,17 @@ local function update_auras_for_unit(unitName)
 		end
 		if not spellId then break end
     if unitCaster == 'player' then 
-      if not auras_cache[unitName][i] then auras_cache[unitName][i] = {} end
-      auras_cache[unitName][i].name = auraName
-      auras_cache[unitName][i].count = count
-      auras_cache[unitName][i].duration = duration
-      auras_cache[unitName][i].expirationTime = expirationTime
-      auras_cache[unitName][i].spellId = spellId
+      local cache = {}
+      cache.name = auraName
+      cache.count = count
+      cache.duration = duration
+      cache.expirationTime = expirationTime
+      cache.spellId = spellId
+      
+      table.insert(auras_cache[unitName], cache)
     end
 		i = i+1
 	end
-	auras_cache[unitName].len = i-1
 end
 
 local Aura = {}
@@ -68,7 +70,7 @@ function Aura:new(id, unitName, maxDuration, name, hasMultiplier)
 end
 
 function Aura:info()
-  for i=1, auras_cache[self.unit_name].len do 
+  for i=1, #auras_cache[self.unit_name] do 
     if auras_cache[self.unit_name][i].spellId == self.aura_id then 
       return auras_cache[self.unit_name][i]
     end
