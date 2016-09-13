@@ -6,7 +6,10 @@ local TorpedoAuras = LibStub:NewLibrary(MAJOR, MINOR)
 if not TorpedoAuras then return end
 
 function TorpedoAuras:New(o)
-  Utils:CheckTypes({name = 'string', debugName = 'string', aura_id = 'number', icon_id = 'number', target = 'string', max_duration = 'number'}, o)
+  Utils:CheckTypes({name = 'string', debugName = 'string', aura_id = 'number', target = 'string', max_duration = 'number'}, o)
+  if type(o.icon_id) ~= 'number' and type(o.icon_id) ~= 'string' then 
+    error('Expected o.icon_id to be a number or a string, but it is ' .. type(o.icon_id), 2)
+  end
   
   setmetatable(o, self)
   self.__index = self

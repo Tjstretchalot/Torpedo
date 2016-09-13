@@ -72,9 +72,9 @@ function TorpedoProfiles:GetSuggestion(context, primary)
   return self.specializations[self.active_spec_index]:GetSuggestion(context, primary)
 end
 
-function TorpedoProfiles:CreateOptions(order, rebuild_opt, delete_profile_func, is_active_profile_func, set_active_profile_func)
+function TorpedoProfiles:CreateOptions(order, rebuild_opt, delete_profile_func, is_active_profile_func, set_active_profile_func, is_valid_profile_name_func)
   Utils:CheckTypes({ order = 'number', rebuild_opt = 'function', delete_profile_func = 'function',
-  is_active_profile_func = 'function', set_active_profile_func = 'function'}, { order = order, rebuild_opt = rebuild_opt, delete_profile_func = delete_profile_func, is_active_profile_func = is_active_profile_func, set_active_profile_func = set_active_profile_func })
+  is_active_profile_func = 'function', set_active_profile_func = 'function', is_valid_profile_name_func = 'function' }, { order = order, rebuild_opt = rebuild_opt, delete_profile_func = delete_profile_func, is_active_profile_func = is_active_profile_func, set_active_profile_func = set_active_profile_func, is_valid_profile_name_func = is_valid_profile_name_func})
   
   local me = self
   local result = {
@@ -106,14 +106,28 @@ function TorpedoProfiles:CreateOptions(order, rebuild_opt, delete_profile_func, 
         func = function()
           set_active_profile_func()
         end
+      },
+      param3 = {
+        order = 3,
+        name = Constants.CHANGE_PROFILE_NAME_NAME,
+        desc = Constants.CHANGE_PROFILE_NAME_DESC,
+        width = 'full',
+        type = 'input',
+        get = function() return me.name end,
+        set = function(info, val)
+          if not is_valid_profile_name_func(val) then return end
+          
+          me.name = val
+        end
       }
     }
   }
   
+  local offset = 3
   for i=1, #self.specializations do 
-    local key = 'param' .. tostring(i+2)
+    local key = 'param' .. tostring(i + offset)
     
-    result.args[key] = self.specializations[i]:CreateOptions(i+2, rebuild_opt)
+    result.args[key] = self.specializations[i]:CreateOptions(i + offset, rebuild_opt)
   end
   
   return result

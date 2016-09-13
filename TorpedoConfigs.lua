@@ -136,7 +136,18 @@ function TorpedoConfigs:CreateOptions(rebuild_opt)
       me.active_profile_index = cacheInd
     end
     
-    res.args[key] = self.profiles[i]:CreateOptions(i+1, rebuild_opt, delete_profile_func, is_active_profile_func, set_active_profile_func)
+    local is_valid_profile_name_func = function(nm)
+      for counter=1, #me.profiles do 
+        if counter ~= cacheInd and me.profiles[counter].name == nm then 
+          message('Already have a profile with that name!')
+          return false
+        end
+        
+        return true
+      end
+    end
+    
+    res.args[key] = self.profiles[i]:CreateOptions(i+1, rebuild_opt, delete_profile_func, is_active_profile_func, set_active_profile_func, is_valid_profile_name_func)
   end
   
   return res

@@ -79,7 +79,9 @@ function TorpedoSkills:RegisterAura(aura)
   table.insert(self.auras, aura)
 end
 
-function TorpedoSkills:CreateOptions(order, rebuild_opt, new_priority_func)
+function TorpedoSkills:CreateOptions(order, rebuild_opt, new_priority_func, advanced_features_func, delete_skill_func)
+  Utils:CheckTypes({ order = 'number', rebuild_opt = 'function', new_priority_func = 'function', advanced_features_func = 'function', delete_skill_func = 'function' }, { order = order, rebuild_opt = rebuild_opt, new_priority_func = new_priority_func, advanced_features_func = advanced_features_func, delete_skill_func = delete_skill_func })
+  
   if not new_priority_func then error('Need a function to get a priority for new primary abilities') end
   
   local me = self
@@ -96,6 +98,20 @@ function TorpedoSkills:CreateOptions(order, rebuild_opt, new_priority_func)
         type = 'execute',
         func = function()
           me:NewSuggestion(new_priority_func(), true)
+          rebuild_opt()
+        end
+      },
+      param2 = {
+        order = 2,
+        name = Constants.DELETE_SKILL_NAME,
+        desc = Constants.DELETE_SKILL_DESC,
+        width = 'full',
+        type = 'execute',
+        hidden = function()
+          return not advanced_features_func()
+        end,
+        func = function()
+          delete_skill_func()
           rebuild_opt()
         end
       }
@@ -121,16 +137,17 @@ function TorpedoSkills:CreateOptions(order, rebuild_opt, new_priority_func)
     end
   end
   
+  local offset = 2
   for i=1, #sorted do 
     local sugg = self.suggestions[sorted[i].suggIndex]
-    local str = 'param' .. tostring(i+1)
+    local str = 'param' .. tostring(i + offset)
     
     local cacheIndex = i
     local removeSuggestionFunc = function()
       table.remove(me.suggestions, cacheIndex)
     end
     
-    result.args[str] = sugg:CreateOptions('Option ' .. tostring(i), i+1, rebuild_opt, removeSuggestionFunc)
+    result.args[str] = sugg:CreateOptions('Option ' .. tostring(i), i + offset, rebuild_opt, removeSuggestionFunc)
   end
   
   return result

@@ -6,7 +6,10 @@ local TorpedoSpells = LibStub:NewLibrary(MAJOR, MINOR)
 if not TorpedoSpells then return end
 
 function TorpedoSpells:New(o)
-  Utils:CheckTypes({ name = 'string', debugName = 'string', spell_id = 'number', icon_id = 'number' }, o)
+  Utils:CheckTypes({ name = 'string', debugName = 'string', spell_id = 'number' }, o)
+  if type(o.icon_id) ~= 'number' and type(o.icon_id) ~= 'string' then 
+    error('Expected o.icon_id to be a number or a string, but it is ' .. type(o.icon_id), 2)
+  end
   
   setmetatable(o, self)
   self.__index = self

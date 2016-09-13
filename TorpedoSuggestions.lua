@@ -39,6 +39,7 @@ function TorpedoSuggestions:__Init()
   self.require_not_stealthed = false
   __AddMinMaxOptions(self, 'Energy')
   __AddMinMaxOptions(self, 'ComboPoints')
+  __AddMinMaxOptions(self, 'HealthPerc')
 end
 
 function TorpedoSuggestions:RegisterAura(aura)
@@ -105,6 +106,12 @@ function TorpedoSuggestions:CreateOptions(optionName, order, rebuild_opt_func, r
                     Constants.COMBO_POINTS_MAXIMUM_DESC, 
                     Constants.COMBO_POINTS_MIN, Constants.COMBO_POINTS_MAX,
                     Constants.COMBO_POINTS_SOFTMIN, Constants.COMBO_POINTS_SOFTMAX, Constants.COMBO_POINTS_STEP, Constants.COMBO_POINTS_BIGSTEP)
+    :AddMinMaxCheck('HealthPerc', 'Health Percentage', Constants.HEALTH_PERC_CHECK_DESC, 
+                    Constants.HEALTH_PERC_HAVE_MINIMUM_DESC,
+                    Constants.HEALTH_PERC_MINIMUM_DESC, Constants.HEALTH_PERC_HAVE_MAXIMUM_DESC, 
+                    Constants.HEALTH_PERC_MAXIMUM_DESC, 
+                    Constants.HEALTH_PERC_MIN, Constants.HEALTH_PERC_MAX,
+                    Constants.HEALTH_PERC_SOFTMIN, Constants.HEALTH_PERC_SOFTMAX, Constants.HEALTH_PERC_STEP, Constants.HEALTH_PERC_BIGSTEP)
   
   for i=1, #self.cooldowns do 
     local spell = self.cooldowns[i]
@@ -187,6 +194,9 @@ function TorpedoSuggestions:MeetsRequirements(context, primary)
   if self.require_no_combat and context.combat then return SuggestionResult.DO_NOT_SUGGEST end
   
   if not __CheckMinMaxRequirements(self, 'ComboPoints', context.combo_points) then return SuggestionResult.DO_NOT_SUGGEST end
+  
+  local healthPerc = (context.health / context.max_health) * 100
+  if not __CheckMinMaxRequirements(self, 'HealthPerc', healthPerc) then return SuggestionResult.DO_NOT_SUGGEST end
   
   for i=1, #self.auras do 
     local aura = self.auras[i]

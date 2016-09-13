@@ -579,6 +579,53 @@ RunTestByName('Suggestion can create options', function()
         order = next_order()
       },
       [next_param_name()] = {
+        name = 'Check health percentage',
+        type = 'toggle',
+        desc = Constants.HEALTH_PERC_CHECK_DESC,
+        get = fn, set = fn, disabled = fn, hidden = fn, width = 'full',
+        order = next_order()
+      },
+      [next_param_name()] = {
+        name = 'Have minimum health percentage',
+        type = 'toggle',
+        desc = Constants.HEALTH_PERC_HAVE_MINIMUM_DESC,
+        get = fn, set = fn, disabled = fn, hidden = fn, width = 'full',
+        order = next_order()
+      },
+      [next_param_name()] = {
+        name = 'Minimum health percentage',
+        type = 'range',
+        desc = Constants.HEALTH_PERC_MINIMUM_DESC,
+        get = fn, set = fn, disabled = fn, hidden = fn, width = 'full',
+        min = 0,
+        max = Constants.HEALTH_PERC_MAX,
+        softMin = 0,
+        softMax = Constants.HEALTH_PERC_MAX,
+        step = Constants.HEALTH_PERC_STEP,
+        bigStep = Constants.HEALTH_PERC_BIGSTEP,
+        order = next_order()
+      },
+      [next_param_name()] = {
+        name = 'Have maximum health percentage',
+        type = 'toggle',
+        desc = Constants.HEALTH_PERC_HAVE_MAXIMUM_DESC,
+        get = fn, set = fn, disabled = fn, hidden = fn, width = 'full',
+        order = next_order()
+      },
+      [next_param_name()] = {
+        name = 'Maximum health percentage',
+        type = 'range',
+        desc = Constants.HEALTH_PERC_MAXIMUM_DESC,
+        get = fn, set = fn, disabled = fn, hidden = fn, width = 'full',
+        min = 0,
+        max = Constants.HEALTH_PERC_MAX,
+        softMin = 0,
+        softMax = Constants.HEALTH_PERC_MAX,
+        step = Constants.HEALTH_PERC_STEP,
+        bigStep = Constants.HEALTH_PERC_BIGSTEP,
+        order = next_order()
+      },
+      [next_param_name()] = {
         name = 'Check cooldown for exsanguinate',
         type = 'toggle',
         desc = string.gsub(Constants.SPELL_COOLDOWN_CHECK_DESC, '{spell_name}', 'exsanguinate'),
@@ -1015,7 +1062,7 @@ RunTestByName('Create options from skill', function()
   }
   
   local fn = function() end
-  local actual = skill:CreateOptions(2, fn, fn)
+  local actual = skill:CreateOptions(2, fn, fn, fn, fn)
   local expected = {
     name = 'Some Skill',
     type = 'group',
@@ -1030,8 +1077,17 @@ RunTestByName('Create options from skill', function()
         order = 1
       },
       param2 = {
+        order = 2,
+        name = Constants.DELETE_SKILL_NAME,
+        desc = Constants.DELETE_SKILL_DESC,
+        width = 'full',
+        type = 'execute',
+        hidden = fn,
+        func = fn
+      },
+      param3 = {
         debugStr = 'Magical mock string',
-        order = 2
+        order = 3
       }
     }
   }
@@ -1078,7 +1134,7 @@ RunTestByName('Rearrange order and create options from skill', function()
   }
   
   local fn = function() end
-  local actual = skill:CreateOptions(2, fn, fn)
+  local actual = skill:CreateOptions(2, fn, fn, fn, fn)
   local expected = {
     name = 'Some Skill',
     type = 'group',
@@ -1093,25 +1149,34 @@ RunTestByName('Rearrange order and create options from skill', function()
         func = fn
       },
       param2 = {
-        debugStr = 'Magical mock string 2',
-        order = 2
+        order = 2,
+        name = Constants.DELETE_SKILL_NAME,
+        desc = Constants.DELETE_SKILL_DESC,
+        width = 'full',
+        type = 'execute',
+        hidden = fn,
+        func = fn
       },
       param3 = {
-        debugStr = 'Magical mock string',
+        debugStr = 'Magical mock string 2',
         order = 3
+      },
+      param4 = {
+        debugStr = 'Magical mock string',
+        order = 4
       }
     }
   }
   AssertDeepEquals(expected, actual)
   
   skill.suggestions[1].priority = 501
-  local tmp = expected.args.param2
-  expected.args.param2 = expected.args.param3
-  expected.args.param3 = tmp
-  expected.args.param2.order = 2
+  local tmp = expected.args.param3
+  expected.args.param3 = expected.args.param4
+  expected.args.param4 = tmp
   expected.args.param3.order = 3
+  expected.args.param4.order = 4
   
-  actual = skill:CreateOptions(2, fn, fn)
+  actual = skill:CreateOptions(2, fn, fn, fn, fn)
   AssertDeepEquals(expected, actual)
 end)
 
@@ -1452,14 +1517,26 @@ RunTestByName('Specialization can create options', function()
   }
   
   local fn = function() end
-  local options = spec:CreateOptions(2)
+  local options = spec:CreateOptions(2, fn)
   local expected = {
     name = 'Subtlety',
     type = 'group',
     order = 2,
     args = {
       param1 = {
+        name = Constants.TOGGLE_ADVANCED_FEATURES_NAME,
+        desc = Constants.TOGGLE_ADVANCED_FEATURES_DESC,
         order = 1,
+        type = 'toggle',
+        get = fn,
+        set = fn,
+        width = 'full'
+      },
+      param2 = { }, -- advanced features; add skill
+      param3 = { }, -- advanced features; add cooldown
+      param4 = { }, -- advanced features; add aura
+      param5 = {
+        order = 5,
         name = 'Nightblade',
         type = 'group',
         args = {
@@ -1473,6 +1550,15 @@ RunTestByName('Specialization can create options', function()
           },
           param2 = {
             order = 2,
+            name = Constants.DELETE_SKILL_NAME,
+            desc = Constants.DELETE_SKILL_DESC,
+            width = 'full',
+            type = 'execute',
+            hidden = fn,
+            func = fn
+          },
+          param3 = {
+            order = 3,
             someStr = 'Magical string 1',
             name = 'Option 1'
           }
@@ -1480,6 +1566,9 @@ RunTestByName('Specialization can create options', function()
       }
     }
   }
+  options.args.param2 = {}
+  options.args.param3 = {}
+  options.args.param4 = {}
   AssertDeepEquals(expected, options)
 end)
 
@@ -1640,7 +1729,7 @@ RunTestByName('Profile can create options', function()
   }
   
   local fn = function() end
-  local actual = profile:CreateOptions(1, fn, fn, fn, fn)
+  local actual = profile:CreateOptions(1, fn, fn, fn, fn, fn)
   local expected = {
     name = fn,
     type = 'group',
@@ -1665,6 +1754,14 @@ RunTestByName('Profile can create options', function()
       },
       param3 = {
         order = 3,
+        name = Constants.CHANGE_PROFILE_NAME_NAME,
+        desc = Constants.CHANGE_PROFILE_NAME_DESC,
+        width = 'full',
+        type = 'input',
+        get = fn, set = fn
+      },
+      param4 = {
+        order = 4,
         someStr = 'Magical string'
       }
     }
