@@ -9,7 +9,8 @@ function TorpedoContext:New(o)
   Utils:CheckTypes({
     auras = 'table', cooldowns = 'table', timestamp = 'number', power = 'number',
     max_power = 'number', combo_points = 'number', max_combo_points = 'number',
-    health = 'number', max_health = 'number', stealthy = 'boolean', combat = 'boolean'
+    health = 'number', max_health = 'number', stealthy = 'boolean', combat = 'boolean',
+    fight_summary = 'table', target_info = 'table'
   }, o)
   
   setmetatable(o, self)

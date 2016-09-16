@@ -19,6 +19,8 @@
   <Script file="TorpedoSuggestionResult.lua"/>
   <Script file="TorpedoSuggestions.lua"/>
   <Script file="TorpedoSkills.lua"/>
+  <Script file="TorpedoFightSummary.lua"/>
+  <Script file="TorpedoFightAnalyzer.lua"/>
   <Script file="TorpedoSpecializations.lua"/>
   <Script file="TorpedoProfiles.lua"/>
   <Script file="TorpedoConfigs.lua"/>

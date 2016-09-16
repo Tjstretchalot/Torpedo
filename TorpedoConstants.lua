@@ -58,6 +58,30 @@ TorpedoConstants.HEALTH_PERC_MINIMUM_DESC = 'Minimum amount of health percentage
 TorpedoConstants.HEALTH_PERC_HAVE_MAXIMUM_DESC = 'Make sure we have less than a certain amount of health percentage'
 TorpedoConstants.HEALTH_PERC_MAXIMUM_DESC = 'Maximum amount of health percentage'
 
+TorpedoConstants.TIME_TO_KILL_SOLO_MIN = 0
+TorpedoConstants.TIME_TO_KILL_SOLO_MAX = math.huge
+TorpedoConstants.TIME_TO_KILL_SOLO_SOFTMIN = 0
+TorpedoConstants.TIME_TO_KILL_SOLO_SOFTMAX = 600
+TorpedoConstants.TIME_TO_KILL_SOLO_STEP = 0.05
+TorpedoConstants.TIME_TO_KILL_SOLO_BIGSTEP = 1
+TorpedoConstants.TIME_TO_KILL_SOLO_CHECK_DESC = 'Check how much predicted time to kill your target without the help of your teammates (requires Skada).'
+TorpedoConstants.TIME_TO_KILL_SOLO_HAVE_MINIMUM_DESC = 'Make sure we have atleast a certain amount of time left on this target without the help of your teammates'
+TorpedoConstants.TIME_TO_KILL_SOLO_MINIMUM_DESC = 'Minimum amount of time left on this target without the help of your teammates'
+TorpedoConstants.TIME_TO_KILL_SOLO_HAVE_MAXIMUM_DESC = 'Make sure we have less than a certain amount of time left on this target without the help of your teammates'
+TorpedoConstants.TIME_TO_KILL_SOLO_MAXIMUM_DESC = 'Maximum amount of time left on this target without the help of your teammates'
+
+TorpedoConstants.TIME_TO_KILL_RAID_MIN = 0
+TorpedoConstants.TIME_TO_KILL_RAID_MAX = math.huge
+TorpedoConstants.TIME_TO_KILL_RAID_SOFTMIN = 0
+TorpedoConstants.TIME_TO_KILL_RAID_SOFTMAX = 600
+TorpedoConstants.TIME_TO_KILL_RAID_STEP = 0.05
+TorpedoConstants.TIME_TO_KILL_RAID_BIGSTEP = 1
+TorpedoConstants.TIME_TO_KILL_RAID_CHECK_DESC = 'Check how much predicted time to kill your target with the help of your teammates (requires Skada).'
+TorpedoConstants.TIME_TO_KILL_RAID_HAVE_MINIMUM_DESC = 'Make sure we have atleast a certain amount of time left on this target with the help of your teammates'
+TorpedoConstants.TIME_TO_KILL_RAID_MINIMUM_DESC = 'Minimum amount of time left on this target with the help of your teammates'
+TorpedoConstants.TIME_TO_KILL_RAID_HAVE_MAXIMUM_DESC = 'Make sure we have less than a certain amount of time left on this target with the help of your teammates'
+TorpedoConstants.TIME_TO_KILL_RAID_MAXIMUM_DESC = 'Maximum amount of time left on this target with the help of your teammates'
+
 TorpedoConstants.SPELL_COOLDOWN_MIN = 0
 TorpedoConstants.SPELL_COOLDOWN_SOFTMIN = 0
 TorpedoConstants.SPELL_COOLDOWN_STEP = 0.05

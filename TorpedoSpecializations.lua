@@ -587,7 +587,7 @@ function TorpedoSpecializations:CreateOptions(order, rebuild_opt)
   return result
 end
 
-function TorpedoSpecializations:BuildContext()
+function TorpedoSpecializations:BuildContext(fightAnalyzer, targetInfo)
   local auras = {
     player = {},
     target = {}
@@ -676,8 +676,14 @@ function TorpedoSpecializations:BuildContext()
   tmp_context.stealthy = stealthy
   
   tmp_context.combat = InCombatLockdown()
+  tmp_context.fight_summary = fightAnalyzer:Analyze()
+  tmp_context.target_info = targetInfo
   
-  return Context:New(tmp_context)
+  local result = Context:New(tmp_context)
+  
+  fightAnalyzer:SetCurrentContext(result)
+  
+  return result
 end
 
 function TorpedoSpecializations:Serializable()

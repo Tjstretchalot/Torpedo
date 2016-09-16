@@ -40,6 +40,8 @@ function TorpedoSuggestions:__Init()
   __AddMinMaxOptions(self, 'Energy')
   __AddMinMaxOptions(self, 'ComboPoints')
   __AddMinMaxOptions(self, 'HealthPerc')
+  __AddMinMaxOptions(self, 'TimeToKillSolo')
+  __AddMinMaxOptions(self, 'TimeToKillRaid')
 end
 
 function TorpedoSuggestions:RegisterAura(aura)
@@ -112,6 +114,18 @@ function TorpedoSuggestions:CreateOptions(optionName, order, rebuild_opt_func, r
                     Constants.HEALTH_PERC_MAXIMUM_DESC, 
                     Constants.HEALTH_PERC_MIN, Constants.HEALTH_PERC_MAX,
                     Constants.HEALTH_PERC_SOFTMIN, Constants.HEALTH_PERC_SOFTMAX, Constants.HEALTH_PERC_STEP, Constants.HEALTH_PERC_BIGSTEP)
+    :AddMinMaxCheck('TimeToKillSolo', 'Time To Kill Solo (Seconds)', Constants.TIME_TO_KILL_SOLO_CHECK_DESC, 
+                    Constants.TIME_TO_KILL_SOLO_HAVE_MINIMUM_DESC,
+                    Constants.TIME_TO_KILL_SOLO_MINIMUM_DESC, Constants.TIME_TO_KILL_SOLO_HAVE_MAXIMUM_DESC, 
+                    Constants.TIME_TO_KILL_SOLO_MAXIMUM_DESC, 
+                    Constants.TIME_TO_KILL_SOLO_MIN, Constants.TIME_TO_KILL_SOLO_MAX,
+                    Constants.TIME_TO_KILL_SOLO_SOFTMIN, Constants.TIME_TO_KILL_SOLO_SOFTMAX, Constants.TIME_TO_KILL_SOLO_STEP, Constants.TIME_TO_KILL_SOLO_BIGSTEP)
+    :AddMinMaxCheck('TimeToKillRaid', 'Time To Kill Raid (Seconds)', Constants.TIME_TO_KILL_RAID_CHECK_DESC, 
+                    Constants.TIME_TO_KILL_RAID_HAVE_MINIMUM_DESC,
+                    Constants.TIME_TO_KILL_RAID_MINIMUM_DESC, Constants.TIME_TO_KILL_RAID_HAVE_MAXIMUM_DESC, 
+                    Constants.TIME_TO_KILL_RAID_MAXIMUM_DESC, 
+                    Constants.TIME_TO_KILL_RAID_MIN, Constants.TIME_TO_KILL_RAID_MAX,
+                    Constants.TIME_TO_KILL_RAID_SOFTMIN, Constants.TIME_TO_KILL_RAID_SOFTMAX, Constants.TIME_TO_KILL_RAID_STEP, Constants.TIME_TO_KILL_RAID_BIGSTEP)
   
   for i=1, #self.cooldowns do 
     local spell = self.cooldowns[i]
@@ -159,8 +173,6 @@ function TorpedoSuggestions:CreateOptions(optionName, order, rebuild_opt_func, r
 end
 
 local function __CheckMinMaxRequirements(self, name, val)
-  if not val then val = -1 end -- mostly for auras
-  
   local check = self['check' .. name]
   local hasMin = self['hasMin' .. name]
   local min = self['min' .. name]
@@ -197,6 +209,16 @@ function TorpedoSuggestions:MeetsRequirements(context, primary)
   
   local healthPerc = (context.health / context.max_health) * 100
   if not __CheckMinMaxRequirements(self, 'HealthPerc', healthPerc) then return SuggestionResult.DO_NOT_SUGGEST end
+  
+  local timeToKillSolo = context.fight_summary.predicted_time_to_kill_target_solo
+  if timeToKillSolo ~= math.huge and type(timeToKillSolo) == 'number' then 
+    if not __CheckMinMaxRequirements(self, 'TimeToKillSolo', timeToKillSolo) then return SuggestionResult.DO_NOT_SUGGEST end
+  end
+  
+  local timeToKillRaid = context.fight_summary.predicted_time_to_kill_target_raid
+  if timeToKillRaid ~= math.huge and type(timeToKillRaid) == 'number' then 
+    if not __CheckMinMaxRequirements(self, 'TimeToKillRaid', timeToKillRaid) then return SuggestionResult.DO_NOT_SUGGEST end
+  end
   
   for i=1, #self.auras do 
     local aura = self.auras[i]

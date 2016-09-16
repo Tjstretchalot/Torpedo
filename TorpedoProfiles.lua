@@ -26,11 +26,11 @@ function TorpedoProfiles:NewSpecialization(name, spec_id)
   table.insert(self.specializations, Specs:New({name = name, specialization_id = spec_id}))
 end
 
-function TorpedoProfiles:BuildContext()
+function TorpedoProfiles:BuildContext(...)
   if not self.active_spec_index then return nil end
   
   local spec = self.specializations[self.active_spec_index]
-  return spec:BuildContext()
+  return spec:BuildContext(...)
 end
 
 function TorpedoProfiles:Serializable()

@@ -4,6 +4,7 @@
 ## Author: Tjstretchalot
 ## SavedVariablesPerCharacter: TorpedoDB_2
 ## Version: 1.5.10
+## OptionalDeps: Skada
 embed.xml
 
 Torpedo.lua

@@ -2,6 +2,7 @@ local Utils = LibStub:GetLibrary('TorpedoUtils-1.0')
 local Configs = LibStub:GetLibrary('TorpedoConfigs-1.0')
 local Context = LibStub:GetLibrary('TorpedoContext-1.0')
 local GUI = LibStub:GetLibrary('TorpedoGUI-1.0')
+local FightAnalyzer = LibStub:GetLibrary('TorpedoFightAnalyzer-1.0')
 
 local Torpedo = LibStub('AceAddon-3.0'):NewAddon('Torpedo', 'AceConsole-3.0', 'AceEvent-3.0', 'AceTimer-3.0')
 
@@ -52,6 +53,8 @@ function Torpedo:OnEnable()
   self:RegisterEvent('PLAYER_TARGET_CHANGED')
   self:RegisterEvent('PLAYER_TALENT_UPDATE')
   self:RegisterEvent('ACTIONBAR_SLOT_CHANGED')
+  self:RegisterEvent('COMBAT_LOG_EVENT_UNFILTERED')
+  self:RegisterEvent('PLAYER_REGEN_ENABLED')
   
   self:ScheduleRepeatingTimer('TimerTick', 0.05, self)
   
@@ -82,12 +85,16 @@ function Torpedo:UnitIsTarget(unitId)
 end
 
 function Torpedo:BuildContext()
-  return self.config:GetActiveProfile():BuildContext()
+  return self.config:GetActiveProfile():BuildContext(self.fightAnalyzer, self.TargetInfo)
 end
 
 -- Updating cache
 function Torpedo:UpdateSpecialization()
   self.myGuid = UnitGUID('player')
+  if self.fightAnalyzer then 
+    self.fightAnalyzer.myGuid = self.myGuid
+    self.fightAnalyzer:Clear()
+  end
   
   local specNum = GetSpecializationInfo(GetSpecialization())
   self.config:SetActiveSpecialization(specNum)
@@ -108,6 +115,10 @@ function Torpedo:BuildTargetInfo()
 end
 
 function Torpedo:UpdateTarget(considerHideGui)
+  if not self.fightAnalyzer then 
+    self.fightAnalyzer = FightAnalyzer:New({})
+    self.fightAnalyzer.myGuid = self.myGuid
+  end
   self.TargetInfo = self:BuildTargetInfo()
   
   if considerHideGui then
@@ -152,13 +163,23 @@ function Torpedo:ACTIONBAR_SLOT_CHANGED()
   self:UpdateEverything()
 end
 
+function Torpedo:PLAYER_REGEN_ENABLED()
+  self.fightAnalyzer:Clear()
+end
+
 function Torpedo:PLAYER_LOGOUT()
   self:Save()
 end
 
+function Torpedo:COMBAT_LOG_EVENT_UNFILTERED(...)
+  if self.fightAnalyzer then 
+    self.fightAnalyzer:CombatLogEventUnfiltered(...)
+  end
+end
+
 -- Main timer
 function Torpedo:TimerTick()
-  if not self.TargetInfo or not self.TargetInfo.exists or not self.TargetInfo.hostile then return end
+  if not self.TargetInfo or not self.TargetInfo.exists or not self.TargetInfo.hostile or self.TargetInfo.dead then return end
   
   local context = self:BuildContext()
   local primarySugg, primarySuggRes = self.config:GetSuggestion(context, true)

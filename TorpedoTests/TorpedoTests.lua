@@ -272,7 +272,9 @@ RunTestByName('Init context', function()
     health = 0,
     max_health = 0,
     stealthy = false,
-    combat = false
+    combat = false,
+    fight_summary = {},
+    target_info = {}
   })
   
   AssertType('table', context.auras)
@@ -306,7 +308,6 @@ RunTestByName('Init suggestion', function()
   
   local envenom = TestInitFunction(Suggestion, {spell = envenomSpell, primary = true})
 end)
-
 RunTestByName('Suggestion can handle buffs', function()
   local Spell = LibStub:GetLibrary('TorpedoSpells-1.0')
   local Aura = LibStub:GetLibrary('TorpedoAuras-1.0')
@@ -749,7 +750,9 @@ local function init_sugg_and_context()
     health = 0,
     max_health = 1000,
     stealthy = false,
-    combat = false
+    combat = false,
+    fight_summary = {},
+    target_info = {}
   })
   return envenomSugg, context
 end
@@ -787,6 +790,21 @@ RunTestByName('Suggestion checks energy requirement', function()
   context.power = 50
   meetsReq = envenomSugg:MeetsRequirements(context, true)
   AssertEqual(SuggestionResult.SUGGEST, meetsReq)
+  
+  envenomSugg, context = init_sugg_and_context()
+  envenomSugg.enabled = true
+  envenomSugg.checkEnergy = true
+  envenomSugg.hasMaxEnergy = true
+  envenomSugg.maxEnergy = 140
+  context.power = 159
+  context.max_power = 159
+  
+  meetsReq = envenomSugg:MeetsRequirements(context, true)
+  AssertEqual(SuggestionResult.DO_NOT_SUGGEST, meetsReq)
+  
+  context.power = 139
+  meetsReq = envenomSugg:MeetsRequirements(context, true)
+  AssertEqual(SuggestionResult.SUGGEST, meetsReq)
 end)
 
 RunTestByName('Suggestion can decide to pool based on context', function()
@@ -821,10 +839,10 @@ RunTestByName('Suggestion checks combo points requirement', function()
   local SuggestionResult = LibStub:GetLibrary('TorpedoSuggestionResult-1.0')
   local envenomSugg, context = init_sugg_and_context()
   envenomSugg.enabled = true
-  envenomSugg.checkComboPoints = true
   envenomSugg.hasMaxComboPoints = true
-  envenomSugg.maxComboPoints = 3
-  context.combo_points = 4
+  envenomSugg.checkComboPoints = true
+  envenomSugg.maxComboPoints = 2
+  context.combo_points = 3
   
   local meetsReq = envenomSugg:MeetsRequirements(context, true)
   AssertEqual(SuggestionResult.DO_NOT_SUGGEST, meetsReq)
@@ -1465,7 +1483,9 @@ RunTestByName('Specialization can decide on a primary spell based on context', f
     health = 0,
     max_health = 1000,
     stealthy = false,
-    combat = false
+    combat = false,
+    fight_summary = {},
+    target_info = {}
   })
   
   local desSugg, resultType = spec:GetSuggestion(context, true)
@@ -1685,7 +1705,9 @@ RunTestByName('Profile can decide on a primary spell based on context', function
     health = 0,
     max_health = 1000,
     stealthy = false,
-    combat = false
+    combat = false,
+    fight_summary = {},
+    target_info = {}
   })
   
   local desSugg, resultType = profile:GetSuggestion(context, true)
@@ -1930,7 +1952,9 @@ RunTestByName('Config can decide on a primary ability', function()
     health = 0,
     max_health = 1000,
     stealthy = false,
-    combat = false
+    combat = false,
+    fight_summary = {},
+    target_info = {}
   })
   
   local sugg, suggRes = config:GetSuggestion(context, true)
@@ -1992,6 +2016,21 @@ RunTestByName('Load default config', function()
   local unser = LibStub:GetLibrary('TorpedoConfigs-1.0'):Unserialize(TorpedoDefaultConfig)
   AssertNotNil(unser)
 end)
+
+RunTestByName('Load fight summary', function()
+  dofile('TorpedoFightSummary.lua')
+  
+  local TorpedoFightSummary = LibStub:GetLibrary('TorpedoFightSummary-1.0')
+  AssertNotNil(TorpedoFightSummary)
+end)
+
+RunTestByName('Load fight analyzer', function()
+  dofile('TorpedoFightAnalyzer.lua')
+  
+  local TorpedoFightAnalyzer = LibStub:GetLibrary('TorpedoFightAnalyzer-1.0')
+  AssertNotNil(TorpedoFightAnalyzer)
+end)
+
 
 RunTestByName('Load main', function()
   local aceAddon = LibStub:NewLibrary('AceAddon-3.0', 1)
