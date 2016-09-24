@@ -17,6 +17,9 @@
   <Script file="TorpedoAuras.lua"/>
   <Script file="TorpedoContext.lua"/>
   <Script file="TorpedoSuggestionResult.lua"/>
+  <Script file="TorpedoTimestampTristate.lua"/>
+  <Script file="TorpedoSpellContextOptions.lua"/>
+  <Script file="TorpedoContextDecider.lua"/>
   <Script file="TorpedoSuggestions.lua"/>
   <Script file="TorpedoSkills.lua"/>
   <Script file="TorpedoFightSummary.lua"/>

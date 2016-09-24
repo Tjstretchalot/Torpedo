@@ -227,3 +227,40 @@ TorpedoConstants.ADD_NEW_AURA_MAXDURATION_DESC = 'Maximum duration in seconds. S
 
 TorpedoConstants.ADD_NEW_AURA_EXECUTE_NAME = 'Add new aura'
 TorpedoConstants.ADD_NEW_AURA_EXECUTE_DESC = 'Attempt to add this aura to this specializations list of auras'
+
+TorpedoConstants.SPELL_CONTEXT_CHECK_ENABLED_NAME = 'Check context surrounding {spell_name}'
+TorpedoConstants.SPELL_CONTEXT_CHECK_ENABLED_DESC = 'Advanced Feature. Examine what was happening the last time we casted {spell_name} while targetting our current target.'
+
+TorpedoConstants.REQUIRE_STEALTHED_IN_CONTEXT_DESC = 'Ensure that when we last cast {spell_name} on our current target, we were stealthed.'
+
+TorpedoConstants.REQUIRE_NOT_STEALTHED_IN_CONTEXT_DESC = 'Ensure that when we last cast {spell_name} on our current target, we were not stealthed.'
+
+TorpedoConstants.COMBO_POINTS_IN_CONTEXT_CHECK_DESC = 'Ensure that when we last cast {spell_name} on our current target, we had a certain amount of combo points.'
+TorpedoConstants.COMBO_POINTS_IN_CONTEXT_HAVE_MIN_DESC = 'Ensure we had atleast a certain number of combo points when we last cast {spell_name} on our current target.'
+TorpedoConstants.COMBO_POINTS_IN_CONTEXT_MIN_DESC = 'Required minimum number of combo points when we last cast {spell_name} on our current target.'
+TorpedoConstants.COMBO_POINTS_IN_CONTEXT_HAVE_MAX_DESC = 'Ensure we had at most a certain number of combo points when we last cast {spell_name} on our current target.'
+TorpedoConstants.COMBO_POINTS_IN_CONTEXT_MAX_DESC = 'Required maximum number of combo points when we last cast {spell_name} on our current target.'
+
+TorpedoConstants.TIMESTAMP_COMPARED_TO_DESC = 'Compare the time that {spell_name} was cast to when {cooldown_name} was cast. For example, when set to used before, it\'s read "{spell_name} was used before {cooldown_name}"'
+
+TorpedoConstants.SPELL_CONTEXT_AURA_DURATION_MIN = 0
+TorpedoConstants.SPELL_CONTEXT_AURA_DURATION_SOFTMIN = 0
+TorpedoConstants.SPELL_CONTEXT_AURA_DURATION_STEP = 0.05
+TorpedoConstants.SPELL_CONTEXT_AURA_DURATION_BIGSTEP = 1
+TorpedoConstants.SPELL_CONTEXT_AURA_DURATION_CHECK_DESC = 'Check how much time was left on {aura_name}\'s duration.'
+TorpedoConstants.SPELL_CONTEXT_AURA_DURATION_HAVE_MINIMUM_DESC = 'Make sure we had atleast a certain amount of time remaining on {aura_name}\'s duration.'
+TorpedoConstants.SPELL_CONTEXT_AURA_DURATION_MINIMUM_DESC = 'Minimum amount of time that had to be remaining on {aura_name}\'s duration.'
+TorpedoConstants.SPELL_CONTEXT_AURA_DURATION_HAVE_MAXIMUM_DESC = 'Make sure we had less than a certain amount of time remaining on {aura_name}\'s duration.'
+TorpedoConstants.SPELL_CONTEXT_AURA_DURATION_MAXIMUM_DESC = 'Maximum amount of time had to be  remaining on {aura_name}\'s duration.'
+
+TorpedoConstants.SPELL_CONTEXT_TIME_SINCE_CAST_MIN = 0
+TorpedoConstants.SPELL_CONTEXT_TIME_SINCE_CAST_SOFTMIN = 0
+TorpedoConstants.SPELL_CONTEXT_TIME_SINCE_CAST_MAX = math.huge
+TorpedoConstants.SPELL_CONTEXT_TIME_SINCE_CAST_SOFTMAX = 1800
+TorpedoConstants.SPELL_CONTEXT_TIME_SINCE_CAST_STEP = 0.05
+TorpedoConstants.SPELL_CONTEXT_TIME_SINCE_CAST_BIGSTEP = 1
+TorpedoConstants.SPELL_CONTEXT_TIME_SINCE_CAST_CHECK_DESC = 'Check how long ago, in seconds, we cast {spell_name}.'
+TorpedoConstants.SPELL_CONTEXT_TIME_SINCE_CAST_HAVE_MINIMUM_DESC = 'Make sure we cast {spell_name} at least a certain amount of time ago.'
+TorpedoConstants.SPELL_CONTEXT_TIME_SINCE_CAST_MINIMUM_DESC = 'Minimum amount of time since we cast {spell_name}.'
+TorpedoConstants.SPELL_CONTEXT_TIME_SINCE_CAST_HAVE_MAXIMUM_DESC = 'Make sure we cast {spell_name} at most a certain amount of time ago.'
+TorpedoConstants.SPELL_CONTEXT_TIME_SINCE_CAST_MAXIMUM_DESC = 'Maximum amount of time since we cast {spell_name}.'

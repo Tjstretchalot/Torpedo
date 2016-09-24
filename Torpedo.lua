@@ -122,7 +122,8 @@ function Torpedo:UpdateTarget(considerHideGui)
   self.TargetInfo = self:BuildTargetInfo()
   
   if considerHideGui then
-    if not self.TargetInfo.hostile or self.TargetInfo.dead then 
+    if not self.TargetInfo.exists or not self.TargetInfo.hostile or self.TargetInfo.dead then 
+      self.fightAnalyzer.CurrentContext = self:BuildContext()
       self.gui:Hide()
     end
   end
@@ -160,7 +161,7 @@ function Torpedo:PLAYER_TALENT_UPDATE()
 end
 
 function Torpedo:ACTIONBAR_SLOT_CHANGED()
-  self:UpdateEverything()
+  self.gui:UpdateGlows()
 end
 
 function Torpedo:PLAYER_REGEN_ENABLED()

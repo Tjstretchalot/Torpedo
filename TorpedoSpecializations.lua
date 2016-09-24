@@ -593,6 +593,57 @@ function TorpedoSpecializations:BuildContext(fightAnalyzer, targetInfo)
     target = {}
   }
   
+  -- Update fight analyzer monitor spells
+  -- This isn't as bad as it looks; theres usually only 0-2 monitor spells, so these 
+  -- inner loops are very short. Furthermore, theres never going to be more than perhaps
+  -- 15 skills with 2 suggestions each. And that would be a super fancy spec.
+  -- It is possible to make this run only once if we do a similiar thing to cooldowns 
+  -- and auras however, if that shows to be necessary
+  local expectedCacheSpells = {}
+  for i=1, #self.skills do 
+    local skill = self.skills[i]
+    
+    for j=1, #skill.suggestions do 
+      local sugg = skill.suggestions[j]
+      
+      for k=1, #sugg.cache_spells do 
+        local cs = sugg.cache_spells[k]
+        if cs.enabled then 
+          local found = false
+          for m=1, #expectedCacheSpells do 
+            local ecs = expectedCacheSpells[m]
+            if ecs.spell_id == cs.spell.spell_id then 
+              found = true
+              break
+            end
+          end
+          if not found then 
+            expectedCacheSpells[#expectedCacheSpells + 1] = cs.spell
+          end
+        end
+      end
+    end
+  end
+  local matchesAnalyzer = true
+  if #expectedCacheSpells ~= #fightAnalyzer.MonitorSpells then 
+    matchesAnalyzer = false
+  else
+    -- This check is order-dependent, so that future checks are O(n) time rather than always being O(n^2)
+    for i=1, #expectedCacheSpells do 
+       local ecs = expectedCacheSpells[i]
+       local fams = fightAnalyzer.MonitorSpells[i]
+       
+       if ecs.spell_id ~= fams.spell_id then 
+         matchesAnalyzer = false
+         break
+       end
+    end
+  end
+  if not matchesAnalyzer then 
+    fightAnalyzer:SetSpellsToMonitor(expectedCacheSpells)
+  end
+  
+  
   local c=1, auraName, count, duration, expirationTime, unitCaster, spellId
   while true do 
     auraName, _, _, count, _, duration, expirationTime, unitCaster, _, _, spellId = UnitBuff('player', c)

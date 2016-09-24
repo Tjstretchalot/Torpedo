@@ -70,6 +70,8 @@ function TorpedoOptionsBuilder:LogicalNorAggregateFunction(...)
       parsedThings[i] = { name = things[i], compare_with = true }
     elseif type(things[i]) == 'table' then
       parsedThings[i] = things[i]
+    elseif type(things[i]) == 'function' then 
+      parsedThings[i] = things[i]
     else
       error('Weird type: ' .. type(things[i]), 2)
     end
@@ -77,7 +79,8 @@ function TorpedoOptionsBuilder:LogicalNorAggregateFunction(...)
   
   return function()
     for i = 1, #parsedThings do 
-      if cacheConfig[parsedThings[i].name] ~= parsedThings[i].compare_with then 
+      if type(parsedThings[i]) == 'function' and parsedThings[i]() then return true end
+      if type(parsedThings[i]) == 'table' and cacheConfig[parsedThings[i].name] ~= parsedThings[i].compare_with then 
         return true
       end
     end

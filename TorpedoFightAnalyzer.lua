@@ -35,7 +35,7 @@ function TorpedoFightAnalyzer:__Init()
   self.MonitorSpells = {}
   self.myGuid = UnitGUID('player')
   
-  
+  --print('__Init called - spells with context captured cleared')
   self.SpellsWithContextCaptured = {}
 end
 
@@ -60,6 +60,7 @@ end
 function TorpedoFightAnalyzer:SetSpellsToMonitor(monitorSpells)
   self.SpellsWithContextCaptured = {}
   self.MonitorSpells = monitorSpells
+  -- print('Set spells to monitor called - spells with context captured cleared')
 end
 
 function TorpedoFightAnalyzer:ShouldMonitor(spellId)
@@ -81,19 +82,19 @@ function TorpedoFightAnalyzer:Clear()
 end
 
 function TorpedoFightAnalyzer:CombatLogEventUnfiltered(evName, the_time, eventType, hideCaster, srcGuid, srcName, srcFlags1, srcFlags2, dstGuid, dstName, destFlags1, destFlags2, spellId)
-  if #self.MonitorSpells > 0 and self.CurrentContext and self.myGuid == srcGuid and eventType == 'SPELL_CAST_SUCCESS' then
+  if #self.MonitorSpells > 0 and self.CurrentContext and self.myGuid == srcGuid and eventType == 'SPELL_CAST_SUCCESS' and self.CurrentContext.target_info.exists then
     local relSpell = self:ShouldMonitor(spellId)
     if relSpell then 
       local index = #self.SpellsWithContextCaptured + 1 
       for i=1, #self.SpellsWithContextCaptured do 
         local sCCap = self.SpellsWithContextCaptured[i]
         
-        if sCCap.spellId == spellId then
+        if sCCap.spellId == spellId and sCCap.context.target_info.guid == self.CurrentContext.target_info.guid then
           index = i
           break
         end
       end
-      
+      --print('Monitoring spell ' .. tostring(spellId) .. ' at index ' .. tostring(index))
       self.SpellsWithContextCaptured[index] = { 
         context = self.CurrentContext, 
         spellId = spellId, 
@@ -190,12 +191,6 @@ function TorpedoFightAnalyzer:Analyze()
     predicted_time_to_kill_target_solo = predicted_time_to_kill_target_solo,
     predicted_time_to_kill_target_raid = predicted_time_to_kill_target_raid
   })
-  
-  --print('Fight summary: ')
-  --print(' #self.EnemyGUIDS = ' .. tostring(#self.EnemyGUIDS))
-  --for key, val in pairs(res) do 
-    --print(' ' .. key .. ' = ' .. tostring(val))
-  --end
   
   return res
 end

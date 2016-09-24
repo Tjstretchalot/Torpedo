@@ -22,3 +22,14 @@ function TorpedoUtils:CheckTypes(expected, actual)
     error(errorStr)
   end
 end
+
+function TorpedoUtils:tcopy(arr)
+  local res = {}
+  for k,v in pairs(arr) do 
+    if type(v) == 'table' then 
+      res[k] = self:tcopy(v)
+    else
+      res[k] = v
+    end
+  end
+end

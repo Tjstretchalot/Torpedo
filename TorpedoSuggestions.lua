@@ -4,6 +4,8 @@ local Constants = LibStub:GetLibrary('TorpedoConstants-1.0')
 local Auras = LibStub:GetLibrary('TorpedoAuras-1.0')
 local Spells = LibStub:GetLibrary('TorpedoSpells-1.0')
 local SuggestionResult = LibStub:GetLibrary('TorpedoSuggestionResult-1.0')
+local ContextDecider = LibStub:GetLibrary('TorpedoContextDecider-1.0')
+local SpellContextOptions = LibStub:GetLibrary('TorpedoSpellContextOptions-1.0')
 
 local MAJOR, MINOR = 'TorpedoSuggestions-1.0', 1
 local TorpedoSuggestions = LibStub:NewLibrary(MAJOR, MINOR)
@@ -21,22 +23,45 @@ function TorpedoSuggestions:New(o)
 end
 
 local function __AddMinMaxOptions(self, name)
-  self['check' .. name] = false
-  self['hasMin' .. name] = false
-  self['min' .. name] = 0
-  self['hasMax' .. name] = false
-  self['max' .. name] = 0
+  if self['check' .. name] == nil then self['check' .. name] = false end
+  if self['hasMin' .. name] == nil then self['hasMin' .. name] = false end
+  if self['min' .. name] == nil then self['min' .. name] = 0 end
+  if self['hasMax' .. name] == nil then self['hasMax' .. name] = false end 
+  if self['max' .. name] == nil then self['max' .. name] = 0 end
 end
 
 function TorpedoSuggestions:__Init()
   self.auras = self.auras or {}
   self.cooldowns = self.cooldowns or {}
   
-  self.enabled = self.enabled or false
-  self.priority = self.priority or Constants.PRIORITY_DEFAULT
-  self.poolEnergyIfLow = false
-  self.require_stealthed = false
-  self.require_not_stealthed = false
+  --[[
+   Spells for which we request that the fight analyzer cache, and what 
+   we check about those spells. For example, if we want to check if Rupture
+   was active when Exsanguinate was last used and that Rupture has not been
+   used since, we could use something like the following, but with Serializable,
+   Unserialize, RebuildAuras, and RebuildCooldowns functions:
+   self.cache_spells = {
+     { -- checks Exsanguinate 
+       spell = Spells:New({spell_id = exsanguinate_spell_id, ...})
+       checkDurationOfRupture = true,
+       hasMinDurationOfRupture = true,
+       minDurationOfRupture = 0
+     }, 
+     { -- checks Rupture hasn't been used since exsanguinate
+       spell = Spells:New({spell_id = rupture_spell_id, ...}),
+       checkTimestampComparedToExsanguinate = TimestampTristate.USED_BEFORE.debug_value
+     }
+   }
+   
+   These actually end up being backed by TorpedoSpellContextOptions to simplify things
+  ]]
+  self.cache_spells = self.cache_spells or {}
+  
+  if self.enabled == nil then self.enabled = false end
+  if self.priority == nil then self.priority = Constants.PRIORITY_DEFAULT end
+  if self.poolEnergyIfLow == nil then self.poolEnergyIfLow = false end
+  if self.require_stealthed == nil then self.require_stealthed = false end
+  if self.require_not_stealthed == nil then self.require_not_stealthed = false end
   __AddMinMaxOptions(self, 'Energy')
   __AddMinMaxOptions(self, 'ComboPoints')
   __AddMinMaxOptions(self, 'HealthPerc')
@@ -47,6 +72,12 @@ end
 function TorpedoSuggestions:RegisterAura(aura)
   __AddMinMaxOptions(self, 'DurationOf' .. aura.debugName)
   table.insert(self.auras, aura)
+  
+  
+  for i=1, #self.cache_spells do 
+    local spellContextOption = self.cache_spells[i]
+    spellContextOption:RebuildAuras()
+  end
 end
 
 function TorpedoSuggestions:RegisterCooldown(spell)
@@ -60,6 +91,14 @@ function TorpedoSuggestions:RegisterCooldown(spell)
   if spell.charges then 
     __AddMinMaxOptions(self, 'ChargesFor' .. spell.debugName)
   end
+  
+  for i=1, #self.cache_spells do 
+    local spellContextOption = self.cache_spells[i]
+    spellContextOption:RebuildCooldowns()
+  end
+  
+  local newSCO = SpellContextOptions:New({spell = spell, suggestion = self})
+  table.insert(self.cache_spells, newSCO)
 end
 
 function TorpedoSuggestions:Validator(config, varName, val)
@@ -166,78 +205,47 @@ function TorpedoSuggestions:CreateOptions(optionName, order, rebuild_opt_func, r
     end
   end
   
+  -- Add optional context checking for each cooldown. Done at the bottom because
+  -- this feature is incredibly complex compared to everything else
+  for i=1, #self.cache_spells do 
+    local spellContextOptions = self.cache_spells[i]
+    local nameLower = string.lower(spellContextOptions.spell.name)
+    -- add a checkbox
+    result:AddCustom({
+      type = 'toggle',
+      name = string.gsub(Constants.SPELL_CONTEXT_CHECK_ENABLED_NAME, '{spell_name}', nameLower),
+      desc = string.gsub(Constants.SPELL_CONTEXT_CHECK_ENABLED_DESC, '{spell_name}', nameLower),
+      get = function() return spellContextOptions.enabled end,
+      set = function(info, val) spellContextOptions.enabled = val end
+    })
+    
+    -- then add the group
+    result:Nest(function() return not spellContextOptions.enabled end, true, true)
+    local res = spellContextOptions:BuildOptions()
+    res.inline = true
+    res.name = 'Context requirements around ' .. nameLower
+    result:AddCustom(res)
+    result:Unnest() 
+  end
   result = result:Unnest()
   result = result:Build()  
   result.name = optionName
   return result
 end
 
-local function __CheckMinMaxRequirements(self, name, val)
-  local check = self['check' .. name]
-  local hasMin = self['hasMin' .. name]
-  local min = self['min' .. name]
-  local hasMax = self['hasMax' .. name]
-  local max = self['max' .. name]
-  
-  if check then 
-    if hasMin then 
-      if val < min then return nil end
-    end
-    if hasMax then 
-      if val > max then return false end
-    end
-  end
-  return true
-end
-
-function TorpedoSuggestions:CheckStealthy(context)
-  return context.stealthy
-end
-
 function TorpedoSuggestions:MeetsRequirements(context, primary)
-  if self.primary ~= primary then return SuggestionResult.DO_NOT_SUGGEST end
-  if not self.enabled then return SuggestionResult.DO_NOT_SUGGEST end
+  if primary ~= self.primary then return SuggestionResult.DO_NOT_SUGGEST end
   
-  local stealthed = self:CheckStealthy(context)
-  if self.require_stealthed and not stealthed then return SuggestionResult.DO_NOT_SUGGEST end
-  if self.require_not_stealthed and stealthed then return SuggestionResult.DO_NOT_SUGGEST end
-  
-  if self.require_combat and not context.combat then return SuggestionResult.DO_NOT_SUGGEST end
-  if self.require_no_combat and context.combat then return SuggestionResult.DO_NOT_SUGGEST end
-  
-  if not __CheckMinMaxRequirements(self, 'ComboPoints', context.combo_points) then return SuggestionResult.DO_NOT_SUGGEST end
-  
-  local healthPerc = (context.health / context.max_health) * 100
-  if not __CheckMinMaxRequirements(self, 'HealthPerc', healthPerc) then return SuggestionResult.DO_NOT_SUGGEST end
-  
-  local timeToKillSolo = context.fight_summary.predicted_time_to_kill_target_solo
-  if timeToKillSolo ~= math.huge and type(timeToKillSolo) == 'number' then 
-    if not __CheckMinMaxRequirements(self, 'TimeToKillSolo', timeToKillSolo) then return SuggestionResult.DO_NOT_SUGGEST end
-  end
-  
-  local timeToKillRaid = context.fight_summary.predicted_time_to_kill_target_raid
-  if timeToKillRaid ~= math.huge and type(timeToKillRaid) == 'number' then 
-    if not __CheckMinMaxRequirements(self, 'TimeToKillRaid', timeToKillRaid) then return SuggestionResult.DO_NOT_SUGGEST end
-  end
-  
-  for i=1, #self.auras do 
-    local aura = self.auras[i]
-    if not __CheckMinMaxRequirements(self, 'DurationOf' .. aura.debugName, aura:TimeRemaining(context)) then return SuggestionResult.DO_NOT_SUGGEST end
-  end
-  
-  for i=1, #self.cooldowns do 
-    local cooldown = self.cooldowns[i]
-    if not __CheckMinMaxRequirements(self, 'CooldownFor' .. cooldown.debugName, cooldown:TimeRemaining(context)) then return SuggestionResult.DO_NOT_SUGGEST end
-    
-    if cooldown.charges then 
-      if not __CheckMinMaxRequirements(self, 'ChargesFor' .. cooldown.debugName, cooldown:NumberOfCharges(context)) then return SuggestionResult.DO_NOT_SUGGEST end
+  local result = {ContextDecider:Decide(self, context)}
+  if not result[1] then 
+    -- print('Suggestion failed: ' .. tostring(result[2]) .. ' (' .. tostring(result[3]) .. '=' .. tostring(result[4]) .. ')')
+    if result[2] == ContextDecider.FAIL_REASON.MIN_FAILED and result[3] == 'Energy' and self.poolEnergyIfLow then 
+      return SuggestionResult.POOL_ENERGY
     end
+    
+    return SuggestionResult.DO_NOT_SUGGEST
   end
   
-  
-  local energyRes =  __CheckMinMaxRequirements(self, 'Energy', context.power)
-  if energyRes == nil and self.poolEnergyIfLow then return SuggestionResult.POOL_ENERGY
-  elseif not energyRes then return SuggestionResult.DO_NOT_SUGGEST end
   return SuggestionResult.SUGGEST
 end
 
@@ -257,7 +265,15 @@ function TorpedoSuggestions:Serializable()
       for i=1, #val do 
         table.insert(res.cooldowns, val[i]:Serializable())
       end
-    elseif type(val) ~= 'function' and type(val) ~= 'userdata' and type(val) ~= 'thread' and type(val) ~= 'table' then 
+    elseif key == 'cache_spells' then
+      res.cache_spells = {}
+      for i=1, #val do 
+        res.cache_spells[i] = val[i]:Serializable()
+      end
+    elseif type(val) == 'table' then
+      -- deep copy 
+      res[key] = Utils:tcopy(val)
+    elseif type(val) ~= 'function' and type(val) ~= 'userdata' and type(val) ~= 'thread' then 
       res[key] = val
     end
   end
@@ -275,6 +291,11 @@ function TorpedoSuggestions:Unserialize(ser)
   for key, val in pairs(ser) do 
     if key == 'spell' then 
     elseif key == 'primary' then 
+    elseif key == 'cache_spells' then
+      res.cache_spells = {}
+      for i=1, #val do 
+        res.cache_spells[i] = SpellContextOptions:Unserialize(val[i])
+      end
     elseif key == 'auras' then 
       res.auras = {}
       for i=1, #val do 
@@ -290,5 +311,9 @@ function TorpedoSuggestions:Unserialize(ser)
     end
   end
   
+  for i=1, #res.cache_spells do 
+    res.cache_spells[i].suggestion = res
+    res.cache_spells[i]:Init()
+  end
   return res
 end

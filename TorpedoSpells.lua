@@ -10,7 +10,7 @@ function TorpedoSpells:New(o)
   if type(o.icon_id) ~= 'number' and type(o.icon_id) ~= 'string' then 
     error('Expected o.icon_id to be a number or a string, but it is ' .. type(o.icon_id), 2)
   end
-  
+   -- Also cooldown, charges
   setmetatable(o, self)
   self.__index = self
   return o
@@ -30,7 +30,7 @@ end
 function TorpedoSpells:TimeRemaining(context)
   local info = self:Info(context)
   if not info then 
-    error('No cooldown information for me (name=' .. tostring(self.name) .. ', spell_id=' .. tostring(self.spell_id) .. ')', 2)
+    return nil
   end
   
   local result = info.start + info.duration - context.timestamp
@@ -41,7 +41,7 @@ end
 function TorpedoSpells:NumberOfCharges(context)
   local info = self:Info(context)
   if not info or not info.chargeInfo then
-    error('No charges information for me (name=' .. tostring(self.name) .. ', spell_id=' .. tostring(self.spell_id) .. ')', 2)
+    return nil
   end
   
   return info.chargeInfo.charges
