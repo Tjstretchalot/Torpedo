@@ -730,6 +730,11 @@ function TorpedoSpecializations:BuildContext(fightAnalyzer, targetInfo)
   tmp_context.fight_summary = fightAnalyzer:Analyze()
   tmp_context.target_info = targetInfo
   
+  tmp_context.group_size = GetNumGroupMembers()
+  local inInstance, instanceType = IsInInstance()
+  tmp_context.in_instance = inInstance
+  tmp_context.boss_fight = IsEncounterInProgress()
+  
   local result = Context:New(tmp_context)
   
   fightAnalyzer:SetCurrentContext(result)

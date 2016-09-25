@@ -264,3 +264,21 @@ TorpedoConstants.SPELL_CONTEXT_TIME_SINCE_CAST_HAVE_MINIMUM_DESC = 'Make sure we
 TorpedoConstants.SPELL_CONTEXT_TIME_SINCE_CAST_MINIMUM_DESC = 'Minimum amount of time since we cast {spell_name}.'
 TorpedoConstants.SPELL_CONTEXT_TIME_SINCE_CAST_HAVE_MAXIMUM_DESC = 'Make sure we cast {spell_name} at most a certain amount of time ago.'
 TorpedoConstants.SPELL_CONTEXT_TIME_SINCE_CAST_MAXIMUM_DESC = 'Maximum amount of time since we cast {spell_name}.'
+
+TorpedoConstants.REQUIRE_BOSS_FIGHT_DESC = 'Only use during an encounter (boss fight).'
+TorpedoConstants.REQUIRE_NO_BOSS_FIGHT_DESC = 'Don\'t use during an encounter (boss fight).'
+
+TorpedoConstants.REQUIRE_INSTANCE_DESC = 'Only use while inside of an instance.'
+TorpedoConstants.REQUIRE_NO_INSTANCE_DESC = 'Don\'t use while inside of an instance.'
+
+TorpedoConstants.GROUP_SIZE_CHECK_DESC = 'Check how big our group is for this suggestion. No party is a group size of 0, a party with one additional person is a group size of 2.'
+TorpedoConstants.GROUP_SIZE_HAVE_MINIMUM_DESC = 'Do we have a minimum group size for this suggestion?'
+TorpedoConstants.GROUP_SIZE_MINIMUM_DESC = 'Minimum size of the group. Use 2 for in a party.'
+TorpedoConstants.GROUP_SIZE_HAVE_MAXIMUM_DESC = 'Do we have a maximum group size for this suggestion?'
+TorpedoConstants.GROUP_SIZE_MAXIMUM_DESC = 'Maximum size of the group. Use 0 for ungrouped.'
+TorpedoConstants.GROUP_SIZE_MIN = 0
+TorpedoConstants.GROUP_SIZE_MAX = 40
+TorpedoConstants.GROUP_SIZE_SOFTMIN = 0
+TorpedoConstants.GROUP_SIZE_SOFTMAX = 40
+TorpedoConstants.GROUP_SIZE_STEP = 1
+TorpedoConstants.GROUP_SIZE_BIGSTEP = 1

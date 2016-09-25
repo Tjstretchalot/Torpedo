@@ -62,6 +62,11 @@ function TorpedoSuggestions:__Init()
   if self.poolEnergyIfLow == nil then self.poolEnergyIfLow = false end
   if self.require_stealthed == nil then self.require_stealthed = false end
   if self.require_not_stealthed == nil then self.require_not_stealthed = false end
+  if self.require_boss_fight == nil then self.require_boss_fight = false end
+  if self.require_not_boss_fight == nil then self.require_not_boss_fight = false end
+  if self.require_instance == nil then self.require_instance = false end
+  if self.require_not_instance == nil then self.require_not_instance = false end
+  __AddMinMaxOptions(self, 'GroupSize')
   __AddMinMaxOptions(self, 'Energy')
   __AddMinMaxOptions(self, 'ComboPoints')
   __AddMinMaxOptions(self, 'HealthPerc')
@@ -99,6 +104,26 @@ function TorpedoSuggestions:RegisterCooldown(spell)
   
   local newSCO = SpellContextOptions:New({spell = spell, suggestion = self})
   table.insert(self.cache_spells, newSCO)
+end
+
+function TorpedoSuggestions:EnsureSpellContextConsistency()
+  for i=1, #self.cooldowns do 
+    local cd = self.cooldowns[i]
+    local found = false
+    for j=1, #self.cache_spells do 
+      local cs = self.cache_spells[j]
+      
+      if cd.spell_id == cs.spell.spell_id then 
+        found = true
+        break
+      end
+    end
+    
+    if not found then 
+      local newSCO = SpellContextOptions:New({spell = cd, suggestion = self})
+      table.insert(self.cache_spells, newSCO)
+    end
+  end
 end
 
 function TorpedoSuggestions:Validator(config, varName, val)
@@ -204,6 +229,17 @@ function TorpedoSuggestions:CreateOptions(optionName, order, rebuild_opt_func, r
         aura.max_duration, Constants.AURA_DURATION_STEP, Constants.AURA_DURATION_BIGSTEP)
     end
   end
+  
+  -- Add some niche options here
+  result:AddToggle('require_boss_fight', 'Require boss fight', Constants.REQUIRE_BOSS_FIGHT_DESC)
+  :AddToggle('require_not_boss_fight', 'Require no boss fight', Constants.REQUIRE_NO_BOSS_FIGHT_DESC)
+  :AddToggle('require_instance', 'Require instance', Constants.REQUIRE_INSTANCE_DESC)
+  :AddToggle('require_not_instance', 'Require not in instance', Constants.REQUIRE_NO_INSTANCE_DESC)
+  :AddMinMaxCheck('GroupSize', 'Group Size', Constants.GROUP_SIZE_CHECK_DESC, 
+    Constants.GROUP_SIZE_HAVE_MINIMUM_DESC, Constants.GROUP_SIZE_MINIMUM_DESC, 
+    Constants.GROUP_SIZE_HAVE_MAXIMUM_DESC, Constants.GROUP_SIZE_MAXIMUM_DESC,
+    Constants.GROUP_SIZE_MIN, Constants.GROUP_SIZE_MAX, Constants.GROUP_SIZE_SOFTMIN,
+    Constants.GROUP_SIZE_SOFTMAX, Constants.GROUP_SIZE_STEP, Constants.GROUP_SIZE_BIGSTEP)
   
   -- Add optional context checking for each cooldown. Done at the bottom because
   -- this feature is incredibly complex compared to everything else
@@ -315,5 +351,7 @@ function TorpedoSuggestions:Unserialize(ser)
     res.cache_spells[i].suggestion = res
     res.cache_spells[i]:Init()
   end
+  
+  res:EnsureSpellContextConsistency()
   return res
 end

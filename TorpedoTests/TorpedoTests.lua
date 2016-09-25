@@ -302,7 +302,10 @@ RunTestByName('Init context', function()
     stealthy = false,
     combat = false,
     fight_summary = {},
-    target_info = {}
+    target_info = {}, 
+    group_size = 0, 
+    in_instance = false,
+    boss_fight = false
   })
   
   AssertType('table', context.auras)
@@ -788,7 +791,10 @@ local function init_sugg_and_context()
       predicted_time_to_kill_target_solo = 30,
       predicted_time_to_kill_target_raid = 30
     }),
-    target_info = {}
+    target_info = {}, 
+    group_size = 0, 
+    in_instance = false,
+    boss_fight = false
   })
   return envenomSugg, context
 end
@@ -1521,7 +1527,13 @@ RunTestByName('Specialization can decide on a primary spell based on context', f
     stealthy = false,
     combat = false,
     fight_summary = {},
-    target_info = {}
+    target_info = {}, 
+    group_size = 0, 
+    in_instance = false,
+    boss_fight = false, 
+    group_size = 0, 
+    in_instance = false,
+    boss_fight = false
   })
   
   local desSugg, resultType = spec:GetSuggestion(context, true)
@@ -1751,7 +1763,10 @@ RunTestByName('Profile can decide on a primary spell based on context', function
       predicted_time_to_kill_target_solo = 5,
       predicted_time_to_kill_target_raid = 5
     }),
-    target_info = {}
+    target_info = {}, 
+    group_size = 0, 
+    in_instance = false,
+    boss_fight = false
   })
   
   local desSugg, resultType = profile:GetSuggestion(context, true)
@@ -1998,7 +2013,10 @@ RunTestByName('Config can decide on a primary ability', function()
     stealthy = false,
     combat = false,
     fight_summary = {},
-    target_info = {}
+    target_info = {}, 
+    group_size = 0, 
+    in_instance = false,
+    boss_fight = false
   })
   
   local sugg, suggRes = config:GetSuggestion(context, true)

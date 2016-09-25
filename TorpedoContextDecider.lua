@@ -22,6 +22,10 @@ TorpedoContextDecider.FAIL_REASON = {
   NOT_STEALTHED_REQUIRED = 'Not stealth required but stealthed.',
   COMBAT_REQUIRED = 'Combat required but not in combat.',
   NO_COMBAT_REQUIRED = 'Not in combat required but in combat.',
+  BOSS_FIGHT_REQUIRED = 'Boss fight required but not in a boss fight',
+  NO_BOSS_FIGHT_REQUIRED = 'Not in a boss fight required but in a boss fight.',
+  INSTANCE_REQUIRED = 'In an instance required but not in an instance',
+  NO_INSTANCE_REQUIRED = 'Not in an instance required but in an instance',
   
   -- Min/max checks; these return something like:
   -- return false, FAIL_REASON.MIN_FAILED, 'ComboPoints'
@@ -59,6 +63,34 @@ function TorpedoContextDecider:MeetsReqs_NoCombatRequired(requirements, context,
   
   if context == nil then return false end
   return context.combat == false 
+end
+
+function TorpedoContextDecider:MeetsReqs_BossFightRequired(requirements, context, optCompareContext)
+  if not requirements.require_boss_fight then return true end
+  
+  if context == nil then return false end
+  return context.boss_fight == true
+end
+
+function TorpedoContextDecider:MeetsReqs_NoBossFightRequired(requirements, context, optCompareContext)
+  if not requirements.require_not_boss_fight then return true end
+  
+  if context == nil then return false end
+  return context.boss_fight == false
+end
+
+function TorpedoContextDecider:MeetsReqs_InstanceRequired(requirements, context, optCompareContext)
+  if not requirements.require_instance then return true end
+  
+  if context == nil then return false end
+  return context.in_instance == true
+end
+
+function TorpedoContextDecider:MeetsReqs_NoInstanceRequired(requirements, context, optCompareContext)
+  if not requirements.require_not_instance then return true end
+  
+  if context == nil then return false end
+  return context.in_instance == false
 end
 
 function TorpedoContextDecider:MeetsReqs_MinCheck(name, val, requirements, context, optCompareContext) 
@@ -104,7 +136,18 @@ function TorpedoContextDecider:Decide(requirements, context, optCompareContext)
   if not self:MeetsReqs_NoCombatRequired(requirements, context, optCompareContext) then 
     return false, self.FAIL_REASON.NO_COMBAT_REQUIRED
   end
-  
+  if not self:MeetsReqs_BossFightRequired(requirements, context, optCompareContext) then 
+    return false, self.FAIL_REASON.BOSS_FIGHT_REQUIRED
+  end
+  if not self:MeetsReqs_NoBossFightRequired(requirements, context, optCompareContext) then 
+    return false, self.FAIL_REASON.NO_BOSS_FIGHT_REQUIRED
+  end
+  if not self:MeetsReqs_InstanceRequired(requirements, context, optCompareContext) then 
+    return false, self.FAIL_REASON.INSTANCE_REQUIRED
+  end
+  if not self:MeetsReqs_NoInstanceRequired(requirements, context, optCompareContext) then 
+    return false, self.FAIL_REASON.NO_INSTANCE_REQUIRED
+  end
   local combo_points = nil
   if context ~= nil then 
     combo_points = context.combo_points
@@ -114,17 +157,6 @@ function TorpedoContextDecider:Decide(requirements, context, optCompareContext)
   end
   if not self:MeetsReqs_MaxCheck('ComboPoints', combo_points, requirements, context, optCompareContext) then 
     return false, self.FAIL_REASON.MAX_FAILED, 'ComboPoints', combo_points
-  end
-  
-  local power = nil
-  if context ~= nil then 
-    power = context.power
-  end
-  if not self:MeetsReqs_MinCheck('Energy', power, requirements, context, optCompareContext) then 
-    return false, self.FAIL_REASON.MIN_FAILED, 'Energy', power
-  end
-  if not self:MeetsReqs_MaxCheck('Energy', power, requirements, context, optCompareContext) then 
-    return false, self.FAIL_REASON.MAX_FAILED, 'Energy', power
   end
   
   local healthPerc = nil
@@ -158,6 +190,17 @@ function TorpedoContextDecider:Decide(requirements, context, optCompareContext)
   end
   if not self:MeetsReqs_MaxCheck('TimeToKillRaid', time_to_kill_raid, requirements, context, optCompareContext) then 
     return false, self.FAIL_REASON.MAX_FAILED, 'TimeToKillRaid', time_to_kill_raid
+  end
+  
+  local group_size = nil
+  if context ~= nil then 
+    group_size = context.group_size
+  end
+  if not self:MeetsReqs_MinCheck('GroupSize', group_size, requirements, context, optCompareContext) then 
+    return false, self.FAIL_REASON.MIN_FAILED, 'GroupSize', group_size
+  end
+  if not self:MeetsReqs_MaxCheck('GroupSize', group_size, requirements, context, optCompareContext) then 
+    return false, self.FAIL_REASON.MAX_FAILED, 'GroupSize', group_size
   end
   
   for i=1, #requirements.auras do 
@@ -290,6 +333,18 @@ function TorpedoContextDecider:Decide(requirements, context, optCompareContext)
         return unpack(results)
       end
     end
+  end
+  
+  -- This has to be last in order for pool energy to work correctly
+  local power = nil
+  if context ~= nil then 
+    power = context.power
+  end
+  if not self:MeetsReqs_MinCheck('Energy', power, requirements, context, optCompareContext) then 
+    return false, self.FAIL_REASON.MIN_FAILED, 'Energy', power
+  end
+  if not self:MeetsReqs_MaxCheck('Energy', power, requirements, context, optCompareContext) then 
+    return false, self.FAIL_REASON.MAX_FAILED, 'Energy', power
   end
   
   return true
