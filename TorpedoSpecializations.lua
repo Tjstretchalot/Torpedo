@@ -74,7 +74,9 @@ function TorpedoSpecializations:__Init()
     aura_id = '',
     icon_id = '',
     target = '',
-    max_duration = ''
+    max_duration = '',
+    is_stealthy = false,
+    hidden = false
   }
 end
 
@@ -447,6 +449,7 @@ function TorpedoSpecializations:CreateOptions(order, rebuild_opt)
               while true do
                 name, rank, icon, count, dispelType, duration, expires, caster, isStealable, nameplateShowPersonal, spellId, canApplyAura, isBossDebuff, _, nameplateShowAll, timeMod = UnitAura('player', counter)
                 
+                print('found ' .. tostring(name) .. ' on player counter=' .. tostring(counter))
                 if not name then break end
                 if name == val then break end
                 counter = counter + 1
@@ -464,8 +467,9 @@ function TorpedoSpecializations:CreateOptions(order, rebuild_opt)
               if UnitExists('target') then 
                 counter = 1
                 while true do 
-                  name, rank, icon, count, dispelType, duration, expires, caster, isStealable, nameplateShowPersonal, spellId, canApplyAura, isBossDebuff, _, nameplateShowAll, timeMod = UnitAura('target', counter)
+                  name, rank, icon, count, dispelType, duration, expires, caster, isStealable, nameplateShowPersonal, spellId, canApplyAura, isBossDebuff, _, nameplateShowAll, timeMod = UnitDebuff('target', counter)
                   
+                  print('found ' .. tostring(name) .. ' on target counter=' .. tostring(counter))
                   if not name then break end
                   if name == val then break end
                   counter = counter + 1
@@ -540,9 +544,27 @@ function TorpedoSpecializations:CreateOptions(order, rebuild_opt)
             end
           },
           param8 = {
+            name = Constants.ADD_NEW_AURA_IS_STEALTHY_NAME,
+            desc = Constants.ADD_NEW_AURA_IS_STEALTHY_DESC,
+            order = 8,
+            width = 'full',
+            type = 'toggle',
+            get = function() return me.new_aura_info.is_stealthy end,
+            set = function(info, val) me.new_aura_info.is_stealthy = val end
+          },
+          param9 = {
+            name = Constants.ADD_NEW_AURA_IS_HIDDEN_NAME,
+            desc = Constants.ADD_NEW_AURA_IS_HIDDEN_DESC,
+            order = 9,
+            width = 'full',
+            type = 'toggle',
+            get = function() return me.new_aura_info.hidden end,
+            set = function(info, val) me.new_aura_info.hidden = val end
+          },
+          param10 = {
             name = Constants.ADD_NEW_AURA_EXECUTE_NAME,
             desc = Constants.ADD_NEW_AURA_EXECUTE_DESC,
-            order = 8,
+            order = 10,
             width = 'full',
             type = 'execute',
             func = function()
@@ -555,10 +577,13 @@ function TorpedoSpecializations:CreateOptions(order, rebuild_opt)
                   aura_id = tonumber(me.new_aura_info.aura_id),
                   icon_id = iconId,
                   target = me.new_aura_info.target,
-                  max_duration = tonumber(me.new_aura_info.max_duration)
+                  max_duration = tonumber(me.new_aura_info.max_duration),
+                  is_stealthy = me.new_aura_info.is_stealthy,
+                  hidden = me.new_aura_info.hidden
                 })
                 
                 me:RegisterAura(aura)
+                rebuild_opt()
                 print('Torpedo: Successfully registered aura ' .. aura.name)
               end, function(err)
                 print('Torpedo: An error occurred: ' .. tostring(err))

@@ -79,9 +79,9 @@ function TorpedoProfiles:GetSuggestion(context, primary)
   return self.specializations[self.active_spec_index]:GetSuggestion(context, primary)
 end
 
-function TorpedoProfiles:CreateOptions(order, rebuild_opt, update_gui_func, delete_profile_func, is_active_profile_func, set_active_profile_func, is_valid_profile_name_func)
+function TorpedoProfiles:CreateOptions(order, rebuild_opt, update_gui_func, delete_profile_func, is_active_profile_func, set_active_profile_func, is_valid_profile_name_func, clone_profile_func)
   Utils:CheckTypes({ order = 'number', update_gui_func = 'function', rebuild_opt = 'function', delete_profile_func = 'function',
-  is_active_profile_func = 'function', set_active_profile_func = 'function', is_valid_profile_name_func = 'function' }, { order = order, rebuild_opt = rebuild_opt, update_gui_func = update_gui_func, delete_profile_func = delete_profile_func, is_active_profile_func = is_active_profile_func, set_active_profile_func = set_active_profile_func, is_valid_profile_name_func = is_valid_profile_name_func})
+  is_active_profile_func = 'function', set_active_profile_func = 'function', is_valid_profile_name_func = 'function', clone_profile_func = 'function' }, { order = order, rebuild_opt = rebuild_opt, update_gui_func = update_gui_func, delete_profile_func = delete_profile_func, is_active_profile_func = is_active_profile_func, set_active_profile_func = set_active_profile_func, is_valid_profile_name_func = is_valid_profile_name_func, clone_profile_func = clone_profile_func})
   
   local me = self
   local result = {
@@ -126,18 +126,29 @@ function TorpedoProfiles:CreateOptions(order, rebuild_opt, update_gui_func, dele
           
           me.name = val
         end
+      },
+      param4 = {
+        order = 4,
+        name = Constants.CLONE_PROFILE_NAME,
+        desc = Constants.CLONE_PROFILE_DESC,
+        width = 'full',
+        type = 'execute',
+        func = function()
+          clone_profile_func()
+          rebuild_opt()
+        end
       }
     }
   }
   
-  local param4 = self.gui_settings:BuildOptions(update_gui_func)
-  param4.order = 4
-  param4.name = 'GUI Settings'
-  param4.inline = true
+  local param5 = self.gui_settings:BuildOptions(update_gui_func)
+  param5.order = 4
+  param5.name = 'GUI Settings'
+  param5.inline = true
   
-  result.args.param4 = param4
+  result.args.param5 = param5
   
-  local offset = 4
+  local offset = 5
   for i=1, #self.specializations do 
     local key = 'param' .. tostring(i + offset)
     

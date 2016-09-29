@@ -1817,7 +1817,7 @@ RunTestByName('Profile can create options', function()
   }
   
   local fn = function() end
-  local actual = profile:CreateOptions(1, fn, fn, fn, fn, fn, fn)
+  local actual = profile:CreateOptions(1, fn, fn, fn, fn, fn, fn, fn)
   AssertType('table', actual)
 end)
 

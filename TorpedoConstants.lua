@@ -130,6 +130,9 @@ TorpedoConstants.SET_ACTIVE_PROFILE_DESC = 'Set this profile to be the active pr
 TorpedoConstants.CHANGE_PROFILE_NAME_NAME = 'Profile name:'
 TorpedoConstants.CHANGE_PROFILE_NAME_DESC = 'Change the name of this profile'
 
+TorpedoConstants.CLONE_PROFILE_NAME = 'Clone profile'
+TorpedoConstants.CLONE_PROFILE_DESC = 'Make a copy of this profile. Don\'t go too crazy with profiles - since there is an absolutely insane amount of options per profile it can make this configuration interface pretty slow. It won\'t affect Torpedo\'s performance while you\'re fighting though, so it all depends on your patience.'
+
 TorpedoConstants.DELETE_SKILL_NAME = 'Delete skill'
 TorpedoConstants.DELETE_SKILL_DESC = 'Delete this skill'
 
@@ -224,6 +227,10 @@ TorpedoConstants.ADD_NEW_AURA_TARGET_NAME = 'Target:'
 TorpedoConstants.ADD_NEW_AURA_TARGET_DESC = 'Either player if it occurs to you, or target if it occurs to your target'
 TorpedoConstants.ADD_NEW_AURA_MAXDURATION_NAME = 'Max duration:'
 TorpedoConstants.ADD_NEW_AURA_MAXDURATION_DESC = 'Maximum duration in seconds. See above.'
+TorpedoConstants.ADD_NEW_AURA_IS_STEALTHY_NAME = 'Stealthy'
+TorpedoConstants.ADD_NEW_AURA_IS_STEALTHY_DESC = 'Does this aura allow us to use stealth abilities?'
+TorpedoConstants.ADD_NEW_AURA_IS_HIDDEN_NAME = 'Hidden'
+TorpedoConstants.ADD_NEW_AURA_IS_HIDDEN_DESC = 'Should this aura not be shown in the options table?'
 
 TorpedoConstants.ADD_NEW_AURA_EXECUTE_NAME = 'Add new aura'
 TorpedoConstants.ADD_NEW_AURA_EXECUTE_DESC = 'Attempt to add this aura to this specializations list of auras'
@@ -231,15 +238,15 @@ TorpedoConstants.ADD_NEW_AURA_EXECUTE_DESC = 'Attempt to add this aura to this s
 TorpedoConstants.SPELL_CONTEXT_CHECK_ENABLED_NAME = 'Check context surrounding {spell_name}'
 TorpedoConstants.SPELL_CONTEXT_CHECK_ENABLED_DESC = 'Advanced Feature. Examine what was happening the last time we casted {spell_name} while targetting our current target.'
 
-TorpedoConstants.REQUIRE_STEALTHED_IN_CONTEXT_DESC = 'Ensure that when we last cast {spell_name} on our current target, we were stealthed.'
+TorpedoConstants.REQUIRE_STEALTHED_IN_CONTEXT_DESC = 'Ensure that when we last cast {cooldown_name} on our current target, we were stealthed.'
 
-TorpedoConstants.REQUIRE_NOT_STEALTHED_IN_CONTEXT_DESC = 'Ensure that when we last cast {spell_name} on our current target, we were not stealthed.'
+TorpedoConstants.REQUIRE_NOT_STEALTHED_IN_CONTEXT_DESC = 'Ensure that when we last cast {cooldown_name} on our current target, we were not stealthed.'
 
-TorpedoConstants.COMBO_POINTS_IN_CONTEXT_CHECK_DESC = 'Ensure that when we last cast {spell_name} on our current target, we had a certain amount of combo points.'
-TorpedoConstants.COMBO_POINTS_IN_CONTEXT_HAVE_MIN_DESC = 'Ensure we had atleast a certain number of combo points when we last cast {spell_name} on our current target.'
-TorpedoConstants.COMBO_POINTS_IN_CONTEXT_MIN_DESC = 'Required minimum number of combo points when we last cast {spell_name} on our current target.'
-TorpedoConstants.COMBO_POINTS_IN_CONTEXT_HAVE_MAX_DESC = 'Ensure we had at most a certain number of combo points when we last cast {spell_name} on our current target.'
-TorpedoConstants.COMBO_POINTS_IN_CONTEXT_MAX_DESC = 'Required maximum number of combo points when we last cast {spell_name} on our current target.'
+TorpedoConstants.COMBO_POINTS_IN_CONTEXT_CHECK_DESC = 'Ensure that when we last cast {cooldown_name} on our current target, we had a certain amount of combo points.'
+TorpedoConstants.COMBO_POINTS_IN_CONTEXT_HAVE_MIN_DESC = 'Ensure we had atleast a certain number of combo points when we last cast {cooldown_name} on our current target.'
+TorpedoConstants.COMBO_POINTS_IN_CONTEXT_MIN_DESC = 'Required minimum number of combo points when we last cast {cooldown_name} on our current target.'
+TorpedoConstants.COMBO_POINTS_IN_CONTEXT_HAVE_MAX_DESC = 'Ensure we had at most a certain number of combo points when we last cast {cooldown_name} on our current target.'
+TorpedoConstants.COMBO_POINTS_IN_CONTEXT_MAX_DESC = 'Required maximum number of combo points when we last cast {cooldown_name} on our current target.'
 
 TorpedoConstants.TIMESTAMP_COMPARED_TO_DESC = 'Compare the time that {spell_name} was cast to when {cooldown_name} was cast. For example, when set to used before, it\'s read "{spell_name} was used before {cooldown_name}"'
 

@@ -49,7 +49,7 @@ function TorpedoSuggestions:__Init()
      }, 
      { -- checks Rupture hasn't been used since exsanguinate
        spell = Spells:New({spell_id = rupture_spell_id, ...}),
-       checkTimestampComparedToExsanguinate = TimestampTristate.USED_BEFORE.debug_value
+       TimestampComparedToExsanguinate = TimestampTristate.USED_BEFORE.debug_value
      }
    }
    

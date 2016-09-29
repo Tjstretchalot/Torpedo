@@ -147,7 +147,26 @@ function TorpedoConfigs:CreateOptions(rebuild_opt, update_gui_func)
       end
     end
     
-    res.args[key] = self.profiles[i]:CreateOptions(i+1, rebuild_opt, update_gui_func, delete_profile_func, is_active_profile_func, set_active_profile_func, is_valid_profile_name_func)
+    local clone_profile_func = function()
+      local profToClone = me.profiles[cacheInd]
+      
+      local newName = ''
+      local counter = 2
+      while true do 
+        newName = profToClone.name .. ' ' .. counter
+        if not me:__CheckProfileName(newName) then break end
+        
+        counter = counter + 1
+      end
+      
+      local newProf = Profiles:Unserialize(profToClone:Serializable())
+      newProf:SetActiveSpecialization(me.active_spec_id)
+      newProf.name = newName
+      
+      table.insert(me.profiles, newProf)
+    end
+    
+    res.args[key] = self.profiles[i]:CreateOptions(i+1, rebuild_opt, update_gui_func, delete_profile_func, is_active_profile_func, set_active_profile_func, is_valid_profile_name_func, clone_profile_func)
   end
   
   return res

@@ -94,7 +94,7 @@ function TorpedoFightAnalyzer:CombatLogEventUnfiltered(evName, the_time, eventTy
           break
         end
       end
-      --print('Monitoring spell ' .. tostring(spellId) .. ' at index ' .. tostring(index))
+      -- print('Monitoring spell ' .. tostring(spellId) .. ' (' .. tostring(relSpell.name) .. ') at index ' .. tostring(index))
       self.SpellsWithContextCaptured[index] = { 
         context = self.CurrentContext, 
         spellId = spellId, 

@@ -260,7 +260,10 @@ function TorpedoContextDecider:Decide(requirements, context, optCompareContext)
       end
     end
     
-    local checkVal = requirements['checkTimestampComparedTo' .. cooldown.debugName]
+    
+    local checkVal = requirements['TimestampComparedTo' .. cooldown.debugName]
+    if type(checkVal) == 'table' then checkVal = checkVal.debug_value end
+    
     if checkVal == TimestampTristate.USED_BEFORE.debug_value then 
       -- check that the spell was used before another spell
       -- the spell was used in the "context" variable, the context to compare to is the 
@@ -270,7 +273,7 @@ function TorpedoContextDecider:Decide(requirements, context, optCompareContext)
       -- not have happened first
       
       if not capturedContext then
-        return false, self.FAIL_REASON.MIN_FAILED, 'checkTimestampComparedTo' .. cooldown.debugName, 'captured context nil'
+        return false, self.FAIL_REASON.MIN_FAILED, 'TimestampComparedTo' .. cooldown.debugName, 'captured context nil'
       end
       
       -- It's possible we haven't happened yet, in which our timestamp is nil. We will simply set it to 0
@@ -278,18 +281,16 @@ function TorpedoContextDecider:Decide(requirements, context, optCompareContext)
       local theTimestampThatShouldHappenFirst = context.timestamp or 0
       local theTimestampThatShouldHappenSecond = capturedContext.timestamp
       if theTimestampThatShouldHappenFirst > theTimestampThatShouldHappenSecond then 
-        return false, self.FAIL_REASON.MIN_FAILED, 'checkTimestampComparedTo' .. cooldown.debugName, theTimestampThatShouldHappenFirst .. ' vs ' .. theTimestampThatShouldHappenSecond
+        return false, self.FAIL_REASON.MIN_FAILED, 'TimestampComparedTo' .. cooldown.debugName, theTimestampThatShouldHappenFirst .. ' vs ' .. theTimestampThatShouldHappenSecond
       end
     elseif checkVal == TimestampTristate.USED_AFTER.debug_value then 
       -- opposite of above
-      if not capturedContext then 
-        return false, self.FAIL_REASON.MAX_FAILED, 'checkTimestampComparedTo' .. cooldown.debugName, 'captured context nil'
-      end
-      
-      local theTimestampThatShouldHappenFirst = capturedContext.timestamp
-      local theTimestampThatShouldHappenSecond = context.timestamp or 0
-      if theTimestampThatShouldHappenFirst > theTimestampThatShouldHappenSecond then 
-        return false, self.FAIL_REASON.MAX_FAILED, 'checkTimestampComparedTo' .. cooldown.debugName, theTimestampThatShouldHappenFirst .. ' vs ' .. theTimestampThatShouldHappenSecond
+      if capturedContext ~= nil and context ~= nil then 
+        local theTimestampThatShouldHappenFirst = capturedContext.timestamp
+        local theTimestampThatShouldHappenSecond = context.timestamp or 0
+        if theTimestampThatShouldHappenFirst > theTimestampThatShouldHappenSecond then 
+          return false, self.FAIL_REASON.MAX_FAILED, 'TimestampComparedTo' .. cooldown.debugName, theTimestampThatShouldHappenFirst .. ' vs ' .. theTimestampThatShouldHappenSecond
+        end
       end
     end
     

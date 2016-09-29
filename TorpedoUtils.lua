@@ -32,4 +32,5 @@ function TorpedoUtils:tcopy(arr)
       res[k] = v
     end
   end
+  return res
 end

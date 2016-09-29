@@ -177,7 +177,9 @@ function TSCO:RebuildCooldowns()
     
     if not found then 
       __AddMinMaxOptions(self, 'CooldownFor' .. suggCooldown.debugName)
-      self['TimestampComparedTo' .. suggCooldown.debugName] = TimestampTristate.DO_NOT_CHECK
+      if self['TimestampComparedTo' .. suggCooldown.debugName] == nil then 
+        self['TimestampComparedTo' .. suggCooldown.debugName] = TimestampTristate.DO_NOT_CHECK
+      end
       __AddMinMaxOptions(self, 'TimeSinceCastFor' .. suggCooldown.debugName)
       if suggCooldown.charges then 
         __AddMinMaxOptions(self, 'ChargesFor' .. suggCooldown.debugName)
@@ -256,12 +258,12 @@ function TSCO:BuildOptions()
         cdNameLower)
     })
     
-    result:AddMinMaxCheck('TimeSinceCastFor' .. cooldown.debugName, 'Time since we cast ' .. nameLower,
-        string.gsub(Constants.SPELL_CONTEXT_TIME_SINCE_CAST_CHECK_DESC, '{spell_name}', nameLower),
-        string.gsub(Constants.SPELL_CONTEXT_TIME_SINCE_CAST_HAVE_MINIMUM_DESC, '{spell_name}', nameLower),
-        string.gsub(Constants.SPELL_CONTEXT_TIME_SINCE_CAST_MINIMUM_DESC, '{spell_name}', nameLower),
-        string.gsub(Constants.SPELL_CONTEXT_TIME_SINCE_CAST_HAVE_MAXIMUM_DESC, '{spell_name}', nameLower),
-        string.gsub(Constants.SPELL_CONTEXT_TIME_SINCE_CAST_MAXIMUM_DESC, '{spell_name}', nameLower),
+    result:AddMinMaxCheck('TimeSinceCastFor' .. cooldown.debugName, 'Time since we cast ' .. cdNameLower,
+        string.gsub(string.gsub(Constants.SPELL_CONTEXT_TIME_SINCE_CAST_CHECK_DESC, '{spell_name}', nameLower), '{cooldown_name}', cdNameLower),
+        string.gsub(string.gsub(Constants.SPELL_CONTEXT_TIME_SINCE_CAST_HAVE_MINIMUM_DESC, '{spell_name}', nameLower), '{cooldown_name}', cdNameLower),
+        string.gsub(string.gsub(Constants.SPELL_CONTEXT_TIME_SINCE_CAST_MINIMUM_DESC, '{spell_name}', nameLower), '{cooldown_name}', cdNameLower),
+        string.gsub(string.gsub(Constants.SPELL_CONTEXT_TIME_SINCE_CAST_HAVE_MAXIMUM_DESC, '{spell_name}', nameLower), '{cooldown_name}', cdNameLower),
+        string.gsub(string.gsub(Constants.SPELL_CONTEXT_TIME_SINCE_CAST_MAXIMUM_DESC, '{spell_name}', nameLower), '{cooldown_name}', cdNameLower),
         Constants.SPELL_CONTEXT_TIME_SINCE_CAST_MIN, Constants.SPELL_CONTEXT_TIME_SINCE_CAST_MAX, 
         Constants.SPELL_CONTEXT_TIME_SINCE_CAST_SOFTMIN, Constants.SPELL_CONTEXT_TIME_SINCE_CAST_SOFTMAX, 
         Constants.SPELL_CONTEXT_TIME_SINCE_CAST_STEP, Constants.SPELL_CONTEXT_TIME_SINCE_CAST_BIGSTEP)

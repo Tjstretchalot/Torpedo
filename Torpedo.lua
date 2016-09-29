@@ -186,13 +186,32 @@ function Torpedo:COMBAT_LOG_EVENT_UNFILTERED(...)
 end
 
 -- Main timer
-function Torpedo:TimerTick()
-  if not self.TargetInfo or not self.TargetInfo.exists or not self.TargetInfo.hostile or self.TargetInfo.dead then return end
+function Torpedo:CheckForLongTick()
+  local now = GetTime()
+  local last = self.lastTick 
   
+  if last then
+    local timeSinceLast = now - last
+    if timeSinceLast > 0.1 then 
+      print('Long time since last tick - ' .. tostring(timeSinceLast))
+    end
+  end
+  
+  self.lastTick = now
+end
+
+function Torpedo:TimerTick()
+  if not self.TargetInfo or not self.TargetInfo.exists or not self.TargetInfo.hostile or self.TargetInfo.dead then 
+    self.lastTick = nil
+    return 
+  end
+  
+  --self:CheckForLongTick()
   local context = self:BuildContext()
   local primarySugg, primarySuggRes = self.config:GetSuggestion(context, true)
   local secondarySugg, secondarySuggRes = self.config:GetSuggestion(context, false)
   
   self.gui:SetPrimarySuggestion(primarySugg, primarySuggRes)
   self.gui:SetSecondarySuggestion(secondarySugg, secondarySuggRes)
+  
 end
