@@ -1640,6 +1640,13 @@ RunTestByName('Specialization can create options', function()
   AssertDeepEquals(expected, options)
 end)
 
+RunTestByName('Load gui settings', function()
+  dofile('TorpedoGUISettings.lua')
+  
+  local GUISettings = LibStub:GetLibrary('TorpedoGUISettings-1.0')
+  AssertNotNil(GUISettings)
+end)
+
 RunTestByName('Load profile', function()
   dofile('TorpedoProfiles.lua')
   
@@ -1810,44 +1817,8 @@ RunTestByName('Profile can create options', function()
   }
   
   local fn = function() end
-  local actual = profile:CreateOptions(1, fn, fn, fn, fn, fn)
-  local expected = {
-    name = fn,
-    type = 'group',
-    order = 1,
-    args = {
-      param1 = {
-        order = 1,
-        name = Constants.DELETE_PROFILE_NAME,
-        desc = Constants.DELETE_PROFILE_DESC,
-        width = 'full',
-        type = 'execute',
-        func = fn
-      },
-      param2 = {
-        order = 2,
-        name = Constants.SET_ACTIVE_PROFILE_NAME,
-        desc = Constants.SET_ACTIVE_PROFILE_DESC,
-        width = 'full',
-        type = 'execute',
-        func = fn,
-        disabled = fn
-      },
-      param3 = {
-        order = 3,
-        name = Constants.CHANGE_PROFILE_NAME_NAME,
-        desc = Constants.CHANGE_PROFILE_NAME_DESC,
-        width = 'full',
-        type = 'input',
-        get = fn, set = fn
-      },
-      param4 = {
-        order = 4,
-        someStr = 'Magical string'
-      }
-    }
-  }
-  AssertDeepEquals(expected, actual)
+  local actual = profile:CreateOptions(1, fn, fn, fn, fn, fn, fn)
+  AssertType('table', actual)
 end)
 
 RunTestByName('Load config', function()

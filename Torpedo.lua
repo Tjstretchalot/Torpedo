@@ -19,7 +19,8 @@ function Torpedo:OnInitialize()
   
   local me = self
   local rebuild_opt = function() me:RebuildOptions() end
-  self.optionsTable = self.config:CreateOptions(rebuild_opt)
+  local update_gui = function() me:UpdateGUI() end
+  self.optionsTable = self.config:CreateOptions(rebuild_opt, update_gui)
   
   LibStub('AceConfig-3.0'):RegisterOptionsTable('Torpedo', self.optionsTable)
   self.optionsFrame = LibStub('AceConfigDialog-3.0'):AddToBlizOptions('Torpedo', 'Torpedo')
@@ -34,7 +35,8 @@ function Torpedo:RebuildOptions()
   
   local me = self
   local rebuild_opt = function() me:RebuildOptions() end
-  local newOpt = self.config:CreateOptions(rebuild_opt)
+  local update_gui = function() me:UpdateGUI() end
+  local newOpt = self.config:CreateOptions(rebuild_opt, update_gui)
   
   for k,v in pairs(newOpt) do
     self.optionsTable[k] = v
@@ -100,6 +102,10 @@ function Torpedo:UpdateSpecialization()
   self.config:SetActiveSpecialization(specNum)
 end
 
+function Torpedo:UpdateGUI()
+  self.gui:SetGUIConfig(self.config:GetActiveProfile().gui_settings)
+end
+
 function Torpedo:BuildTargetInfo()
   local result = {}
   result.exists = UnitExists('target')
@@ -133,6 +139,7 @@ function Torpedo:UpdateEverything()
   self.gui:Hide()
   self:UpdateSpecialization()
   self:UpdateTarget(false)
+  self:UpdateGUI()
 end
 
 -- Events

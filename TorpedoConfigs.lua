@@ -83,7 +83,7 @@ function TorpedoConfigs:GetSuggestion(context, primary)
   return prof:GetSuggestion(context, primary)
 end
 
-function TorpedoConfigs:CreateOptions(rebuild_opt)
+function TorpedoConfigs:CreateOptions(rebuild_opt, update_gui_func)
   local me = self
   local res = {
     name = 'Torpedo',
@@ -147,7 +147,7 @@ function TorpedoConfigs:CreateOptions(rebuild_opt)
       end
     end
     
-    res.args[key] = self.profiles[i]:CreateOptions(i+1, rebuild_opt, delete_profile_func, is_active_profile_func, set_active_profile_func, is_valid_profile_name_func)
+    res.args[key] = self.profiles[i]:CreateOptions(i+1, rebuild_opt, update_gui_func, delete_profile_func, is_active_profile_func, set_active_profile_func, is_valid_profile_name_func)
   end
   
   return res

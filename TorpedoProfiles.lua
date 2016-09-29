@@ -2,6 +2,7 @@ local Utils = LibStub:GetLibrary('TorpedoUtils-1.0')
 local Specs = LibStub:GetLibrary('TorpedoSpecializations-1.0')
 local SuggestionResult = LibStub:GetLibrary('TorpedoSuggestionResult-1.0')
 local Constants = LibStub:GetLibrary('TorpedoConstants-1.0')
+local GUISettings = LibStub:GetLibrary('TorpedoGUISettings-1.0')
 
 local MAJOR, MINOR = 'TorpedoProfiles-1.0', 1
 local TorpedoProfiles = LibStub:NewLibrary(MAJOR, MINOR)
@@ -20,6 +21,10 @@ end
 
 function TorpedoProfiles:__Init()
   self.specializations = self.specializations or {}
+  
+  if self.gui_settings == nil then 
+    self.gui_settings = GUISettings:New({})
+  end
 end
 
 function TorpedoProfiles:NewSpecialization(name, spec_id)
@@ -40,6 +45,7 @@ function TorpedoProfiles:Serializable()
   for i=1, #self.specializations do 
     res.specializations[i] = self.specializations[i]:Serializable()
   end
+  res.gui_settings = self.gui_settings:Serializable()
   
   return res
 end
@@ -50,7 +56,8 @@ function TorpedoProfiles:Unserialize(ser)
     specializations[i] = Specs:Unserialize(ser.specializations[i])
   end
   local name = ser.name
-  local profile = TorpedoProfiles:New({ specializations = specializations, name = name })
+  local gui_settings = GUISettings:Unserialize(ser.gui_settings)
+  local profile = TorpedoProfiles:New({ specializations = specializations, name = name, gui_settings = gui_settings })
   return profile
 end
 
@@ -72,9 +79,9 @@ function TorpedoProfiles:GetSuggestion(context, primary)
   return self.specializations[self.active_spec_index]:GetSuggestion(context, primary)
 end
 
-function TorpedoProfiles:CreateOptions(order, rebuild_opt, delete_profile_func, is_active_profile_func, set_active_profile_func, is_valid_profile_name_func)
-  Utils:CheckTypes({ order = 'number', rebuild_opt = 'function', delete_profile_func = 'function',
-  is_active_profile_func = 'function', set_active_profile_func = 'function', is_valid_profile_name_func = 'function' }, { order = order, rebuild_opt = rebuild_opt, delete_profile_func = delete_profile_func, is_active_profile_func = is_active_profile_func, set_active_profile_func = set_active_profile_func, is_valid_profile_name_func = is_valid_profile_name_func})
+function TorpedoProfiles:CreateOptions(order, rebuild_opt, update_gui_func, delete_profile_func, is_active_profile_func, set_active_profile_func, is_valid_profile_name_func)
+  Utils:CheckTypes({ order = 'number', update_gui_func = 'function', rebuild_opt = 'function', delete_profile_func = 'function',
+  is_active_profile_func = 'function', set_active_profile_func = 'function', is_valid_profile_name_func = 'function' }, { order = order, rebuild_opt = rebuild_opt, update_gui_func = update_gui_func, delete_profile_func = delete_profile_func, is_active_profile_func = is_active_profile_func, set_active_profile_func = set_active_profile_func, is_valid_profile_name_func = is_valid_profile_name_func})
   
   local me = self
   local result = {
@@ -123,7 +130,14 @@ function TorpedoProfiles:CreateOptions(order, rebuild_opt, delete_profile_func, 
     }
   }
   
-  local offset = 3
+  local param4 = self.gui_settings:BuildOptions(update_gui_func)
+  param4.order = 4
+  param4.name = 'GUI Settings'
+  param4.inline = true
+  
+  result.args.param4 = param4
+  
+  local offset = 4
   for i=1, #self.specializations do 
     local key = 'param' .. tostring(i + offset)
     

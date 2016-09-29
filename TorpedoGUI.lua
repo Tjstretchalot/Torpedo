@@ -79,6 +79,19 @@ function TorpedoGUI:Init()
   self:Hide()
 end
 
+--[[
+  Updates this gui to reflect the profiles settings.
+]]
+function TorpedoGUI:SetGUIConfig(guiSettings)
+  self.primaryPanel:SetScale(guiSettings.primary_panel_scale)
+  self.secondaryPanel:SetScale(guiSettings.secondary_panel_scale)
+  
+  self.secondaryPanel:ClearAllPoints()
+  self.secondaryPanel:SetPoint(guiSettings.secondary_panel_ref_point_sec, self.primaryPanel,
+    guiSettings.secondary_panel_ref_point_pri, guiSettings.secondary_panel_x_offset,
+    guiSettings.secondary_panel_y_offset)
+end
+
 function TorpedoGUI:DisableDefaultGlow()
   local function DenyOverlayGlow(actButton)
     actButton.overlay:Hide()
