@@ -289,4 +289,4 @@ TorpedoConstants.SECONDARY_PANEL_SCALE_DESC = 'Multiplier for the size of the se
 TorpedoConstants.SECONDARY_PANEL_PRIM_CORNER_OFFSET = 'What corner in the primary panel is the secondary panel offset from?'
 TorpedoConstants.SECONDARY_PANEL_REFERENCE_CORNER = 'What corner is the offset references on the secondary panel? E.g. if the primary corner is bottom right and the secondary corner is bottom left then the offset is the distance from the bottom right of the primary to the bottom left of the secondary.'
 TorpedoConstants.SECONDARY_PANEL_X_OFFSET = 'What is the x (positive is right) distance from the secondary panel primary offset corner to the secondary panel reference corner?'
-TorpedoConstants.SECONDARY_PANEL_Y_OFFSET = 'What is the y (positive is down) distance from the secondary panel primary offset corner to the secondary panel reference corner?'
+TorpedoConstants.SECONDARY_PANEL_Y_OFFSET = 'What is the y (positive is up) distance from the secondary panel primary offset corner to the secondary panel reference corner?'
