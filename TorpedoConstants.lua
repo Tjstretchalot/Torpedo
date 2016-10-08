@@ -21,6 +21,9 @@ TorpedoConstants.REQUIRE_NOT_STEALTHED_DESC = 'Do we need to not be able to use 
 TorpedoConstants.REQUIRE_COMBAT_DESC = 'Do we need to be in combat for this suggestion?'
 TorpedoConstants.REQUIRE_NOT_COMBAT_DESC = 'Do we need to not be in combat for this suggestion?'
 
+TorpedoConstants.REQUIRE_PVP_DESC = 'Do we need to be in a controlled player vs player context (such as arenas or battlegrounds) for this suggestion?'
+TorpedoConstants.REQUIRE_NOT_PVP_DESC = 'Do we need to not be in controlled player vs player context (such as arenas or battlegrounds) for this suggestion?'
+
 TorpedoConstants.ENERGY_MIN = 0
 TorpedoConstants.ENERGY_MAX = 160
 TorpedoConstants.ENERGY_SOFTMIN = 0

@@ -11,7 +11,7 @@ function TorpedoContext:New(o)
     max_power = 'number', combo_points = 'number', max_combo_points = 'number',
     health = 'number', max_health = 'number', stealthy = 'boolean', combat = 'boolean',
     fight_summary = 'table', target_info = 'table', group_size = 'number', in_instance = 'boolean',
-    boss_fight = 'boolean'
+    boss_fight = 'boolean', pvp = 'boolean'
   }, o)
   
   setmetatable(o, self)

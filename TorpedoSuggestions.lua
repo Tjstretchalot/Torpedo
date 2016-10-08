@@ -66,6 +66,8 @@ function TorpedoSuggestions:__Init()
   if self.require_not_boss_fight == nil then self.require_not_boss_fight = false end
   if self.require_instance == nil then self.require_instance = false end
   if self.require_not_instance == nil then self.require_not_instance = false end
+  if self.require_pvp == nil then self.require_pvp = false end
+  if self.require_not_pvp == nil then self.require_not_pvp = false end
   __AddMinMaxOptions(self, 'GroupSize')
   __AddMinMaxOptions(self, 'Energy')
   __AddMinMaxOptions(self, 'ComboPoints')
@@ -156,6 +158,8 @@ function TorpedoSuggestions:CreateOptions(optionName, order, rebuild_opt_func, r
     :AddToggle('require_not_stealthed', 'Require not stealthed', Constants.REQUIRE_NOT_STEALTHED_DESC)
     :AddToggle('require_combat', 'Require combat', Constants.REQUIRE_COMBAT_DESC)
     :AddToggle('require_no_combat', 'Require not in combat', Constants.REQUIRE_NOT_COMBAT_DESC)
+    :AddToggle('require_pvp', 'Require pvp', Constants.REQUIRE_PVP_DESC)
+    :AddToggle('require_not_pvp', 'Require not pvp', Constants.REQUIRE_NOT_PVP_DESC)
     :AddMinMaxCheck('Energy', 'Energy', Constants.ENERGY_CHECK_DESC, Constants.ENERGY_HAVE_MINIMUM_DESC,
                     Constants.ENERGY_MINIMUM_DESC, Constants.ENERGY_HAVE_MAXIMUM_DESC, 
                     Constants.ENERGY_MAXIMUM_DESC, Constants.ENERGY_MIN, Constants.ENERGY_MAX,

@@ -758,6 +758,7 @@ function TorpedoSpecializations:BuildContext(fightAnalyzer, targetInfo)
   tmp_context.group_size = GetNumGroupMembers()
   local inInstance, instanceType = IsInInstance()
   tmp_context.in_instance = inInstance
+  tmp_context.pvp = instanceType == 'arena' or instanceType == 'pvp'
   tmp_context.boss_fight = IsEncounterInProgress()
   
   local result = Context:New(tmp_context)

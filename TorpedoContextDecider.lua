@@ -26,6 +26,8 @@ TorpedoContextDecider.FAIL_REASON = {
   NO_BOSS_FIGHT_REQUIRED = 'Not in a boss fight required but in a boss fight.',
   INSTANCE_REQUIRED = 'In an instance required but not in an instance',
   NO_INSTANCE_REQUIRED = 'Not in an instance required but in an instance',
+  PVP_REQUIRED = 'In pvp required but not in a pvp instance',
+  NO_PVP_REQUIRED = 'Not in pvp required but in pvp',
   
   -- Min/max checks; these return something like:
   -- return false, FAIL_REASON.MIN_FAILED, 'ComboPoints'
@@ -93,6 +95,20 @@ function TorpedoContextDecider:MeetsReqs_NoInstanceRequired(requirements, contex
   return context.in_instance == false
 end
 
+function TorpedoContextDecider:MeetsReqs_PVPRequired(requirements, context, optCompareContext)
+  if not requirements.require_pvp then return true end
+  
+  if context == nil then return false end
+  return context.pvp == true
+end
+
+function TorpedoContextDecider:MeetsReqs_NoPVPRequired(requirements, context, optCompareContext)
+  if not requirements.require_not_pvp then return true end
+  
+  if context == nil then return false end
+  return context.pvp == false
+end
+
 function TorpedoContextDecider:MeetsReqs_MinCheck(name, val, requirements, context, optCompareContext) 
   if not requirements['check' .. name] then return true end
   if not requirements['hasMin' .. name] then return true end
@@ -147,6 +163,12 @@ function TorpedoContextDecider:Decide(requirements, context, optCompareContext)
   end
   if not self:MeetsReqs_NoInstanceRequired(requirements, context, optCompareContext) then 
     return false, self.FAIL_REASON.NO_INSTANCE_REQUIRED
+  end
+  if not self:MeetsReqs_PVPRequired(requirements, context, optCompareContext) then 
+    return false, self.FAIL_REASON.PVP_REQUIRED
+  end
+  if not self:MeetsReqs_NoPVPRequired(requirements, context, optCompareContext) then 
+    return false, self.FAIL_REASON.NO_PVP_REQUIRED
   end
   local combo_points = nil
   if context ~= nil then 
@@ -301,7 +323,7 @@ function TorpedoContextDecider:Decide(requirements, context, optCompareContext)
       timeSinceThisCooldownCast = currentContext.timestamp - capturedContext.timestamp
     end
     local nm = 'TimeSinceCastFor' .. cooldown.debugName
-    if not self:MeetsReqs_MinCheck(nm, timeSinceThisCooldownCast, requirements, context, optCompareContext) then 
+    if timeSinceThisCooldownCast ~= math.huge and not self:MeetsReqs_MinCheck(nm, timeSinceThisCooldownCast, requirements, context, optCompareContext) then 
       return false, self.FAIL_REASON.MIN_FAILED, nm, timeSinceThisCooldownCast
     end
     if not self:MeetsReqs_MaxCheck(nm, timeSinceThisCooldownCast, requirements, context, optCompareContext) then 
