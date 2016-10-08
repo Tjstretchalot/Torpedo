@@ -56,13 +56,23 @@ function TorpedoGUI:Init()
   primaryPanel:RegisterForDrag('LeftButton')
   primaryPanel:SetScript('OnDragStart', function()
     if IsShiftKeyDown() then 
-      me.primaryPanel:StartMoving() -- This will implicitly call SetUserPlaced(true)
-      me.secondaryPanel:StartMoving() -- which saves its position
+      me.primaryPanel:StartMoving()
+      me.secondaryPanel:StartMoving() 
     end
   end)
   primaryPanel:SetScript('OnDragStop', function()
     me.primaryPanel:StopMovingOrSizing()
     me.secondaryPanel:StopMovingOrSizing()
+    
+    if me.activeGuiSettings ~= nil then 
+      local point, relativeTo, relativePoint, xOfs, yOfs = self.primaryPanel:GetPoint()
+      
+      --print('saving point = ' .. tostring(point) .. ', relativePoint = ' .. tostring(relativePoint) ..', xOfs = ' .. xOfs .. ', ' .. ' yOfs = ' .. yOfs)
+      me.activeGuiSettings.primary_panel_point = point
+      me.activeGuiSettings.primary_panel_relative_point = relativePoint
+      me.activeGuiSettings.primary_panel_x = xOfs
+      me.activeGuiSettings.primary_panel_y = yOfs
+    end
   end)
   
   primaryPanel:SetScale(1)
@@ -83,8 +93,25 @@ end
   Updates this gui to reflect the profiles settings.
 ]]
 function TorpedoGUI:SetGUIConfig(guiSettings)
+  self.activeGuiSettings = guiSettings
   self.primaryPanel:SetScale(guiSettings.primary_panel_scale)
   self.secondaryPanel:SetScale(guiSettings.secondary_panel_scale)
+  
+  if guiSettings.primary_panel_x ~= nil and guiSettings.primary_panel_y ~= nil and guiSettings.primary_panel_point ~= nil and guiSettings.primary_panel_relative_point ~= nil then
+    self.primaryPanel:ClearAllPoints()
+    self.primaryPanel:SetPoint(guiSettings.primary_panel_point, guiSettings.primary_panel_x, guiSettings.primary_panel_y)
+    
+    --print('i loaded point=' .. tostring(guiSettings.primary_panel_point) .. ', relativePoint = ' .. tostring(guiSettings.primary_panel_relative_point) .. ', xOfs=' .. tostring(guiSettings.primary_panel_x) .. ', yOfs=' .. tostring(guiSettings.primary_panel_y))
+  else 
+    local point, relativeTo, relativePoint, xOfs, yOfs = self.primaryPanel:GetPoint()
+    
+    guiSettings.primary_panel_point = point
+    guiSettings.primary_panel_relative_point = relativePoint
+    guiSettings.primary_panel_x = xOfs
+    guiSettings.primary_panel_y = yOfs
+    
+    --print('setup point=' .. tostring(point) .. ' relativeTo=' .. tostring(relativeTo:GetName()) ..', relativePoint=' .. tostring(relativePoint) .. ' xOfs=' .. tostring(xOfs) .. ', yOfs=' .. tostring(yOfs))
+  end
   
   self.secondaryPanel:ClearAllPoints()
   self.secondaryPanel:SetPoint(guiSettings.secondary_panel_ref_point_sec, self.primaryPanel,

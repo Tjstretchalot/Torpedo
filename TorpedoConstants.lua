@@ -136,6 +136,9 @@ TorpedoConstants.CHANGE_PROFILE_NAME_DESC = 'Change the name of this profile'
 TorpedoConstants.CLONE_PROFILE_NAME = 'Clone profile'
 TorpedoConstants.CLONE_PROFILE_DESC = 'Make a copy of this profile. Don\'t go too crazy with profiles - since there is an absolutely insane amount of options per profile it can make this configuration interface pretty slow. It won\'t affect Torpedo\'s performance while you\'re fighting though, so it all depends on your patience.'
 
+TorpedoConstants.SET_ALL_TO_RECOMMENDED_NAME = 'Set all to recommended'
+TorpedoConstants.SET_ALL_TO_RECOMMENDED_DESC = 'Make this profile a copy of the recommended settings - this will overwrite this profile!'
+
 TorpedoConstants.DELETE_SKILL_NAME = 'Delete skill'
 TorpedoConstants.DELETE_SKILL_DESC = 'Delete this skill'
 

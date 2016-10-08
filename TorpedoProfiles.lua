@@ -3,6 +3,7 @@ local Specs = LibStub:GetLibrary('TorpedoSpecializations-1.0')
 local SuggestionResult = LibStub:GetLibrary('TorpedoSuggestionResult-1.0')
 local Constants = LibStub:GetLibrary('TorpedoConstants-1.0')
 local GUISettings = LibStub:GetLibrary('TorpedoGUISettings-1.0')
+local DefaultConfig = LibStub:GetLibrary('TorpedoDefaultConfig-1.0')
 
 local MAJOR, MINOR = 'TorpedoProfiles-1.0', 1
 local TorpedoProfiles = LibStub:NewLibrary(MAJOR, MINOR)
@@ -79,6 +80,19 @@ function TorpedoProfiles:GetSuggestion(context, primary)
   return self.specializations[self.active_spec_index]:GetSuggestion(context, primary)
 end
 
+--[[
+  Use the default config to fetch the recommended profile
+]]
+function TorpedoProfiles:SetAllToRecommended()
+  local reccProfile = TorpedoProfiles:Unserialize(DefaultConfig.profiles[1])
+  
+  for k,v in pairs(reccProfile) do 
+    if type(k) ~= 'function' then 
+      self[k] = v
+    end
+  end
+end
+
 function TorpedoProfiles:CreateOptions(order, rebuild_opt, update_gui_func, delete_profile_func, is_active_profile_func, set_active_profile_func, is_valid_profile_name_func, clone_profile_func)
   Utils:CheckTypes({ order = 'number', update_gui_func = 'function', rebuild_opt = 'function', delete_profile_func = 'function',
   is_active_profile_func = 'function', set_active_profile_func = 'function', is_valid_profile_name_func = 'function', clone_profile_func = 'function' }, { order = order, rebuild_opt = rebuild_opt, update_gui_func = update_gui_func, delete_profile_func = delete_profile_func, is_active_profile_func = is_active_profile_func, set_active_profile_func = set_active_profile_func, is_valid_profile_name_func = is_valid_profile_name_func, clone_profile_func = clone_profile_func})
@@ -112,6 +126,7 @@ function TorpedoProfiles:CreateOptions(order, rebuild_opt, update_gui_func, dele
         end,
         func = function()
           set_active_profile_func()
+          update_gui_func()
         end
       },
       param3 = {
@@ -137,18 +152,30 @@ function TorpedoProfiles:CreateOptions(order, rebuild_opt, update_gui_func, dele
           clone_profile_func()
           rebuild_opt()
         end
+      },
+      param5 = {
+        order = 5,
+        name = Constants.SET_ALL_TO_RECOMMENDED_NAME,
+        desc = Constants.SET_ALL_TO_RECOMMENDED_DESC,
+        width = 'full',
+        type = 'execute',
+        func = function()
+          me:SetAllToRecommended()
+          rebuild_opt()
+          update_gui_func()
+        end
       }
     }
   }
   
-  local param5 = self.gui_settings:BuildOptions(update_gui_func)
-  param5.order = 4
-  param5.name = 'GUI Settings'
-  param5.inline = true
+  local param6 = self.gui_settings:BuildOptions(update_gui_func)
+  param6.order = 6
+  param6.name = 'GUI Settings'
+  param6.inline = true
   
-  result.args.param5 = param5
+  result.args.param6 = param6
   
-  local offset = 5
+  local offset = 6
   for i=1, #self.specializations do 
     local key = 'param' .. tostring(i + offset)
     

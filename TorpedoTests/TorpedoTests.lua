@@ -183,6 +183,13 @@ RunTestByName('Load TorpedoUtils', function()
   AssertNotNil(TorpedoUtils)
 end)
 
+RunTestByName('Load default config', function()
+  dofile('TorpedoDefaultConfig.lua')
+  
+  local TorpedoDefaultConfig = LibStub:GetLibrary('TorpedoDefaultConfig-1.0')
+  AssertNotNil(TorpedoDefaultConfig)
+end)
+
 RunTestByName('Load TorpedoOptionsBuilder', function() 
   dofile('TorpedoOptionsBuilder.lua')
   
@@ -2038,16 +2045,6 @@ RunTestByName('Load gui', function()
   
   local TorpedoGUI = LibStub:GetLibrary('TorpedoGUI-1.0')
   AssertNotNil(TorpedoGUI)
-end)
-
-RunTestByName('Load default config', function()
-  dofile('TorpedoDefaultConfig.lua')
-  
-  local TorpedoDefaultConfig = LibStub:GetLibrary('TorpedoDefaultConfig-1.0')
-  AssertNotNil(TorpedoDefaultConfig)
-  
-  local unser = LibStub:GetLibrary('TorpedoConfigs-1.0'):Unserialize(TorpedoDefaultConfig)
-  AssertNotNil(unser)
 end)
 
 RunTestByName('Load fight analyzer', function()

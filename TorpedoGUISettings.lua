@@ -158,6 +158,11 @@ function TorpedoGUISettings:Serializable()
   res.secondary_panel_ref_point_sec = self.secondary_panel_ref_point_sec
   res.secondary_panel_x_offset = self.secondary_panel_x_offset
   res.secondary_panel_y_offset = self.secondary_panel_y_offset
+  
+  res.primary_panel_x = self.primary_panel_x
+  res.primary_panel_y = self.primary_panel_y
+  res.primary_panel_point = self.primary_panel_point
+  res.primary_panel_relative_point = self.primary_panel_relative_point
   return res
 end
 

@@ -1,5 +1,4 @@
 local Utils = LibStub:GetLibrary('TorpedoUtils-1.0')
-local Configs = LibStub:GetLibrary('TorpedoConfigs-1.0')
 
 local MAJOR, MINOR = 'TorpedoDefaultConfig-1.0', 1
 local TorpedoDefaultConfig = LibStub:NewLibrary(MAJOR, MINOR)
@@ -15,6 +14,10 @@ local config = {
 			["secondary_panel_x_offset"] = 10,
 			["secondary_panel_ref_point_pri"] = "BOTTOMRIGHT",
 			["secondary_panel_scale"] = 0.7,
+      ["primary_panel_point"] = "TOPLEFT",
+      ["primary_panel_relative_point"] = "TOPLEFT",
+      ["primary_panel_x"] = 500,
+      ["primary_panel_y"] = -50,
 		},
 		["specializations"] = {
 			{
@@ -3836,6 +3839,10 @@ local config = {
 				["secondary_panel_x_offset"] = 10,
 				["secondary_panel_ref_point_pri"] = "BOTTOMRIGHT",
 				["secondary_panel_scale"] = 0.7,
+        ["primary_panel_point"] = "TOPLEFT",
+        ["primary_panel_relative_point"] = "TOPLEFT",
+        ["primary_panel_x"] = 500,
+        ["primary_panel_y"] = -50,
 			},
 			["specializations"] = {
 				{
