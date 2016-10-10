@@ -11,6 +11,7 @@
 local Utils = LibStub:GetLibrary('TorpedoUtils-1.0')
 local Constants = LibStub:GetLibrary('TorpedoConstants-1.0')
 local FightSummary = LibStub:GetLibrary('TorpedoFightSummary-1.0')
+local SkadaLocale = LibStub('AceLocale-3.0'):GetLocale('Skada', true)
 
 local MAJOR, MINOR = 'TorpedoFightAnalyzer-1.0', 1
 local TorpedoFightAnalyzer = LibStub:NewLibrary(MAJOR, MINOR)
@@ -111,7 +112,7 @@ function TorpedoFightAnalyzer:FindDPSMode()
   for i=1, #modes do 
     local mode = modes[i]
     
-    if mode:GetName() == 'DPS' then return mode end
+    if mode:GetName() == SkadaLocale['DPS'] then return mode end
   end
   
   return nil
@@ -139,27 +140,33 @@ function TorpedoFightAnalyzer:Analyze()
       local report_table = self.Window:new()
       local report_mode = self:FindDPSMode()
       
-      report_mode:Update(report_table, report_set)
-      
-      -- Prune it to the essentials
-      local my_player_info
-      
-      avg_raid_dps = 0
-      fight_start_time = report_set.starttime
-      
-      for i=1, #report_table.dataset do 
-        local player_info = report_table.dataset[i]
+      if report_mode then
+        report_mode:Update(report_table, report_set)
         
-        avg_raid_dps = avg_raid_dps + math.floor(player_info.value)
-        if player_info.id == self.myGuid then 
-          my_player_info = player_info
+        -- Prune it to the essentials
+        local my_player_info
+        
+        avg_raid_dps = 0
+        fight_start_time = report_set.starttime
+        
+        for i=1, #report_table.dataset do 
+          local player_info = report_table.dataset[i]
+          
+          avg_raid_dps = avg_raid_dps + math.floor(player_info.value)
+          if player_info.id == self.myGuid then 
+            my_player_info = player_info
+          end
         end
-      end
-      
-      if not my_player_info then 
+        
+        if not my_player_info then 
+          avg_player_dps = FightSummary.UNKNOWN
+        else
+          avg_player_dps = my_player_info.value
+        end
+      else 
+        fight_start_time = FightSummary.UNKNOWN
         avg_player_dps = FightSummary.UNKNOWN
-      else
-        avg_player_dps = my_player_info.value
+        avg_raid_dps = FightSummary.UNKNOWN
       end
     end
   end
