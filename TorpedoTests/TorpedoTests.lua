@@ -2,6 +2,7 @@
 local colors = require('ansicolors')
 dofile('TorpedoTests/WowFuncs.lua')
 dofile('Libs/LibStub/LibStub.lua')
+dofile('Libs/AceLocale-3.0/AceLocale-3.0.lua')
 
 -- Assert Functions
 local assertCounter
@@ -312,7 +313,8 @@ RunTestByName('Init context', function()
     target_info = {}, 
     group_size = 0, 
     in_instance = false,
-    boss_fight = false
+    boss_fight = false,
+    pvp = false
   })
   
   AssertType('table', context.auras)
@@ -801,7 +803,8 @@ local function init_sugg_and_context()
     target_info = {}, 
     group_size = 0, 
     in_instance = false,
-    boss_fight = false
+    boss_fight = false,
+    pvp = false
   })
   return envenomSugg, context
 end
@@ -1537,10 +1540,10 @@ RunTestByName('Specialization can decide on a primary spell based on context', f
     target_info = {}, 
     group_size = 0, 
     in_instance = false,
-    boss_fight = false, 
     group_size = 0, 
     in_instance = false,
-    boss_fight = false
+    boss_fight = false,
+    pvp = false
   })
   
   local desSugg, resultType = spec:GetSuggestion(context, true)
@@ -1780,7 +1783,8 @@ RunTestByName('Profile can decide on a primary spell based on context', function
     target_info = {}, 
     group_size = 0, 
     in_instance = false,
-    boss_fight = false
+    boss_fight = false,
+    pvp = false
   })
   
   local desSugg, resultType = profile:GetSuggestion(context, true)
@@ -1994,7 +1998,8 @@ RunTestByName('Config can decide on a primary ability', function()
     target_info = {}, 
     group_size = 0, 
     in_instance = false,
-    boss_fight = false
+    boss_fight = false,
+    pvp = false
   })
   
   local sugg, suggRes = config:GetSuggestion(context, true)
