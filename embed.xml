@@ -15,6 +15,7 @@
   <Script file="TorpedoOptionsBuilder.lua"/>
   <Script file="TorpedoSpells.lua"/>
   <Script file="TorpedoAuras.lua"/>
+  <Script file="TorpedoTalentChoiceOptions.lua"/>
   <Script file="TorpedoContext.lua"/>
   <Script file="TorpedoSuggestionResult.lua"/>
   <Script file="TorpedoTimestampTristate.lua"/>

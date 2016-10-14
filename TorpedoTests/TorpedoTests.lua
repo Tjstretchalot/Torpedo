@@ -212,6 +212,13 @@ RunTestByName('Load TorpedoAuras', function()
   AssertNotNil(TorpedoAuras)
 end)
 
+RunTestByName('Load TorpedoTalentChoiceOptions', function()
+  dofile('TorpedoTalentChoiceOptions.lua')
+  
+  local TorpedoTalentChoiceOptions = LibStub:GetLibrary('TorpedoTalentChoiceOptions-1.0')
+  AssertNotNil(TorpedoTalentChoiceOptions)
+end)
+
 RunTestByName('Load TorpedoContext', function()
   dofile('TorpedoContext.lua')
   

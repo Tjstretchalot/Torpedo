@@ -234,10 +234,12 @@ end
   @param uncheckedName the name the user sees when unchecked
   @param checkedBrightName the name the user sees when checked and bright
   @param checkedDarkName the name the user sees when checked and dark
-  @param desc the hover text
+  @param descOrUncheckedDesc the hover text if unchecked
+  @param nilOrCheckedBrightDesc the hover text if checked and bright, nil to use the unchecked description
+  @param nilOrCheckedDarkDesc the hover text if checked but dark, nil to use the unchecked description
   @return self
 ]]
-function TorpedoOptionsBuilder:AddTristate(varName, uncheckedName, checkedBrightName, checkedDarkName, desc)
+function TorpedoOptionsBuilder:AddTristate(varName, uncheckedName, checkedBrightName, checkedDarkName, descOrUncheckedDesc, nilOrCheckedBrightDesc, nilOrCheckedDarkDesc)
   local cacheConfig = self.config
   return self:AddCustomAttachedToVar({
     name = function(info)
@@ -250,7 +252,18 @@ function TorpedoOptionsBuilder:AddTristate(varName, uncheckedName, checkedBright
     end,
     type = 'toggle',
     tristate = true,
-    desc = desc
+    desc = function(info)
+      local val = cacheConfig[varName]
+      if val == nil then 
+        if nilOrCheckedDarkDesc then return nilOrCheckedDarkDesc end
+        return descOrUncheckedDesc
+      elseif val == true then 
+        if nilOrCheckedBrightDesc then return nilOrCheckedBrightDesc end
+        return descOrUncheckedDesc
+      else
+        return descOrUncheckedDesc
+      end
+    end
   }, varName)
 end
 

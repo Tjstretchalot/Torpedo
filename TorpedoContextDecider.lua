@@ -28,6 +28,7 @@ TorpedoContextDecider.FAIL_REASON = {
   NO_INSTANCE_REQUIRED = 'Not in an instance required but in an instance',
   PVP_REQUIRED = 'In pvp required but not in a pvp instance',
   NO_PVP_REQUIRED = 'Not in pvp required but in pvp',
+  TALENT_CHOICE_FAILED = 'A talent choice does not meet its requirements',
   
   -- Min/max checks; these return something like:
   -- return false, FAIL_REASON.MIN_FAILED, 'ComboPoints'
@@ -331,6 +332,15 @@ function TorpedoContextDecider:Decide(requirements, context, optCompareContext)
     end
   end
   
+  if requirements.talent_choices ~= nil then 
+    for i=1, #requirements.talent_choices do 
+      local talChoice = requirements.talent_choices[i]
+      
+      if not talChoice:MeetsRequirements() then 
+        return false, self.FAIL_REASON.TALENT_CHOICE_FAILED, i
+      end
+    end
+  end
   
   if requirements.cache_spells ~= nil then 
     for i=1, #requirements.cache_spells do 

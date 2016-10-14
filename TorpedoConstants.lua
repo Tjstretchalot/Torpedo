@@ -303,3 +303,18 @@ TorpedoConstants.SECONDARY_PANEL_PRIM_CORNER_OFFSET = 'What corner in the primar
 TorpedoConstants.SECONDARY_PANEL_REFERENCE_CORNER = 'What corner is the offset references on the secondary panel? E.g. if the primary corner is bottom right and the secondary corner is bottom left then the offset is the distance from the bottom right of the primary to the bottom left of the secondary.'
 TorpedoConstants.SECONDARY_PANEL_X_OFFSET = 'What is the x (positive is right) distance from the secondary panel primary offset corner to the secondary panel reference corner?'
 TorpedoConstants.SECONDARY_PANEL_Y_OFFSET = 'What is the y (positive is up) distance from the secondary panel primary offset corner to the secondary panel reference corner?'
+
+-- Talent Choices --
+TorpedoConstants.TALENT_CHOICE_NEW_NAME = 'Add talent check'
+TorpedoConstants.TALENT_CHOICE_NEW_DESC = 'Add a check to see if a talent is or is not selected'
+TorpedoConstants.TALENT_CHOICE_ENABLED_NAME = 'Enabled'
+TorpedoConstants.TALENT_CHOICE_ENABLED_DESC = 'Should we check this talent?'
+TorpedoConstants.TALENT_CHOICE_HEADER_DESC = 'This is either the name of the talent or \'Invalid Talent\' if the talent tier and column do not correspond to an actual talent. This option will be disregarded if this text says \'Invalid Talent\'.'
+TorpedoConstants.TALENT_CHOICE_DELETE_NAME = 'Delete'
+TorpedoConstants.TALENT_CHOICE_DELETE_DESC = 'Delete this talent choice group'
+TorpedoConstants.TALENT_CHOICE_INVERTED_NAME = 'Inverted'
+TorpedoConstants.TALENT_CHOICE_INVERTED_DESC = 'Check that we don\'t have this talent?'
+TorpedoConstants.TALENT_CHOICE_TIER_NAME = 'Tier'
+TorpedoConstants.TALENT_CHOICE_TIER_DESC = 'Which row is this talent on? Ascending from 1 for level 15 talents to 7 for level 100 talents.'
+TorpedoConstants.TALENT_CHOICE_COLUMN_NAME = 'Column'
+TorpedoConstants.TALENT_CHOICE_COLUMN_DESC = 'Which column is this talent on? Ascending from 1 on the left to 3 on the right.'

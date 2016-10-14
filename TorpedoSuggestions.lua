@@ -6,6 +6,7 @@ local Spells = LibStub:GetLibrary('TorpedoSpells-1.0')
 local SuggestionResult = LibStub:GetLibrary('TorpedoSuggestionResult-1.0')
 local ContextDecider = LibStub:GetLibrary('TorpedoContextDecider-1.0')
 local SpellContextOptions = LibStub:GetLibrary('TorpedoSpellContextOptions-1.0')
+local TalentChoiceOptions = LibStub:GetLibrary('TorpedoTalentChoiceOptions-1.0')
 
 local MAJOR, MINOR = 'TorpedoSuggestions-1.0', 1
 local TorpedoSuggestions = LibStub:NewLibrary(MAJOR, MINOR)
@@ -56,6 +57,12 @@ function TorpedoSuggestions:__Init()
    These actually end up being backed by TorpedoSpellContextOptions to simplify things
   ]]
   self.cache_spells = self.cache_spells or {}
+  
+  --[[
+    Contains TorpedoTalentChoiceOptions, which are used to require having (or not having)
+    certain talents selected by tier and column.
+  ]]
+  self.talent_choices = self.talent_choices or {}
   
   if self.enabled == nil then self.enabled = false end
   if self.priority == nil then self.priority = Constants.PRIORITY_DEFAULT end
@@ -245,8 +252,7 @@ function TorpedoSuggestions:CreateOptions(optionName, order, rebuild_opt_func, r
     Constants.GROUP_SIZE_MIN, Constants.GROUP_SIZE_MAX, Constants.GROUP_SIZE_SOFTMIN,
     Constants.GROUP_SIZE_SOFTMAX, Constants.GROUP_SIZE_STEP, Constants.GROUP_SIZE_BIGSTEP)
   
-  -- Add optional context checking for each cooldown. Done at the bottom because
-  -- this feature is incredibly complex compared to everything else
+  -- Add optional context checking for each cooldown. 
   for i=1, #self.cache_spells do 
     local spellContextOptions = self.cache_spells[i]
     local nameLower = string.lower(spellContextOptions.spell.name)
@@ -267,6 +273,32 @@ function TorpedoSuggestions:CreateOptions(optionName, order, rebuild_opt_func, r
     result:AddCustom(res)
     result:Unnest() 
   end
+  
+  -- Add optional talent choice checking.
+  result:AddCustom({
+    type = 'execute',
+    name = Constants.TALENT_CHOICE_NEW_NAME,
+    desc = Constants.TALENT_CHOICE_NEW_DESC,
+    width = 'full',
+    func = function(info)
+      table.insert(me.talent_choices, TalentChoiceOptions:New({enabled = true, tier = 1, column = 1, inverted = false}))
+      rebuild_opt_func()
+    end
+  })
+  
+  for i=1, #me.talent_choices do
+    local talChoiceOpt = me.talent_choices[i]
+    
+    local del_talent_choice = function()
+      table.remove(me.talent_choices, i)
+    end
+    
+    local name = 'Talent Check ' .. tostring(i)
+    local grp = talChoiceOpt:BuildOptions(name, 1, rebuild_opt_func, del_talent_choice)
+    grp.inline = true
+    result:AddCustom(grp)
+  end
+  
   result = result:Unnest()
   result = result:Build()  
   result.name = optionName
@@ -310,6 +342,11 @@ function TorpedoSuggestions:Serializable()
       for i=1, #val do 
         res.cache_spells[i] = val[i]:Serializable()
       end
+    elseif key == 'talent_choices' then 
+      res.talent_choices = {}
+      for i=1, #val do 
+        res.talent_choices[i] = val[i]:Serializable()
+      end
     elseif type(val) == 'table' then
       -- deep copy 
       res[key] = Utils:tcopy(val)
@@ -345,6 +382,11 @@ function TorpedoSuggestions:Unserialize(ser)
       res.cooldowns = {}
       for i=1, #val do 
         table.insert(res.cooldowns, Spells:Unserialize(val[i]))
+      end
+    elseif key == 'talent_choices' then 
+      res.talent_choices = {}
+      for i=1, #val do 
+        table.insert(res.talent_choices, TalentChoiceOptions:Unserialize(val[i]))
       end
     else
       res[key] = val
