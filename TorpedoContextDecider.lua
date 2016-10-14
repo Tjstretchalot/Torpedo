@@ -132,12 +132,36 @@ function TorpedoContextDecider:MeetsReqs_MaxCheck(name, val, requirements, conte
   return val <= _max
 end
 
+function TorpedoContextDecider:Decide(requirements, context, optCompareContext)
+  local res = {self:__DecideImpl(requirements, context, optCompareContext)}
+  
+  if requirements.debug then 
+    local name = requirements.name
+    if not name then
+      name = requirements.spell.name
+    end
+    if not name then 
+      name = 'Unknown'
+    end
+    if res[1] then 
+      print(name .. ' meets all requirements.')
+    else
+      print(name .. ' does not meet all requirements:')
+      for i=2, #res do 
+        print('  ' .. tostring(res[i]))
+      end
+    end
+  end
+  
+  return unpack(res)
+end
+
 --[[
   Checks if the requirements are met in the specified context. See 
   TorpedoSuggestions for valid requirements. Uses recursion on some 
   requirements, which requires a comparison context.
 ]]
-function TorpedoContextDecider:Decide(requirements, context, optCompareContext)
+function TorpedoContextDecider:__DecideImpl(requirements, context, optCompareContext)
   if not self:MeetsReqs_Enabled(requirements, context, optCompareContext) then 
     return false, self.FAIL_REASON.DISABLED
   end

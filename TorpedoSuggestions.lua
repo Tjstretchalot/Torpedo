@@ -65,6 +65,7 @@ function TorpedoSuggestions:__Init()
   self.talent_choices = self.talent_choices or {}
   
   if self.enabled == nil then self.enabled = false end
+  if self.debug == nil then self.debug = false end
   if self.priority == nil then self.priority = Constants.PRIORITY_DEFAULT end
   if self.poolEnergyIfLow == nil then self.poolEnergyIfLow = false end
   if self.require_stealthed == nil then self.require_stealthed = false end
@@ -158,6 +159,7 @@ function TorpedoSuggestions:CreateOptions(optionName, order, rebuild_opt_func, r
     :AddToggle('enabled', 'Enable', Constants.ENABLE_DESC)
     :Nest('enabled', false, true)
     :AddToggle('primary', 'Primary', Constants.PRIMARY_DESC)
+    :AddToggle('debug', Constants.SUGGESTION_DEBUG_NAME, Constants.SUGGESTION_DEBUG_DESC)
     :AddRange('priority', 'Priority', Constants.PRIORITY_DESC, Constants.PRIORITY_MIN, 
               Constants.PRIORITY_MAX, Constants.PRIORITY_SOFTMIN, Constants.PRIORITY_SOFTMAX, 
               Constants.PRIORITY_STEP, Constants.PRIORITY_BIGSTEP)

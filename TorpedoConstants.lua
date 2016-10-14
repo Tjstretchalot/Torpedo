@@ -6,6 +6,9 @@ if not TorpedoConstants then return end
 TorpedoConstants.ENABLE_DESC = 'Allow this option to be considered'
 TorpedoConstants.PRIMARY_DESC = 'Is this a primary suggestion or secondary suggestion?'
 
+TorpedoConstants.SUGGESTION_DEBUG_NAME = 'Debug'
+TorpedoConstants.SUGGESTION_DEBUG_DESC = 'This will print out the result of the suggestion. Recommended only for advanced users'
+
 TorpedoConstants.PRIORITY_DEFAULT = 500
 TorpedoConstants.PRIORITY_DESC = 'Options are evaluated from highest priority to lowest priority, until either there are no more options left or an option meets its requirement'
 TorpedoConstants.PRIORITY_MIN = 0
