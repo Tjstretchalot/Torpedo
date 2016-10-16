@@ -8,9 +8,12 @@
   <Include file="Libs\AceGUI-3.0\AceGUI-3.0.xml"/>
   <Include file="Libs\AceConfig-3.0\AceConfig-3.0.xml"/>
   <Include file="Libs\AceTimer-3.0\AceTimer-3.0.xml"/>
+  <Include file="Libs\AceSerializer-3.0\AceSerializer-3.0.xml"/>
   
   <Script file="TorpedoConstants.lua"/>
   <Script file="TorpedoUtils.lua"/>
+  <Script file="TorpedoStringBuffer.lua"/>
+  <Script file="TorpedoTransmission\TorpedoEncoding.lua"/>
   <Script file="TorpedoDefaultConfig.lua"/>
   <Script file="TorpedoOptionsBuilder.lua"/>
   <Script file="TorpedoSpells.lua"/>

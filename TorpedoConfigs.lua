@@ -2,6 +2,8 @@ local Utils = LibStub:GetLibrary('TorpedoUtils-1.0')
 local Profiles = LibStub:GetLibrary('TorpedoProfiles-1.0')
 local SuggestionResult = LibStub:GetLibrary('TorpedoSuggestionResult-1.0')
 local Constants = LibStub:GetLibrary('TorpedoConstants-1.0')
+local Encoding = LibStub:GetLibrary('TorpedoEncoding-1.0')
+local Serializer = LibStub:GetLibrary("AceSerializer-3.0")
 
 local MAJOR, MINOR = 'TorpedoConfigs-1.0', 1
 local TorpedoConfigs = LibStub:NewLibrary(MAJOR, MINOR)
@@ -18,6 +20,9 @@ end
 
 function TorpedoConfigs:__Init()
   self.profiles = self.profiles or {}
+  self.import_profile_checkbox = false
+  self.import_profile_encoded_string = ''
+  self.debug_import = false
 end
 
 function TorpedoConfigs:SetDefaultProfile(profile)
@@ -111,12 +116,116 @@ function TorpedoConfigs:CreateOptions(rebuild_opt, update_gui_func)
           
           rebuild_opt()
         end
+      },
+      param2 = {
+        name = Constants.IMPORT_PROFILE_CHECKBOX_NAME,
+        desc = Constants.IMPORT_PROFILE_CHECKBOX_DESC,
+        type = 'toggle',
+        order = 2,
+        get = function() return me.import_profile_checkbox end,
+        set = function(info, val)
+          me.import_profile_checkbox = val 
+          me.import_profile_encoded_string = ''
+        end,
+        width = 'full'
+      },
+      param3 = {
+        name = Constants.IMPORT_PROFILE_INPUT_NAME,
+        desc = Constants.IMPORT_PROFILE_INPUT_DESC,
+        order = 3,
+        get = function()
+          return me.import_profile_encoded_string
+        end,
+        set = function(info, val)
+          me.import_profile_encoded_string = val
+        end,
+        type = 'input',
+        multiline = true,
+        width = 'full',
+        hidden = function()
+          return not me.import_profile_checkbox
+        end
+      },
+      param4 = {
+        name = Constants.IMPORT_PROFILE_EXECUTE_NAME,
+        desc = Constants.IMPORT_PROFILE_EXECUTE_DESC,
+        order = 4,
+        width = 'full',
+        type = 'execute',
+        func = function()
+          xpcall(function() 
+            if me.debug_import then 
+              print('Attempting to import profile..')
+            end
+            local linified = Utils:strlines(me.import_profile_encoded_string, true)
+            local decodedString = Encoding:Decode(linified)
+            if me.debug_import then 
+              print('Successfully decoded..')
+            end
+            local succ, serializableTable = Serializer:Deserialize(decodedString)
+            if me.debug_import then 
+              print('Successfully deserialized a ' .. type(serializableTable))
+            end
+            local profile = Profiles:Unserialize(serializableTable)
+            if me.debug_import then 
+              print('Successfully created profile..')
+            end
+            
+            if me:__CheckProfileName(profile.name) then   
+              if me.debug_import then 
+                print('Found name collision..')
+              end
+              local counter = 2
+              local newName = profile.name .. ' ' .. tostring(counter)
+              while me:__CheckProfileName(newName) do 
+                counter = counter + 1
+                newName = profile.name .. ' ' .. tostring(counter)
+              end
+              profile.name = newName
+              if me.debug_import then
+                print('Resolved name collision..')
+              end
+            end
+            
+            profile:SetActiveSpecialization(me.active_spec_id)
+            
+            table.insert(me.profiles, profile)
+            
+            me.import_profile_encoded_string = ''
+            if me.debug_import then 
+              print('Rebuilding options..')
+            end
+            rebuild_opt()
+            print('Torpedo: Successfully imported profile ' .. profile.name)
+          end, function(err)
+            print('Torpedo: Failed to import profile: ' .. tostring(err))
+            if me.debug_import then 
+              print(debugstack())
+            end
+          end)
+        end,
+        hidden = function()
+          return not me.import_profile_checkbox
+        end
+      },
+      param5 = {
+        name = Constants.IMPORT_PROFILE_DEBUG_NAME,
+        desc = Constants.IMPORT_PROFILE_DEBUG_DESC,
+        order = 5,
+        width = 'full',
+        type = 'toggle',
+        get = function() return me.debug_import end,
+        set = function(info, val) me.debug_import = val end,
+        hidden = function()
+          return not me.import_profile_checkbox
+        end
       }
     }
   }
   
+  local offset = 5
   for i=1, #self.profiles do 
-    local key = 'param' .. tostring(i+1)
+    local key = 'param' .. tostring(i+offset)
     
     local cacheInd = i
     local delete_profile_func = function()
@@ -166,7 +275,7 @@ function TorpedoConfigs:CreateOptions(rebuild_opt, update_gui_func)
       table.insert(me.profiles, newProf)
     end
     
-    res.args[key] = self.profiles[i]:CreateOptions(i+1, rebuild_opt, update_gui_func, delete_profile_func, is_active_profile_func, set_active_profile_func, is_valid_profile_name_func, clone_profile_func)
+    res.args[key] = self.profiles[i]:CreateOptions(i+offset, rebuild_opt, update_gui_func, delete_profile_func, is_active_profile_func, set_active_profile_func, is_valid_profile_name_func, clone_profile_func)
   end
   
   return res

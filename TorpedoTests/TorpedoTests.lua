@@ -3,11 +3,12 @@ local colors = require('ansicolors')
 dofile('TorpedoTests/WowFuncs.lua')
 dofile('Libs/LibStub/LibStub.lua')
 dofile('Libs/AceLocale-3.0/AceLocale-3.0.lua')
+dofile('Libs/AceSerializer-3.0/AceSerializer-3.0.lua')
 
 -- Assert Functions
 local assertCounter
 local assertInconclusive
-local function AssertEqual(expected, actual, optError)
+function AssertEqual(expected, actual, optError)
   assertCounter = assertCounter + 1
   if expected ~= actual then 
     if optError then 
@@ -19,7 +20,7 @@ local function AssertEqual(expected, actual, optError)
   end
 end
 
-local function AssertNotEqual(notExpected, actual, optError)
+function AssertNotEqual(notExpected, actual, optError)
   assertCounter = assertCounter + 1
   if notExpected == actual then 
     if optError then 
@@ -31,7 +32,7 @@ local function AssertNotEqual(notExpected, actual, optError)
   end
 end
 
-local function AssertFalsey(actual, optError)
+function AssertFalsey(actual, optError)
   assertCounter = assertCounter + 1
   if actual then 
     if optError then 
@@ -43,7 +44,7 @@ local function AssertFalsey(actual, optError)
   end
 end
 
-local function AssertTruthy(actual, optError)
+function AssertTruthy(actual, optError)
   assertCounter = assertCounter + 1
   if not actual then 
     if optError then 
@@ -55,19 +56,19 @@ local function AssertTruthy(actual, optError)
   end
 end
 
-local function AssertNil(actual, optError)
+function AssertNil(actual, optError)
   AssertEqual(nil, actual, optError)
 end
 
-local function AssertNotNil(actual, optError)
+function AssertNotNil(actual, optError)
   AssertNotEqual(nil, actual, optError)
 end
 
-local function AssertType(expected, actual, optError)
+function AssertType(expected, actual, optError)
   AssertEqual(expected, type(actual), optError)
 end
 
-local function AssertError(func, optError)
+function AssertError(func, optError)
   assertCounter = assertCounter + 1
   local status, err = pcall(func)
   
@@ -81,7 +82,33 @@ local function AssertError(func, optError)
   end
 end
 
-local function AssertDeepEquals(expected, actual, optError, nestedStr)
+function AssertLessThan(expected, actual, optError)
+  assertCounter = assertCounter + 1
+  
+  AssertType('number', expected, 'Can only compare numbers with AssertLessThan\n' .. optError)
+  AssertType('number', actual, 'Can only compare numbers with AssertLessThan\n' .. optError)
+  
+  assertCounter = assertCounter - 2
+  
+  AssertTruthy(actual < expected, optError)
+  
+  assertCounter = assertCounter - 1
+end
+
+function AssertGreaterThan(expected, actual, optError)
+  assertCounter = assertCounter + 1
+  
+  AssertType('number', expected, 'Can only compare numbers with AssertGreaterThan\n' .. optError)
+  AssertType('number', actual, 'Can only compare numbers with AssertGreaterThan\n' .. optError)
+  
+  assertCounter = assertCounter - 2
+  
+  AssertTruthy(actual > expected, optError)
+  
+  assertCounter = assertCounter - 1
+end
+
+function AssertDeepEquals(expected, actual, optError, nestedStr)
   optError = optError or ''
   nestedStr = nestedStr or ''
   AssertType(type(expected), actual, 'key=' .. nestedStr .. '; optError=' .. optError)
@@ -111,7 +138,7 @@ local function AssertDeepEquals(expected, actual, optError, nestedStr)
   check_for_extra(check_for_extra, expected, actual, optError, nestedStr)
 end
 
-local function AssertInconclusive(optReason)
+function AssertInconclusive(optReason)
   assertInconclusive = optReason or true
 end
 
@@ -120,7 +147,7 @@ end
   that all of the parameters in expectedRequirements are passed
   in.
 ]]
-local function TestInitFunction(obj, expectedRequirements)
+function TestInitFunction(obj, expectedRequirements)
   AssertNotNil(obj)
   AssertType('function', obj.New)
   
@@ -143,7 +170,7 @@ local function TestInitFunction(obj, expectedRequirements)
 end
 
 -- Test Utility Functions
-local function RunTestByName(testName, func)
+function RunTestByName(testName, func)
   assertCounter = 0
   assertInconclusive = nil
   local status, err = xpcall(function()
@@ -183,6 +210,22 @@ RunTestByName('Load TorpedoUtils', function()
   local TorpedoUtils = LibStub:GetLibrary('TorpedoUtils-1.0')
   AssertNotNil(TorpedoUtils)
 end)
+
+RunTestByName('Load TorpedoStringBuffer', function()
+  dofile('TorpedoStringBuffer.lua')
+  
+  local TorpedoStringBuffer = LibStub:GetLibrary('TorpedoStringBuffer-1.0')
+  AssertNotNil(TorpedoStringBuffer)
+end)
+dofile('TorpedoTests/StringBufferTests.lua')
+
+RunTestByName('Load TorpedoEncoding', function()
+  dofile('TorpedoTransmission/TorpedoEncoding.lua')
+  
+  local TorpedoEncoding = LibStub:GetLibrary('TorpedoEncoding-1.0')
+  AssertNotNil(TorpedoEncoding)
+end)
+dofile('TorpedoTests/TransmissionTests/EncodingTests.lua')
 
 RunTestByName('Load default config', function()
   dofile('TorpedoDefaultConfig.lua')
@@ -924,6 +967,7 @@ RunTestByName('Suggestion checks aura duration requirement', function()
   })
   
   local envenomSugg, context = init_sugg_and_context()
+  table.insert(envenomSugg.auras, someAura)
   envenomSugg:RegisterAura(someAura)
   envenomSugg.checkDurationOfAnAura = true
   envenomSugg.hasMinDurationOfAnAura = true
@@ -968,6 +1012,7 @@ RunTestByName('Suggestion checks spell cooldown requirement', function()
   
   local envenomSugg, context = init_sugg_and_context()
   envenomSugg.enabled = true
+  table.insert(envenomSugg.cooldowns, someSpell)
   envenomSugg:RegisterCooldown(someSpell)
   context.timestamp = 0
   table.insert(context.cooldowns, spellInfo)
@@ -1067,6 +1112,7 @@ RunTestByName('Register cooldown to skill propagates to suggestions', function()
   skill:NewSuggestion(500, true)
   
   AssertEqual(0, #skill.suggestions[1].cooldowns)
+  table.insert(skill.cooldowns, spell)
   skill:RegisterCooldown(spell)
   AssertEqual(1, #skill.suggestions[1].cooldowns)
   
@@ -1102,6 +1148,7 @@ RunTestByName('Register aura to skill propagates to suggestions', function()
   skill:NewSuggestion(500, true)
   
   AssertEqual(0, #skill.suggestions[1].auras)
+  table.insert(skill.auras, aura)
   skill:RegisterAura(aura)
   AssertEqual(1, #skill.suggestions[1].auras)
   
@@ -2028,28 +2075,9 @@ RunTestByName('Config can build options', function()
     end
   }
   
-  local fn = function() end
   local actual = config:CreateOptions(fn)
-  local expected = {
-    name = 'Torpedo',
-    type = 'group',
-    args = {
-      param1 = {
-        name = Constants.ADD_NEW_PROFILE_NAME,
-        desc = Constants.ADD_NEW_PROFILE_DESC,
-        type = 'execute',
-        width = 'full',
-        order = 1,
-        func = fn
-      },
-      param2 = {
-        order = 2,
-        magicalStr = 'Magical string 1'
-      }
-    }
-  }
   
-  AssertDeepEquals(expected, actual)
+  AssertNotNil(actual)
 end)
 
 RunTestByName('Load gui', function() 

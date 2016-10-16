@@ -36,13 +36,8 @@ function TorpedoSkills:NewSuggestion(priority, primary)
   local sugg = Suggestions:New({spell = self.spell, priority = priority, primary = primary})
   sugg.Validator = self.validator
   
-  for i=1, #self.cooldowns do 
-    sugg:RegisterCooldown(self.cooldowns[i])
-  end
-  
-  for i=1, #self.auras do 
-    sugg:RegisterAura(self.auras[i])
-  end
+  sugg.auras = self.auras
+  sugg.cooldowns = self.cooldowns
   
   table.insert(self.suggestions, sugg)
 end
@@ -63,20 +58,22 @@ function TorpedoSkills:DropLowestPrioritySuggestion()
   table.remove(self.suggestions, lastIndex)
 end
 
+--[[
+  Assumes the backing array has already been updated
+]]
 function TorpedoSkills:RegisterCooldown(spell)
   for i=1, #self.suggestions do 
     self.suggestions[i]:RegisterCooldown(spell)
   end
-  
-  table.insert(self.cooldowns, spell)
 end
 
+--[[
+  Assumes the backing array has already been updated
+]]
 function TorpedoSkills:RegisterAura(aura)
   for i=1, #self.suggestions do 
     self.suggestions[i]:RegisterAura(aura)
   end
-  
-  table.insert(self.auras, aura)
 end
 
 function TorpedoSkills:CreateOptions(order, rebuild_opt, new_priority_func, advanced_features_func, delete_skill_func)
@@ -161,15 +158,6 @@ function TorpedoSkills:Serializable() -- loses validator
   for i=1, #self.suggestions do 
     table.insert(res.suggestions, self.suggestions[i]:Serializable())
   end
-  res.cooldowns = {}
-  for i=1, #self.cooldowns do 
-    table.insert(res.cooldowns, self.cooldowns[i]:Serializable())
-  end
-  res.auras = {}
-  for i=1, #self.auras do 
-    table.insert(res.auras, self.auras[i]:Serializable())
-  end
-  
   return res
 end
 
@@ -180,19 +168,17 @@ function TorpedoSkills:Unserialize(ser)
   for i=1, #ser.suggestions do 
     table.insert(suggestions, Suggestions:Unserialize(ser.suggestions[i]))
   end
-  local cooldowns = {}
-  for i=1, #ser.cooldowns do 
-    table.insert(cooldowns, Spells:Unserialize(ser.cooldowns[i]))
-  end
-  local auras = {}
-  for i=1, #ser.auras do 
-    table.insert(auras, Auras:Unserialize(ser.auras[i]))
-  end
   
   local res = TorpedoSkills:New({ spell = spell, name = name })
   res.suggestions = suggestions
-  res.cooldowns = cooldowns
-  res.auras = auras
   
   return res
+end
+
+function TorpedoSkills:PostUnserialize()
+  for i=1, #self.suggestions do 
+    self.suggestions[i].auras = self.auras
+    self.suggestions[i].cooldowns = self.cooldowns
+    self.suggestions[i]:PostUnserialize()
+  end
 end

@@ -115,7 +115,9 @@ function TorpedoSpecializations:AddSkill(spell)
   
   local skill = Skills:New({ name = spell.name, spell = spell })
   skill:SetValidator(self.validator)
-  
+  skill.cooldowns = self.cooldowns
+  skill.auras = self.auras
+ 
   for i=1, #self.auras do 
     skill:RegisterAura(self.auras[i])
   end
@@ -135,19 +137,19 @@ function TorpedoSpecializations:GetSkillByDebugName(debugName)
 end
 
 function TorpedoSpecializations:RegisterAura(aura)
+  table.insert(self.auras, aura)
+  
   for i=1, #self.skills do 
     self.skills[i]:RegisterAura(aura)
   end
-  
-  table.insert(self.auras, aura)
 end
 
 function TorpedoSpecializations:RegisterCooldown(cooldown)
+  table.insert(self.cooldowns, cooldown)
+  
   for i=1, #self.skills do 
     self.skills[i]:RegisterCooldown(cooldown)
   end
-  
-  table.insert(self.cooldowns, cooldown)
 end
 
 function TorpedoSpecializations:GetSuggestion(context, primary)
@@ -803,7 +805,11 @@ function TorpedoSpecializations:Unserialize(ser)
   end
   local skills = {}
   for i=1, #ser.skills do 
-    table.insert(skills, Skills:Unserialize(ser.skills[i]))
+    local skill = Skills:Unserialize(ser.skills[i])
+    skill.auras = auras
+    skill.cooldowns = cooldowns
+    skill:PostUnserialize()
+    table.insert(skills, skill)
   end
   local advanced_features = ser.advanced_features
   

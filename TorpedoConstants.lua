@@ -321,3 +321,22 @@ TorpedoConstants.TALENT_CHOICE_TIER_NAME = 'Tier'
 TorpedoConstants.TALENT_CHOICE_TIER_DESC = 'Which row is this talent on? Ascending from 1 for level 15 talents to 7 for level 100 talents.'
 TorpedoConstants.TALENT_CHOICE_COLUMN_NAME = 'Column'
 TorpedoConstants.TALENT_CHOICE_COLUMN_DESC = 'Which column is this talent on? Ascending from 1 on the left to 3 on the right.'
+
+-- Transmission
+TorpedoConstants.IMPORT_PROFILE_CHECKBOX_NAME = 'Show importing options'
+TorpedoConstants.IMPORT_PROFILE_CHECKBOX_DESC = 'Show options relating to importing profiles - you should only import profiles from people you trust.'
+TorpedoConstants.IMPORT_PROFILE_INPUT_NAME = 'Encoded String'
+TorpedoConstants.IMPORT_PROFILE_INPUT_DESC = 'Copy and paste the encoded string here'
+TorpedoConstants.IMPORT_PROFILE_EXECUTE_NAME = 'Import Profile'
+TorpedoConstants.IMPORT_PROFILE_EXECUTE_DESC = 'Decode the string and import it as a profile.'
+TorpedoConstants.IMPORT_PROFILE_DEBUG_NAME = 'Debug Import'
+TorpedoConstants.IMPORT_PROFILE_DEBUG_DESC = 'More debug print statements to help diagnose what\'s happening.'
+
+TorpedoConstants.EXPORT_PROFILE_CHECKBOX_NAME = 'Show exporting options'
+TorpedoConstants.EXPORT_PROFILE_CHECKBOX_DESC = 'Show options relating to exporting profiles - you can share the encoded string using a service such as pastebin'
+
+TorpedoConstants.EXPORT_PROFILE_INPUT_NAME = 'Export String'
+TorpedoConstants.EXPORT_PROFILE_INPUT_DESC = 'Have the recieving user import this string'
+
+TorpedoConstants.EXPORT_PROFILE_ENCODE_NAME = 'Encode Profile'
+TorpedoConstants.EXPORT_PROFILE_ENCODE_DESC = 'Encode the profile and fill the above multiline input.'

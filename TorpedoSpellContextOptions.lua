@@ -281,6 +281,16 @@ function TSCO:Serializable()
     elseif key == 'initialized' then
     elseif key == 'auras' then
     elseif key == 'cooldowns' then
+   -- Don't save defaults, the files are HUGE (like, >3mb)
+    elseif Utils:strstarts(key, 'check') and val == false then
+    elseif Utils:strstarts(key, 'hasMin') and val == false then 
+    elseif Utils:strstarts(key, 'min') and val == 0 then 
+    elseif Utils:strstarts(key, 'hasMax') and val == false then 
+    elseif Utils:strstarts(key, 'max') and val == 0 then
+    elseif Utils:strstarts(key, 'TimestampComparedTo') and val.debug_value == TimestampTristate.DO_NOT_CHECK.debug_value then 
+    elseif key == 'enabled' and val == false then 
+    elseif key == 'require_stealthed' and val == false then 
+    elseif key == 'require_not_stealthed' and val == false then 
     elseif type(val) == 'table' then
       -- deep copy 
       res[key] = Utils:tcopy(val)

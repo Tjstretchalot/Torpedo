@@ -4,6 +4,9 @@ local SuggestionResult = LibStub:GetLibrary('TorpedoSuggestionResult-1.0')
 local Constants = LibStub:GetLibrary('TorpedoConstants-1.0')
 local GUISettings = LibStub:GetLibrary('TorpedoGUISettings-1.0')
 local DefaultConfig = LibStub:GetLibrary('TorpedoDefaultConfig-1.0')
+local Encoding = LibStub:GetLibrary('TorpedoEncoding-1.0')
+local Serializer = LibStub:GetLibrary("AceSerializer-3.0")
+local StringBuffer = LibStub:GetLibrary('TorpedoStringBuffer-1.0')
 
 local MAJOR, MINOR = 'TorpedoProfiles-1.0', 1
 local TorpedoProfiles = LibStub:NewLibrary(MAJOR, MINOR)
@@ -26,6 +29,8 @@ function TorpedoProfiles:__Init()
   if self.gui_settings == nil then 
     self.gui_settings = GUISettings:New({})
   end
+  self.export_profile_checkbox = false
+  self.export_profile_input = ''
 end
 
 function TorpedoProfiles:NewSpecialization(name, spec_id)
@@ -164,18 +169,70 @@ function TorpedoProfiles:CreateOptions(order, rebuild_opt, update_gui_func, dele
           rebuild_opt()
           update_gui_func()
         end
+      },
+      param6 = {
+        order = 6,
+        name = Constants.EXPORT_PROFILE_CHECKBOX_NAME,
+        desc = Constants.EXPORT_PROFILE_CHECKBOX_DESC,
+        width = 'full',
+        type = 'toggle',
+        get = function() return me.export_profile_checkbox end,
+        set = function(info, val) 
+          me.export_profile_checkbox = val
+          me.export_profile_input = ''
+        end
+      },
+      param7 = {
+        order = 7,
+        name = Constants.EXPORT_PROFILE_INPUT_NAME,
+        desc = Constants.EXPORT_PROFILE_INPUT_DESC,
+        width = 'full',
+        type = 'input',
+        multiline = true,
+        get = function() return me.export_profile_input end,
+        set = function(info, val) me.export_profile_input = val end,
+        hidden = function()
+          return not me.export_profile_checkbox
+        end
+      },
+      param8 = {
+        order = 8,
+        name = Constants.EXPORT_PROFILE_ENCODE_NAME,
+        desc = Constants.EXPORT_PROFILE_ENCODE_DESC,
+        width = 'full',
+        type = 'execute',
+        func = function()
+          local serializableTable = me:Serializable()
+          local serializedString = Serializer:Serialize(serializableTable)
+          local encodedLines = Encoding:Encode(serializedString, 100)
+          
+          local stringBuffer = StringBuffer:New()
+          me.export_profile_input = ''
+          for i=1, #encodedLines do 
+            stringBuffer:Append(encodedLines[i])
+            stringBuffer:Append('\n')
+          end
+          me.export_profile_input = stringBuffer:BuildString()
+          print('Torpedo: Encoding complete! ' .. tostring(#encodedLines) .. ' lines')
+        end,
+        hidden = function()
+          return not me.export_profile_checkbox
+        end
       }
     }
   }
   
-  local param6 = self.gui_settings:BuildOptions(update_gui_func)
-  param6.order = 6
-  param6.name = 'GUI Settings'
-  param6.inline = true
+  local offset = 8
   
-  result.args.param6 = param6
+  local key = 'param' .. (offset + 1)
+  local guiSettings = self.gui_settings:BuildOptions(update_gui_func)
+  guiSettings.order = offset + 1
+  guiSettings.name = 'GUI Settings'
+  guiSettings.inline = true
   
-  local offset = 6
+  result.args[key] = guiSettings
+  
+  offset = offset + 1
   for i=1, #self.specializations do 
     local key = 'param' .. tostring(i + offset)
     

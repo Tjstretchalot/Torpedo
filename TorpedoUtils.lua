@@ -34,3 +34,49 @@ function TorpedoUtils:tcopy(arr)
   end
   return res
 end
+
+function TorpedoUtils:strstarts(str, start)
+   return string.sub(str,1,string.len(start))==start
+end
+
+function TorpedoUtils:strends(str, ends)
+   return ends=='' or string.sub(str,-string.len(ends))==ends
+end
+
+function TorpedoUtils:strlines(str, ignoreEmpty)
+  local t = {}
+  
+  local function helper(line) 
+    if not ignoreEmpty or string.len(line) > 0 then
+      table.insert(t, line) 
+    end
+    return "" 
+  end
+  
+  helper((str:gsub("(.-)\r?\n", helper)))
+  return t
+end
+
+-- from http://lua-users.org/wiki/BaseSixtyFour by Alex Kloss modified for Torpedo
+-- bitshift functions (<<, >> equivalent)
+-- shift left
+function TorpedoUtils:lsh(value,shift)
+	return (value*(2^shift)) % 256
+end
+
+-- shift right
+function TorpedoUtils:rsh(value,shift)
+	return math.floor(value/2^shift) % 256
+end
+
+-- return single bit (for OR)
+function TorpedoUtils:bit(x,b)
+	return (x % 2^b - x % 2^(b-1) > 0)
+end
+
+-- logic OR for number values
+function TorpedoUtils:lor(x,y)
+	result = 0
+	for p=1,8 do result = result + (((self:bit(x,p) or self:bit(y,p)) == true) and 2^(p-1) or 0) end
+	return result
+end

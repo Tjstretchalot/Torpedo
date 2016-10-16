@@ -84,10 +84,11 @@ function TorpedoSuggestions:__Init()
   __AddMinMaxOptions(self, 'TimeToKillRaid')
 end
 
+--[[
+  Assumes the backing array is already updated
+]]
 function TorpedoSuggestions:RegisterAura(aura)
   __AddMinMaxOptions(self, 'DurationOf' .. aura.debugName)
-  table.insert(self.auras, aura)
-  
   
   for i=1, #self.cache_spells do 
     local spellContextOption = self.cache_spells[i]
@@ -95,10 +96,12 @@ function TorpedoSuggestions:RegisterAura(aura)
   end
 end
 
+--[[
+  Assumes the backing array is already updated
+]]
 function TorpedoSuggestions:RegisterCooldown(spell)
   if spell.cooldown then 
     __AddMinMaxOptions(self, 'CooldownFor' .. spell.debugName)
-    table.insert(self.cooldowns, spell)
   else
     error('Attempt to register cooldown for a spell (' .. tostring(spell.name) .. ') with no cooldown', 2)
   end
@@ -114,26 +117,6 @@ function TorpedoSuggestions:RegisterCooldown(spell)
   
   local newSCO = SpellContextOptions:New({spell = spell, suggestion = self})
   table.insert(self.cache_spells, newSCO)
-end
-
-function TorpedoSuggestions:EnsureSpellContextConsistency()
-  for i=1, #self.cooldowns do 
-    local cd = self.cooldowns[i]
-    local found = false
-    for j=1, #self.cache_spells do 
-      local cs = self.cache_spells[j]
-      
-      if cd.spell_id == cs.spell.spell_id then 
-        found = true
-        break
-      end
-    end
-    
-    if not found then 
-      local newSCO = SpellContextOptions:New({spell = cd, suggestion = self})
-      table.insert(self.cache_spells, newSCO)
-    end
-  end
 end
 
 function TorpedoSuggestions:Validator(config, varName, val)
@@ -330,19 +313,23 @@ function TorpedoSuggestions:Serializable()
     if key == 'spell' then 
       res.spell = val:Serializable()
     elseif key == 'auras' then 
-      res.auras = {}
-      for i=1, #val do 
-        table.insert(res.auras, val[i]:Serializable())
-      end
     elseif key == 'cooldowns' then
-      res.cooldowns = {}
-      for i=1, #val do 
-        table.insert(res.cooldowns, val[i]:Serializable())
-      end
     elseif key == 'cache_spells' then
       res.cache_spells = {}
       for i=1, #val do 
-        res.cache_spells[i] = val[i]:Serializable()
+        local serializable = val[i]:Serializable()
+        
+        local hasCustomizations = false
+        for k,v in pairs(serializable) do 
+          if k ~= 'spell' then 
+            hasCustomizations = true
+            break
+          end
+        end
+        
+        if hasCustomizations then 
+          table.insert(res.cache_spells, serializable)
+        end
       end
     elseif key == 'talent_choices' then 
       res.talent_choices = {}
@@ -352,6 +339,23 @@ function TorpedoSuggestions:Serializable()
     elseif type(val) == 'table' then
       -- deep copy 
       res[key] = Utils:tcopy(val)
+   -- Don't save defaults, the files are HUGE (like, >3mb)
+    elseif Utils:strstarts(key, 'check') and val == false then
+    elseif Utils:strstarts(key, 'hasMin') and val == false then 
+    elseif Utils:strstarts(key, 'min') and val == 0 then 
+    elseif Utils:strstarts(key, 'hasMax') and val == false then 
+    elseif Utils:strstarts(key, 'max') and val == 0 then
+    elseif key == 'enabled' and val == false then
+    elseif key == 'debug' and val == false then 
+    elseif key == 'poolEnergyIfLow' and val == false then 
+    elseif key == 'require_stealthed' and val == false then 
+    elseif key == 'require_not_stealthed' and val == false then 
+    elseif key == 'require_boss_fight' and val == false then 
+    elseif key == 'require_not_boss_fight' and val == false then 
+    elseif key == 'require_instance' and val == false then 
+    elseif key == 'require_not_instance' and val == false then 
+    elseif key == 'require_pvp' and val == false then 
+    elseif key == 'require_not_pvp' and val == false then 
     elseif type(val) ~= 'function' and type(val) ~= 'userdata' and type(val) ~= 'thread' then 
       res[key] = val
     end
@@ -362,6 +366,7 @@ end
 function TorpedoSuggestions:Unserialize(ser)
   local spell = Spells:Unserialize(ser.spell)
   local primary = ser.primary
+  if primary == nil then primary = true end
   
   local res = TorpedoSuggestions:New({
     spell = spell, primary = primary
@@ -375,16 +380,6 @@ function TorpedoSuggestions:Unserialize(ser)
       for i=1, #val do 
         res.cache_spells[i] = SpellContextOptions:Unserialize(val[i])
       end
-    elseif key == 'auras' then 
-      res.auras = {}
-      for i=1, #val do 
-        table.insert(res.auras, Auras:Unserialize(val[i]))
-      end
-    elseif key == 'cooldowns' then 
-      res.cooldowns = {}
-      for i=1, #val do 
-        table.insert(res.cooldowns, Spells:Unserialize(val[i]))
-      end
     elseif key == 'talent_choices' then 
       res.talent_choices = {}
       for i=1, #val do 
@@ -395,11 +390,43 @@ function TorpedoSuggestions:Unserialize(ser)
     end
   end
   
-  for i=1, #res.cache_spells do 
-    res.cache_spells[i].suggestion = res
-    res.cache_spells[i]:Init()
+  return res
+end
+
+function TorpedoSuggestions:PostUnserialize()
+  for i=1, #self.auras do 
+    __AddMinMaxOptions(self, 'DurationOf' .. self.auras[i].debugName)
   end
   
-  res:EnsureSpellContextConsistency()
-  return res
+  for i=1, #self.cooldowns do 
+    local spell = self.cooldowns[i]
+    __AddMinMaxOptions(self, 'CooldownFor' .. spell.debugName)
+    
+    if spell.charges then 
+      __AddMinMaxOptions(self, 'ChargesFor' .. spell.debugName)
+    end
+  end
+  
+  for i=1, #self.cache_spells do 
+    self.cache_spells[i].suggestion = self
+    self.cache_spells[i]:Init()
+  end
+  
+  for i=1, #self.cooldowns do 
+    local found = false
+    
+    for j=1, #self.cache_spells do 
+      local cs = self.cache_spells[j]
+      
+      if cs.spell.spell_id == self.cooldowns[i].spell_id then 
+        found = true
+        break
+      end
+    end
+    
+    if not found then 
+      local newSCO = SpellContextOptions:New({spell = self.cooldowns[i], suggestion = self})
+      table.insert(self.cache_spells, newSCO)
+    end
+  end
 end
