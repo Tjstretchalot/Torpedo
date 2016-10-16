@@ -39,6 +39,8 @@ function TorpedoSkills:NewSuggestion(priority, primary)
   sugg.auras = self.auras
   sugg.cooldowns = self.cooldowns
   
+  sugg:PostUnserialize()
+  
   table.insert(self.suggestions, sugg)
 end
 
