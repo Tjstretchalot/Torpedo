@@ -1667,8 +1667,9 @@ RunTestByName('Specialization can create options', function()
       param2 = { }, -- advanced features; add skill
       param3 = { }, -- advanced features; add cooldown
       param4 = { }, -- advanced features; add aura
-      param5 = {
-        order = 5,
+      param5 = { }, -- delete specialization
+      param6 = {
+        order = 6,
         name = 'Nightblade',
         type = 'group',
         args = {
@@ -1701,6 +1702,7 @@ RunTestByName('Specialization can create options', function()
   options.args.param2 = {}
   options.args.param3 = {}
   options.args.param4 = {}
+  options.args.param5 = {}
   AssertDeepEquals(expected, options)
 end)
 

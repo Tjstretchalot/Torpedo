@@ -68,6 +68,10 @@ end
 
 function TorpedoConfigs:RemoveProfileByIndex(index)
   table.remove(self.profiles, index)
+  
+  if index >= self.active_profile_index then 
+    self.active_profile_index = self.active_profile_index - 1
+  end
 end
 
 function TorpedoConfigs:SetActiveSpecialization(specId)

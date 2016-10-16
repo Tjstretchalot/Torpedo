@@ -307,6 +307,24 @@ TorpedoConstants.SECONDARY_PANEL_REFERENCE_CORNER = 'What corner is the offset r
 TorpedoConstants.SECONDARY_PANEL_X_OFFSET = 'What is the x (positive is right) distance from the secondary panel primary offset corner to the secondary panel reference corner?'
 TorpedoConstants.SECONDARY_PANEL_Y_OFFSET = 'What is the y (positive is up) distance from the secondary panel primary offset corner to the secondary panel reference corner?'
 
+-- Add/Remove specialization stuff --
+TorpedoConstants.ADD_SPECIALIZATION_CHECKBOX_NAME = 'Show new specialization options'
+TorpedoConstants.ADD_SPECIALIZATION_CHECKBOX_DESC = 'Show options relating to adding a new specialization. This is for advanced users only.'
+TorpedoConstants.ADD_SPECIALIZATION_GROUP_NAME = 'Add specialization'
+TorpedoConstants.ADD_SPECIALIZATION_SPEC_ID_NAME = 'Specialization ID'
+TorpedoConstants.ADD_SPECIALIZATION_SPEC_ID_DESC = 'This can be retrieved using GetSpecializationInfo(GetSpecialization()) - Returns id, name, description, ...'
+TorpedoConstants.ADD_SPECIALIZATION_SPEC_ID_MIN = nil
+TorpedoConstants.ADD_SPECIALIZATION_SPEC_ID_MAX = nil
+TorpedoConstants.ADD_SPECIALIZATION_SPEC_NAME_NAME = 'Specialization name'
+TorpedoConstants.ADD_SPECIALIZATION_SPEC_NAME_DESC = 'What is the specialization called?'
+TorpedoConstants.ADD_SPECIALIZATION_FILL_IN_CURRENT_NAME = 'Fill in automatically'
+TorpedoConstants.ADD_SPECIALIZATION_FILL_IN_CURRENT_DESC = 'Fill this in with our current specialization information?'
+TorpedoConstants.ADD_SPECIALIZATION_EXECUTE_NAME = 'Add specialization'
+TorpedoConstants.ADD_SPECIALIZATION_EXECUTE_DESC = 'Add the specified specialization to this profile'
+
+TorpedoConstants.DELETE_SPECIALIZATION_NAME = 'Delete specialization'
+TorpedoConstants.DELETE_SPECIALIZATION_DESC = 'Delete this specialization from this profile. Make sure you know what you\'re doing, but you can always get the default profile back using \'Set all to recommended\'.'
+
 -- Talent Choices --
 TorpedoConstants.TALENT_CHOICE_NEW_NAME = 'Add talent check'
 TorpedoConstants.TALENT_CHOICE_NEW_DESC = 'Add a check to see if a talent is or is not selected'

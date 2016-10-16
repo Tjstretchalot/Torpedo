@@ -174,7 +174,7 @@ function TorpedoSpecializations:GetSuggestion(context, primary)
   return bestSugg, bestResult
 end
 
-function TorpedoSpecializations:CreateOptions(order, rebuild_opt)
+function TorpedoSpecializations:CreateOptions(order, rebuild_opt, delete_spec)
   local me = self
   local new_prio_func = function()
     return me:NewPriority()
@@ -594,11 +594,22 @@ function TorpedoSpecializations:CreateOptions(order, rebuild_opt)
             end
           }
         }
+      },
+      param5 = {
+        name = Constants.DELETE_SPECIALIZATION_NAME,
+        desc = Constants.DELETE_SPECIALIZATION_DESC,
+        order = 5,
+        type = 'execute',
+        width = 'full',
+        func = function()
+          delete_spec()
+          rebuild_opt()
+        end
       }
     }
   }
   
-  local offset = 4
+  local offset = 5
   for i=1, #self.skills do 
     local key = 'param' .. tostring(i + offset)
     

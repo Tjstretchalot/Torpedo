@@ -268,6 +268,66 @@ function TorpedoOptionsBuilder:AddTristate(varName, uncheckedName, checkedBright
 end
 
 --[[
+  Add a simple input, tied to varName, validated by validatorFuncOrNil or not validated
+  at all.
+  
+  @param varName The key in the backing config
+  @param optionName The name the user sees left of the input
+  @param desc The hover text
+  @param validatorFuncOrNil Either a function that takes one argument (the input string) and returns a boolean, and a value tuple. The boolean should be false if the value should be unchanged by the input string, true if the value should be set, and the value should be the new value of the varName if the boolean is true, or nil.
+  @return self
+]]
+function TorpedoOptionsBuilder:AddInput(varName, optionName, desc, validatorFuncOrNil)
+  local cacheConfig = self.config
+  
+  return self:AddCustom({
+    name = optionName,
+    desc = desc,
+    type = 'input',
+    width = 'full',
+    get = function() return tostring(cacheConfig[varName]) end,
+    set = function(info, val)
+      if validatorFuncOrNil ~= nil then 
+        local valid, newVal = validatorFuncOrNil(val)
+        if valid then 
+          cacheConfig[varName] = newVal
+        end
+      else
+        cacheConfig[varName] = val
+      end
+    end
+  })
+end
+
+--[[
+  Add a numeric input function, optionally with a minimum or maximum.
+  
+  @param varName The key in the backing config
+  @param optionName The name the user sees left of the input
+  @param desc The hover text
+  @param minimOrNil The minimum value of the option, or nil for no minimum
+  @param maximOrNil The minimum value of the option, or nil for no maximum
+  @return self
+]]
+function TorpedoOptionsBuilder:AddNumericInput(varName, optionName, desc, minimOrNil, maximOrNil)
+  return self:AddInput(varName, optionName, desc, function(valStr)
+    local valNum = tonumber(valStr)
+    
+    if not valNum then return false end
+    
+    if type(minimOrNil) == 'number' and valNum < minimOrNil then 
+      valNum = minimOrNil
+    end
+    
+    if type(maximOrNil) == 'number' and valNum > maximOrNil then 
+      valNum = maximOrNil
+    end
+    
+    return true, valNum
+  end)
+end
+
+--[[
   Adds a simple range slider, tied to varName.
   
   @param varName The key in the backing config

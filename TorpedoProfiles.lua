@@ -7,6 +7,7 @@ local DefaultConfig = LibStub:GetLibrary('TorpedoDefaultConfig-1.0')
 local Encoding = LibStub:GetLibrary('TorpedoEncoding-1.0')
 local Serializer = LibStub:GetLibrary("AceSerializer-3.0")
 local StringBuffer = LibStub:GetLibrary('TorpedoStringBuffer-1.0')
+local OptionsBuilder = LibStub:GetLibrary('TorpedoOptionsBuilder-1.0')
 
 local MAJOR, MINOR = 'TorpedoProfiles-1.0', 1
 local TorpedoProfiles = LibStub:NewLibrary(MAJOR, MINOR)
@@ -31,6 +32,10 @@ function TorpedoProfiles:__Init()
   end
   self.export_profile_checkbox = false
   self.export_profile_input = ''
+  
+  self.add_spec_checkbox = false
+  self.add_spec_spec_id = 0
+  self.add_spec_spec_name = ''
 end
 
 function TorpedoProfiles:NewSpecialization(name, spec_id)
@@ -218,11 +223,55 @@ function TorpedoProfiles:CreateOptions(order, rebuild_opt, update_gui_func, dele
         hidden = function()
           return not me.export_profile_checkbox
         end
-      }
+      },
+      param9 = {
+        order = 9,
+        name = Constants.ADD_SPECIALIZATION_CHECKBOX_NAME,
+        desc = Constants.ADD_SPECIALIZATION_CHECKBOX_DESC,
+        width = 'full',
+        type = 'toggle',
+        get = function() return me.add_spec_checkbox end,
+        set = function(info, val) me.add_spec_checkbox = val end
+      },
+      param10 = {} -- RESERVED
     }
   }
   
-  local offset = 8
+  -- Setup param10 (add specialization options)
+  local addSpecOpts = OptionsBuilder:New(self, 10)
+  addSpecOpts:AddNumericInput('add_spec_spec_id', Constants.ADD_SPECIALIZATION_SPEC_ID_NAME, Constants.ADD_SPECIALIZATION_SPEC_ID_DESC, Constants.ADD_SPECIALIZATION_SPEC_ID_MIN, Constants.ADD_SPECIALIZATION_SPEC_ID_MAX)
+    :AddInput('add_spec_spec_name', Constants.ADD_SPECIALIZATION_SPEC_NAME_NAME, Constants.ADD_SPECIALIZATION_SPEC_NAME_DESC)
+    :AddCustom({
+      name = Constants.ADD_SPECIALIZATION_FILL_IN_CURRENT_NAME,
+      desc = Constants.ADD_SPECIALIZATION_FILL_IN_CURRENT_DESC,
+      type = 'execute',
+      width = 'full',
+      func = function()
+        local id, name = GetSpecializationInfo(GetSpecialization())
+        
+        me.add_spec_spec_id = id
+        me.add_spec_spec_name = name
+      end
+    })
+    :AddCustom({
+      name = Constants.ADD_SPECIALIZATION_EXECUTE_NAME,
+      desc = Constants.ADD_SPECIALIZATION_EXECUTE_DESC,
+      type = 'execute',
+      width = 'full',
+      func = function()
+        me:NewSpecialization(me.add_spec_spec_name, me.add_spec_spec_id)
+        rebuild_opt()
+      end
+    })
+  addSpecOpts = addSpecOpts:Build()
+  addSpecOpts.name = Constants.ADD_SPECIALIZATION_GROUP_NAME
+  addSpecOpts.inline = true
+  addSpecOpts.order = 10
+  addSpecOpts.hidden = function() return not me.add_spec_checkbox end
+  addSpecOpts.disabled = addSpecOpts.hidden
+  result.args.param10 = addSpecOpts
+  
+  local offset = 10
   
   local key = 'param' .. (offset + 1)
   local guiSettings = self.gui_settings:BuildOptions(update_gui_func)
@@ -235,8 +284,16 @@ function TorpedoProfiles:CreateOptions(order, rebuild_opt, update_gui_func, dele
   offset = offset + 1
   for i=1, #self.specializations do 
     local key = 'param' .. tostring(i + offset)
+    local cacheInd = i
+    local delete_spec = function()
+      table.remove(me.specializations, cacheInd)
+      
+      if cacheInd == me.active_spec_index then 
+        me.active_spec_index = nil
+      end
+    end
     
-    result.args[key] = self.specializations[i]:CreateOptions(i + offset, rebuild_opt)
+    result.args[key] = self.specializations[i]:CreateOptions(i + offset, rebuild_opt, delete_spec)
   end
   
   return result
