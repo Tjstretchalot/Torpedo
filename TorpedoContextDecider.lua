@@ -274,6 +274,11 @@ function TorpedoContextDecider:__DecideImpl(requirements, context, optCompareCon
     local timeRem = nil
     if context ~= nil then
       timeRem = cooldown:TimeRemaining(context)
+      
+      -- This is 99% of the time the global cooldown
+      if timeRem <= 1 then 
+        timeRem = 0
+      end
     end
     if not self:MeetsReqs_MinCheck(nm, timeRem, requirements, context, optCompareContext) then 
       return false, self.FAIL_REASON.MIN_FAILED, nm, timeRem

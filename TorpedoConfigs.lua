@@ -69,7 +69,7 @@ end
 function TorpedoConfigs:RemoveProfileByIndex(index)
   table.remove(self.profiles, index)
   
-  if index >= self.active_profile_index then 
+  if self.active_profile_index and index >= self.active_profile_index then 
     self.active_profile_index = self.active_profile_index - 1
   end
 end

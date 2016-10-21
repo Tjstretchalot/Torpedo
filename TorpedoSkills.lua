@@ -78,8 +78,8 @@ function TorpedoSkills:RegisterAura(aura)
   end
 end
 
-function TorpedoSkills:CreateOptions(order, rebuild_opt, new_priority_func, advanced_features_func, delete_skill_func)
-  Utils:CheckTypes({ order = 'number', rebuild_opt = 'function', new_priority_func = 'function', advanced_features_func = 'function', delete_skill_func = 'function' }, { order = order, rebuild_opt = rebuild_opt, new_priority_func = new_priority_func, advanced_features_func = advanced_features_func, delete_skill_func = delete_skill_func })
+function TorpedoSkills:CreateOptions(order, rebuild_opt, new_priority_func, advanced_features_func, delete_skill_func, can_reduce_order_func, reduce_order_func, can_increase_order_func, increase_order_func)
+  Utils:CheckTypes({ order = 'number', rebuild_opt = 'function', new_priority_func = 'function', advanced_features_func = 'function', delete_skill_func = 'function', can_reduce_order_func = 'function', reduce_order_func = 'function', can_increase_order_func = 'function', increase_order_func = 'function' }, { order = order, rebuild_opt = rebuild_opt, new_priority_func = new_priority_func, advanced_features_func = advanced_features_func, delete_skill_func = delete_skill_func, can_reduce_order_func = can_reduce_order_func, reduce_order_func = reduce_order_func, can_increase_order_func = can_increase_order_func, increase_order_func = increase_order_func })
   
   if not new_priority_func then error('Need a function to get a priority for new primary abilities') end
   
@@ -113,6 +113,34 @@ function TorpedoSkills:CreateOptions(order, rebuild_opt, new_priority_func, adva
           delete_skill_func()
           rebuild_opt()
         end
+      },
+      param3 = {
+        order = 3,
+        name = Constants.REDUCE_SKILL_ORDER_NAME,
+        desc = Constants.REDUCE_SKILL_ORDER_DESC,
+        width = 'full',
+        type = 'execute',
+        disabled = function()
+          return not can_reduce_order_func()
+        end,
+        func = function()
+          reduce_order_func()
+          rebuild_opt()
+        end
+      },
+      param4 = {
+        order = 4,
+        name = Constants.INCREASE_SKILL_ORDER_NAME,
+        desc = Constants.INCREASE_SKILL_ORDER_DESC,
+        width = 'full',
+        type = 'execute',
+        disabled = function()
+          return not can_increase_order_func()
+        end,
+        func = function()
+          increase_order_func()
+          rebuild_opt()
+        end
       }
     }
   }
@@ -136,7 +164,7 @@ function TorpedoSkills:CreateOptions(order, rebuild_opt, new_priority_func, adva
     end
   end
   
-  local offset = 2
+  local offset = 4
   for i=1, #sorted do 
     local sugg = self.suggestions[sorted[i].suggIndex]
     local str = 'param' .. tostring(i + offset)

@@ -157,16 +157,21 @@ function TorpedoSpecializations:GetSuggestion(context, primary)
   
   for i=1, #self.skills do 
     local skill = self.skills[i]
-    for j=1, #self.skills[i].suggestions do 
+    for j=1, #skill.suggestions do 
       local sugg = skill.suggestions[j]
       
       if not bestPriority or sugg.priority > bestPriority then 
+        if sugg.debug then 
+          print('Torpedo: Evaluating ' .. skill.name .. ' suggestion ' .. tostring(j))
+        end
         local meetsReq = sugg:MeetsRequirements(context, primary)
         if meetsReq ~= SuggestionResult.DO_NOT_SUGGEST then 
           bestSugg = sugg
           bestResult = meetsReq
           bestPriority = sugg.priority
         end
+      elseif sugg.debug then
+        print('Torpedo: Not evaluating ' .. skill.name .. ' suggestion ' .. tostring(j) .. '; bestPriority = ' .. tostring(bestPriority) .. ' vs ' .. tostring(sugg.priority))
       end
     end
   end
@@ -619,7 +624,27 @@ function TorpedoSpecializations:CreateOptions(order, rebuild_opt, delete_spec)
       table.remove(me.skills, cacheInd)
     end
     
-    result.args[key] = self.skills[i]:CreateOptions(i + offset, rebuild_opt, new_prio_func, advanced_features_func, delete_skill_func)
+    local can_reduce_order_func = function()
+      return cacheInd > 1
+    end
+    
+    local reduce_order_func = function()
+      local temp = me.skills[cacheInd - 1]
+      me.skills[cacheInd - 1] = me.skills[cacheInd]
+      me.skills[cacheInd] = temp
+    end
+    
+    local can_increase_order_func = function()
+      return cacheInd < #me.skills
+    end
+    
+    local increase_order_func = function()
+      local temp = me.skills[cacheInd + 1]
+      me.skills[cacheInd + 1] = me.skills[cacheInd]
+      me.skills[cacheInd] = temp
+    end
+    
+    result.args[key] = self.skills[i]:CreateOptions(i + offset, rebuild_opt, new_prio_func, advanced_features_func, delete_skill_func, can_reduce_order_func, reduce_order_func, can_increase_order_func, increase_order_func)
   end
   
   return result

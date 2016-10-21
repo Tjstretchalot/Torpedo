@@ -1186,7 +1186,7 @@ RunTestByName('Create options from skill', function()
   }
   
   local fn = function() end
-  local actual = skill:CreateOptions(2, fn, fn, fn, fn)
+  local actual = skill:CreateOptions(2, fn, fn, fn, fn, fn, fn, fn, fn)
   local expected = {
     name = 'Some Skill',
     type = 'group',
@@ -1210,8 +1210,26 @@ RunTestByName('Create options from skill', function()
         func = fn
       },
       param3 = {
+        order = 3,
+        name = Constants.REDUCE_SKILL_ORDER_NAME,
+        desc = Constants.REDUCE_SKILL_ORDER_DESC,
+        type = 'execute',
+        width = 'full',
+        disabled = fn,
+        func = fn
+      },
+      param4 = {
+        order = 4,
+        name = Constants.INCREASE_SKILL_ORDER_NAME,
+        desc = Constants.INCREASE_SKILL_ORDER_DESC,
+        type = 'execute',
+        width = 'full',
+        disabled = fn,
+        func = fn
+      },
+      param5 = {
         debugStr = 'Magical mock string',
-        order = 3
+        order = 5
       }
     }
   }
@@ -1258,7 +1276,7 @@ RunTestByName('Rearrange order and create options from skill', function()
   }
   
   local fn = function() end
-  local actual = skill:CreateOptions(2, fn, fn, fn, fn)
+  local actual = skill:CreateOptions(2, fn, fn, fn, fn, fn, fn, fn, fn)
   local expected = {
     name = 'Some Skill',
     type = 'group',
@@ -1282,25 +1300,43 @@ RunTestByName('Rearrange order and create options from skill', function()
         func = fn
       },
       param3 = {
-        debugStr = 'Magical mock string 2',
-        order = 3
+        order = 3,
+        name = Constants.REDUCE_SKILL_ORDER_NAME,
+        desc = Constants.REDUCE_SKILL_ORDER_DESC,
+        type = 'execute',
+        width = 'full',
+        disabled = fn,
+        func = fn
       },
       param4 = {
+        order = 4,
+        name = Constants.INCREASE_SKILL_ORDER_NAME,
+        desc = Constants.INCREASE_SKILL_ORDER_DESC,
+        type = 'execute',
+        width = 'full',
+        disabled = fn,
+        func = fn
+      },
+      param5 = {
+        debugStr = 'Magical mock string 2',
+        order = 5
+      },
+      param6 = {
         debugStr = 'Magical mock string',
-        order = 4
+        order = 6
       }
     }
   }
   AssertDeepEquals(expected, actual)
   
   skill.suggestions[1].priority = 501
-  local tmp = expected.args.param3
-  expected.args.param3 = expected.args.param4
-  expected.args.param4 = tmp
-  expected.args.param3.order = 3
-  expected.args.param4.order = 4
+  local tmp = expected.args.param5
+  expected.args.param5 = expected.args.param6
+  expected.args.param6 = tmp
+  expected.args.param5.order = 5
+  expected.args.param6.order = 6
   
-  actual = skill:CreateOptions(2, fn, fn, fn, fn)
+  actual = skill:CreateOptions(2, fn, fn, fn, fn, fn, fn, fn, fn)
   AssertDeepEquals(expected, actual)
 end)
 
@@ -1692,6 +1728,24 @@ RunTestByName('Specialization can create options', function()
           },
           param3 = {
             order = 3,
+            name = Constants.REDUCE_SKILL_ORDER_NAME,
+            desc = Constants.REDUCE_SKILL_ORDER_DESC,
+            type = 'execute',
+            width = 'full',
+            disabled = fn,
+            func = fn
+          },
+          param4 = {
+            order = 4,
+            name = Constants.INCREASE_SKILL_ORDER_NAME,
+            desc = Constants.INCREASE_SKILL_ORDER_DESC,
+            type = 'execute',
+            width = 'full',
+            disabled = fn,
+            func = fn
+          },
+          param5 = {
+            order = 5,
             someStr = 'Magical string 1',
             name = 'Option 1'
           }

@@ -145,6 +145,13 @@ TorpedoConstants.SET_ALL_TO_RECOMMENDED_DESC = 'Make this profile a copy of the 
 TorpedoConstants.DELETE_SKILL_NAME = 'Delete skill'
 TorpedoConstants.DELETE_SKILL_DESC = 'Delete this skill'
 
+TorpedoConstants.REDUCE_SKILL_ORDER_NAME = 'Reduce order'
+TorpedoConstants.REDUCE_SKILL_ORDER_DESC = 'This moves this skill up in the tree layout. This has absolutely no effect on anything except that.'
+
+TorpedoConstants.INCREASE_SKILL_ORDER_NAME = 'Increase order'
+TorpedoConstants.INCREASE_SKILL_ORDER_DESC = 'This moves this skill down in the tree layout. This has absolutely no effect on anything except that.'
+
+
 TorpedoConstants.TOGGLE_ADVANCED_FEATURES_NAME = 'Advanced features'
 TorpedoConstants.TOGGLE_ADVANCED_FEATURES_DESC = 'Enable features that require an above-average knowledge of WoW\'s technical aspects, such as spell ids, aura targets, and icon ids. These features also tend to have more jargon in error messages and allow for subtle mistakes.'
 
