@@ -899,7 +899,7 @@ local config = {
 									["cache_spells"] = {
 									},
 									["checkComboPoints"] = true,
-									["maxComboPoints"] = 5,
+									["maxComboPoints"] = 4,
 									["priority"] = 487,
 									["talent_choices"] = {
 									},
@@ -1091,7 +1091,7 @@ local config = {
 									["cache_spells"] = {
 									},
 									["checkComboPoints"] = true,
-									["maxComboPoints"] = 2,
+									["maxComboPoints"] = 3,
 									["maxEnergy"] = 150,
 									["priority"] = 496,
 									["hasMaxCooldownForGoremawsBite"] = true,
@@ -1393,31 +1393,43 @@ local config = {
 										["spell_id"] = 2823,
 									},
 									["talent_choices"] = {
+										{
+											["enabled"] = true,
+											["column"] = 1,
+											["tier"] = 6,
+											["inverted"] = true,
+										}, -- [1]
 									},
-									["primary"] = true,
+									["require_no_combat"] = true,
 									["hasMaxDurationOfDeadlyPoison"] = true,
 									["cache_spells"] = {
 									},
 									["maxDurationOfDeadlyPoison"] = 600,
 									["priority"] = 900,
-									["require_no_combat"] = true,
+									["primary"] = true,
 									["checkDurationOfDeadlyPoison"] = true,
 								}, -- [1]
 								{
 									["enabled"] = true,
 									["cache_spells"] = {
 									},
+									["primary"] = true,
+									["talent_choices"] = {
+										{
+											["enabled"] = true,
+											["column"] = 1,
+											["tier"] = 6,
+											["inverted"] = true,
+										}, -- [1]
+									},
+									["checkDurationOfDeadlyPoison"] = true,
+									["priority"] = 895,
 									["spell"] = {
 										["debugName"] = "DeadlyPoison",
 										["name"] = "Deadly Poison",
 										["icon_id"] = 132290,
 										["spell_id"] = 2823,
 									},
-									["talent_choices"] = {
-									},
-									["checkDurationOfDeadlyPoison"] = true,
-									["primary"] = true,
-									["priority"] = 895,
 									["hasMaxDurationOfDeadlyPoison"] = true,
 								}, -- [2]
 							},
@@ -1474,13 +1486,13 @@ local config = {
 										["spell_id"] = 1856,
 										["cooldown"] = 120,
 									},
-									["primary"] = false,
-									["minEnergy"] = 25,
-									["hasMaxCooldownForExsanguinate"] = true,
-									["hasMinComboPoints"] = true,
 									["talent_choices"] = {
 									},
+									["minEnergy"] = 25,
+									["hasMaxCooldownForExsanguinate"] = true,
+									["primary"] = false,
 									["priority"] = 625,
+									["hasMinComboPoints"] = true,
 									["hasMinEnergy"] = true,
 									["cache_spells"] = {
 									},
@@ -1488,8 +1500,8 @@ local config = {
 									["hasMaxCooldownForVanish"] = true,
 									["minComboPoints"] = 6,
 									["checkCooldownForVanish"] = true,
-									["checkCooldownForExsanguinate"] = true,
 									["checkEnergy"] = true,
+									["checkCooldownForExsanguinate"] = true,
 								}, -- [1]
 							},
 						}, -- [3]
@@ -1648,6 +1660,12 @@ local config = {
 									},
 									["checkTimeToKillSolo"] = true,
 									["talent_choices"] = {
+										{
+											["enabled"] = true,
+											["column"] = 3,
+											["tier"] = 6,
+											["inverted"] = false,
+										}, -- [1]
 									},
 									["hasMaxCooldownForExsanguinate"] = true,
 									["minCooldownForVanish"] = 10,
@@ -1692,8 +1710,8 @@ local config = {
 									["hasMinEnergy"] = true,
 									["cache_spells"] = {
 									},
-									["hasMinTimeToKillSolo"] = true,
 									["checkCooldownForKingsbane"] = true,
+									["hasMinTimeToKillSolo"] = true,
 									["talent_choices"] = {
 									},
 									["priority"] = 525,
@@ -1800,7 +1818,8 @@ local config = {
 							["name"] = "Rupture",
 							["suggestions"] = {
 								{
-									["minEnergy"] = 25,
+									["talent_choices"] = {
+									},
 									["checkEnergy"] = true,
 									["hasMinComboPoints"] = true,
 									["hasMinEnergy"] = true,
@@ -1832,8 +1851,7 @@ local config = {
 									["checkComboPoints"] = true,
 									["minComboPoints"] = 2,
 									["hasMinTimeToKillSolo"] = true,
-									["talent_choices"] = {
-									},
+									["minEnergy"] = 25,
 									["hasMaxDurationOfRupture"] = true,
 								}, -- [1]
 								{
@@ -1892,8 +1910,67 @@ local config = {
 								}, -- [2]
 							},
 						}, -- [11]
+						{
+							["spell"] = {
+								["debugName"] = "AgonizingPoison",
+								["name"] = "Agonizing Poison",
+								["icon_id"] = 134711,
+								["spell_id"] = 200802,
+							},
+							["name"] = "Agonizing Poison",
+							["suggestions"] = {
+								{
+									["enabled"] = true,
+									["spell"] = {
+										["debugName"] = "AgonizingPoison",
+										["name"] = "Agonizing Poison",
+										["icon_id"] = 134711,
+										["spell_id"] = 200802,
+									},
+									["talent_choices"] = {
+										{
+											["enabled"] = true,
+											["column"] = 1,
+											["tier"] = 6,
+											["inverted"] = false,
+										}, -- [1]
+									},
+									["require_no_combat"] = true,
+									["hasMaxDurationOfAgonizingPoison"] = true,
+									["cache_spells"] = {
+									},
+									["checkDurationOfAgonizingPoison"] = true,
+									["priority"] = 910,
+									["maxDurationOfAgonizingPoison"] = 600,
+									["primary"] = true,
+								}, -- [1]
+								{
+									["hasMaxDurationOfAgonizingPoison"] = true,
+									["cache_spells"] = {
+									},
+									["checkDurationOfAgonizingPoison"] = true,
+									["talent_choices"] = {
+										{
+											["enabled"] = true,
+											["column"] = 1,
+											["tier"] = 6,
+											["inverted"] = false,
+										}, -- [1]
+									},
+									["primary"] = true,
+									["priority"] = 905,
+									["spell"] = {
+										["debugName"] = "AgonizingPoison",
+										["name"] = "Agonizing Poison",
+										["icon_id"] = 134711,
+										["spell_id"] = 200802,
+									},
+									["enabled"] = true,
+								}, -- [2]
+							},
+						}, -- [12]
 					},
-					["advanced_features"] = false,
+					["advanced_features"] = true,
 					["auras"] = {
 						{
 							["is_stealthy"] = true,
@@ -1985,6 +2062,16 @@ local config = {
 							["hidden"] = false,
 							["aura_id"] = 703,
 						}, -- [9]
+						{
+							["is_stealthy"] = false,
+							["debugName"] = "AgonizingPoison",
+							["name"] = "Agonizing Poison",
+							["icon_id"] = "Interface\\Icons\\INV_Poison_MindNumbing",
+							["target"] = "player",
+							["max_duration"] = 3600,
+							["hidden"] = false,
+							["aura_id"] = 200802,
+						}, -- [10]
 					},
 				}, -- [2]
 			},
