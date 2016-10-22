@@ -142,6 +142,12 @@ TorpedoConstants.CLONE_PROFILE_DESC = 'Make a copy of this profile. Don\'t go to
 TorpedoConstants.SET_ALL_TO_RECOMMENDED_NAME = 'Set all to recommended'
 TorpedoConstants.SET_ALL_TO_RECOMMENDED_DESC = 'Make this profile a copy of the recommended settings - this will overwrite this profile!'
 
+TorpedoConstants.ENABLE_PROFILE_OPTIONS_NAME = 'Enable profile options'
+TorpedoConstants.ENABLE_PROFILE_OPTIONS_DESC = 'Actually build the options table for this profile. Recommended that you only enable this temporarily, as disabling this is a significant performance boost while actually playing. It\'s recommended you reload after disabling options.'
+
+TorpedoConstants.DISABLE_PROFILE_OPTIONS_NAME = 'Disable profile options'
+TorpedoConstants.DISABLE_PROFILE_OPTIONS_DESC = 'Stop building the options for this profile until re-enabled. Recommended that you only enable this temporarily, as disabling this is a significant performance boost while actually playing. It\'s recommended you reload after disabling options.'
+
 TorpedoConstants.DELETE_SKILL_NAME = 'Delete skill'
 TorpedoConstants.DELETE_SKILL_DESC = 'Delete this skill'
 

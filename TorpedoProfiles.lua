@@ -30,12 +30,17 @@ function TorpedoProfiles:__Init()
   if self.gui_settings == nil then 
     self.gui_settings = GUISettings:New({})
   end
+  
   self.export_profile_checkbox = false
   self.export_profile_input = ''
   
   self.add_spec_checkbox = false
   self.add_spec_spec_id = 0
   self.add_spec_spec_name = ''
+  
+  if self.options_disabled == nil then
+    self.options_disabled = true
+  end
 end
 
 function TorpedoProfiles:NewSpecialization(name, spec_id)
@@ -58,6 +63,10 @@ function TorpedoProfiles:Serializable()
   end
   res.gui_settings = self.gui_settings:Serializable()
   
+  if self.options_disabled ~= true then 
+    res.options_disabled = self.options_disabled
+  end
+  
   return res
 end
 
@@ -68,7 +77,8 @@ function TorpedoProfiles:Unserialize(ser)
   end
   local name = ser.name
   local gui_settings = GUISettings:Unserialize(ser.gui_settings)
-  local profile = TorpedoProfiles:New({ specializations = specializations, name = name, gui_settings = gui_settings })
+  local options_disabled = ser.options_disabled
+  local profile = TorpedoProfiles:New({ specializations = specializations, name = name, gui_settings = gui_settings, options_disabled = options_disabled })
   return profile
 end
 
@@ -106,6 +116,10 @@ end
 function TorpedoProfiles:CreateOptions(order, rebuild_opt, update_gui_func, delete_profile_func, is_active_profile_func, set_active_profile_func, is_valid_profile_name_func, clone_profile_func)
   Utils:CheckTypes({ order = 'number', update_gui_func = 'function', rebuild_opt = 'function', delete_profile_func = 'function',
   is_active_profile_func = 'function', set_active_profile_func = 'function', is_valid_profile_name_func = 'function', clone_profile_func = 'function' }, { order = order, rebuild_opt = rebuild_opt, update_gui_func = update_gui_func, delete_profile_func = delete_profile_func, is_active_profile_func = is_active_profile_func, set_active_profile_func = set_active_profile_func, is_valid_profile_name_func = is_valid_profile_name_func, clone_profile_func = clone_profile_func})
+  
+  if self.options_disabled then 
+    return self:CreateOptionsDisabledOptions(order, rebuild_opt)
+  end
   
   local me = self
   local result = {
@@ -233,7 +247,18 @@ function TorpedoProfiles:CreateOptions(order, rebuild_opt, update_gui_func, dele
         get = function() return me.add_spec_checkbox end,
         set = function(info, val) me.add_spec_checkbox = val end
       },
-      param10 = {} -- RESERVED
+      param10 = {}, -- RESERVED
+      param11 = {
+        order = 11,
+        name = Constants.DISABLE_PROFILE_OPTIONS_NAME,
+        desc = Constants.DISABLE_PROFILE_OPTIONS_DESC,
+        width = 'full',
+        type = 'execute',
+        func = function()
+          me.options_disabled = true
+          rebuild_opt()
+        end
+      }
     }
   }
   
@@ -271,7 +296,7 @@ function TorpedoProfiles:CreateOptions(order, rebuild_opt, update_gui_func, dele
   addSpecOpts.disabled = addSpecOpts.hidden
   result.args.param10 = addSpecOpts
   
-  local offset = 10
+  local offset = 11
   
   local key = 'param' .. (offset + 1)
   local guiSettings = self.gui_settings:BuildOptions(update_gui_func)
@@ -297,4 +322,29 @@ function TorpedoProfiles:CreateOptions(order, rebuild_opt, update_gui_func, dele
   end
   
   return result
+end
+
+--[[
+  It often improves performance to NOT build huge options tables.
+]]
+function TorpedoProfiles:CreateOptionsDisabledOptions(order, rebuild_opt)
+  local me = self
+  return {
+    type = 'group',
+    name = me.name,
+    order = order,
+    args = {
+      param1 = {
+        type = 'execute',
+        name = Constants.ENABLE_PROFILE_OPTIONS_NAME,
+        desc = Constants.ENABLE_PROFILE_OPTIONS_DESC,
+        func = function()
+          me.options_disabled = false
+          rebuild_opt()
+        end,
+        width = 'full',
+        order = 1
+      }
+    }
+  }
 end
